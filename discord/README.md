@@ -10,4 +10,17 @@ and re-run the distillation over the new messages. Message ids cited below are t
 last 6 digits of the Discord snowflake, unique within the export.
 
 - [general-channel.md](general-channel.md) — channel `1124364902811844739`,
-  1,309 messages, 2026-06-21 → 2026-08-15 (distilled 2026-08-15).
+  8,921 messages, 2025-10-17 → 2026-08-15 (distilled 2026-08-15 from six ~1,270-message
+  chunks plus an earlier 1,309-message pass, then merged).
+
+## Coverage / how to resume scrolling
+
+The channel has ~48,135 messages (Discord's count, 2026-08-15) and was created 2023-06-30.
+Captured so far: everything from 2025-10-17 onward (18.5%). Oldest captured message:
+id `1428728361026584741` (phreaker, 2025-10-17 12:56 UTC) —
+https://discord.com/channels/1053081626898337902/1124364902811844739/1428728361026584741
+
+To extend backwards: open that link, start DevTools (Preserve log, filter "messages"),
+scroll up, export HAR. Run `har2jsonl.py` over the new HAR (plus any older HARs still on
+disk; it dedupes by message id), then distill only messages older than the previous oldest
+`ts`, and update this section.
