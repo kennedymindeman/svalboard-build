@@ -6,12 +6,12 @@ other people's messages don't get committed); the pages here are the distilled r
 
 How to refresh: scroll the channel in Discord with DevTools open, "Export HAR
 (sanitized)", then `tools/har2jsonl.py export.har > discord/raw/<channel>.jsonl`
-and re-run the distillation over the new messages. Message ids cited below are the
-last 6 digits of the Discord snowflake, unique within the export.
+and re-run the distillation over the new messages. Message ids cited in the wiki pages are
+the last 6 digits of the Discord snowflake, unique within the export.
 
-- [general-channel.md](general-channel.md) — channel `1124364902811844739`,
-  8,921 messages, 2025-10-17 → 2026-08-15 (distilled 2026-08-15 from six ~1,270-message
-  chunks plus an earlier 1,309-message pass, then merged).
+- Channel `1124364902811844739`, 8,921 messages, 2025-10-17 → 2026-08-15 (distilled
+  2026-08-15 from six ~1,270-message chunks plus an earlier 1,309-message pass, then
+  merged). The result lives in the wiki, one page per topic: [../wiki/index.md](../wiki/index.md).
 
 ## Coverage / how to resume scrolling
 
