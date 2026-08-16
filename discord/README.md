@@ -18,7 +18,7 @@ and re-run the distillation over the new messages (see "Coverage" below for the 
 
 ## Coverage / how to resume scrolling
 
-The channel has ~48,135 messages (Discord's count, 2025-08-15) and was created 2023-06-30.
+The channel has ~48,135 messages (Discord's count, 2026-08-15) and was created 2023-06-30.
 Captured so far: 41,085 (85%). Two gaps remain:
 
 - **2025-08-10 → 2025-10-17** (~2 months, between the two captures). Newest backfill message:

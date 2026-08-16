@@ -67,7 +67,7 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
 
 - **Dimensional accuracy is the whole game.** Elephant foot on key faces causes stuck keys — lower
   the first layer or use the compensation setting; filing won't rescue an over-extruded cluster, and
-  "if magnets press-fit properly, your dimensions aren't actually true to the STEP" (866237, 852148,
+  "if magnets press-fit properly, your dimensions aren't actually true to the STEP" (852148,
   198046, 208754). The number to hit is **±0.05 mm on critical dimensions** — "We're talking about
   20ths of a millimeter" (073896, 142420). Calibrate first with cubes, temperature and retraction
   towers (426017, 590430); elephant foot has been the cluster failure mode since 2023, stiffening key

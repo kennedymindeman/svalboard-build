@@ -282,7 +282,7 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   are a Vial combo with negative modifiers or an OS remap (488646, 349241, 768978, 437744, 623188).
 - **Switches are binary and force is set at print time**: actuation is optical occlusion, so there is
   no software sensitivity — force comes from key/tab prints and magnet offsets (0.7 mm offset ≈ 20 g,
-  dropping 2-3 g per further 0.1 mm; 0.9 mm is the default print). Wooting-style rapid trigger doesn't
+  dropping 2-3 g per further 0.1 mm; the shipping default is 0.7 on side keys and 0.9 on tipping centres, see [ergonomics-and-fit](/ergonomics-and-fit.md)). Wooting-style rapid trigger doesn't
   port: the force breakaway is too extreme to hold a key part-way (023131, 465775, 730305, 120144) —
   see [ergonomics-and-fit](/ergonomics-and-fit.md).
 - **The trackpad is presented to the host as a plain QMK mouse** — no OS touch digitizer, no libinput

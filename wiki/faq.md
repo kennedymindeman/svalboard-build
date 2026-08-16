@@ -155,7 +155,7 @@ Where an answer changed over the three years, the entry leads with the current o
 ## Firmware, configuration and connectivity
 
 - **Does it ship with firmware, and what programs it?** (688121, 569, 1166, 387072) → No, POST only;
-  flash the latest vial-qmk release, then use Keybard, Vial or vial.rocks (450890, 992539, 311742).
+  flash the latest vial-qmk release, then use Keybard (Vial or vial.rocks also work for plain keymap edits, but Keybard is the current tool; see [firmware-and-config](/firmware-and-config.md)) (450890, 992539, 311742).
   It's vial-qmk on a custom branch — fork, push a tag, GitHub Actions builds it. phreaker (182933,
   070785). See [firmware-and-config](/firmware-and-config.md).
 - **Do I need Vial or any software running?** (426578, 380431, 269245, 883728) → No: the keymap lives
