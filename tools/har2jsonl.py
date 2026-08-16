@@ -15,7 +15,7 @@ msgs = {}
 for path in sys.argv[1:]:
     har = json.load(open(path))
     for e in har["log"]["entries"]:
-        if not re.search(r"/channels/\d+/messages", e["request"]["url"]):
+        if not re.search(r"/channels/\d+/messages(\?|$)", e["request"]["url"]):
             continue
         text = e["response"]["content"].get("text")
         if not text:
