@@ -1,0 +1,11 @@
+# Log
+
+## 2026-08-16
+
+- Bundle created by splitting `discord/general-channel.md` (the distilled Discord #general reference) into one page per topic. From its section 1 plus the file's source paragraph and the closing "Gaps" section: [discord-general-overview](/discord-general-overview.md). From section 2's subsections: [firmware-and-config](/firmware-and-config.md), [printing](/printing.md), [pointing-devices](/pointing-devices.md), [ergonomics-and-fit](/ergonomics-and-fit.md), [gaming](/gaming.md), [suppliers-and-parts](/suppliers-and-parts.md). From sections 3–6: [timeline](/timeline.md), [open-questions](/open-questions.md), [links](/links.md), [faq](/faq.md). No sections were small enough to merge — Gaming, the smallest at ~10 lines, kept its own page.
+- Content moved verbatim; the only edits were dropping the "Source:" prefix now that it sits under a heading, qualifying two channel-relative phrases, and adding per-page frontmatter (`source: discord #general …`) plus the message-id note at the top of each page. `discord/general-channel.md` is now a stub pointing here.
+
+## 2026-08-16 (later)
+
+- Backfilled every page from a second Discord capture covering 2023-09-07..2025-08-10 (32,164 messages; total now 41,085 of ~48,135, one gap left at 2025-08-10..2025-10-17). Pipeline: `tools/har2jsonl.py` (now ignores the `/messages/pins` endpoint) → `tools/chunk.py` (new; 25 chunks of ~1,287) → one distillation per chunk in the `distill-1.md` format → sliced by section into per-topic files → one merge per wiki page. Every page kept all of its pre-merge citation ids (checked per page: 0 missing); pages grew 3-9x. Superseded positions (34/40 mm balls, Vial-only, filament budget, resin/SLA, key-force tables) are kept as dated history rather than dropped; [timeline](/timeline.md) now starts 2023-09 and marks the gap; [discord-general-overview](/discord-general-overview.md) gained an era guide and a voices-over-time section.
+- Frontmatter: `source:` on every page now reads `2023-09-07..2026-08-15 (gap 2025-08-10..2025-10-17)`; `title`/`description` values containing `#general` are quoted so YAML doesn't truncate them; the message-id note on each page now warns that 6-digit suffixes can collide in the 41k-message export.

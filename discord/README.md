@@ -6,21 +6,33 @@ other people's messages don't get committed); the pages here are the distilled r
 
 How to refresh: scroll the channel in Discord with DevTools open, "Export HAR
 (sanitized)", then `tools/har2jsonl.py export.har > discord/raw/<channel>.jsonl`
-and re-run the distillation over the new messages. Message ids cited below are the
-last 6 digits of the Discord snowflake, unique within the export.
+and re-run the distillation over the new messages (see "Coverage" below for the chunk step).
 
-- [general-channel.md](general-channel.md) — channel `1124364902811844739`,
-  8,921 messages, 2025-10-17 → 2026-08-15 (distilled 2026-08-15 from six ~1,270-message
-  chunks plus an earlier 1,309-message pass, then merged).
+- Channel `1124364902811844739`, 41,085 messages, 2023-09-07 → 2025-08-10 and 2025-10-17 → 2026-08-15.
+  Distilled in two passes: the 2025-10-17 → 2026-08-15 window on 2026-08-15 (six ~1,270-message
+  chunks plus an earlier 1,309-message pass), and the 2023-09-07 → 2025-08-10 backfill on 2026-08-16
+  (25 ~1,287-message chunks, `tools/chunk.py`, distilled in parallel then merged page by page into
+  the wiki). The result lives in the wiki, one page per topic: [../wiki/index.md](../wiki/index.md).
+  Message ids cited in the wiki pages are the last 6 digits of the Discord snowflake; a few collide
+  across the 41k-message export, so disambiguate by date if a lookup returns two hits.
 
 ## Coverage / how to resume scrolling
 
 The channel has ~48,135 messages (Discord's count, 2026-08-15) and was created 2023-06-30.
-Captured so far: everything from 2025-10-17 onward (18.5%). Oldest captured message:
-id `1428728361026584741` (phreaker, 2025-10-17 12:56 UTC) —
-https://discord.com/channels/1053081626898337902/1124364902811844739/1428728361026584741
+Captured so far: 41,085 (85%). Two gaps remain:
 
-To extend backwards: open that link, start DevTools (Preserve log, filter "messages"),
-scroll up, export HAR. Run `har2jsonl.py` over the new HAR (plus any older HARs still on
-disk; it dedupes by message id), then distill only messages older than the previous oldest
-`ts`, and update this section.
+- **2025-08-10 → 2025-10-17** (~2 months, between the two captures). Newest backfill message:
+  id `1404016026848595991` (madnificent, 2025-08-10 08:18 UTC) —
+  https://discord.com/channels/1053081626898337902/1124364902811844739/1404016026848595991.
+  Oldest of the later capture: id `1428728361026584741` (phreaker, 2025-10-17 12:56 UTC) —
+  https://discord.com/channels/1053081626898337902/1124364902811844739/1428728361026584741.
+  Open either link, DevTools (Preserve log, filter "messages"), scroll toward the other, export HAR.
+- **2023-06-30 → 2023-09-07** (channel start). Oldest captured: id `1149179828524810260`
+  (ang3l12, 2023-09-07 03:10 UTC) —
+  https://discord.com/channels/1053081626898337902/1124364902811844739/1149179828524810260.
+  Open it and scroll up.
+
+To fill a gap: run `har2jsonl.py` over the new HAR plus the older HARs still on disk (it dedupes by
+message id), then `tools/chunk.py channel.jsonl discord/raw/<prefix> N --after <ts> --before <ts>` for
+just the new range, distill each chunk in the `distill-1.md` format, merge into the wiki pages, and
+update this section.

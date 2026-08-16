@@ -10,3 +10,7 @@ are the Self-Print Build Guide PDF (in the private supporters repo, local copy a
 
 A weekly Claude routine reads the open issues here every Sunday morning and books a
 build-hour calendar block with the next step.
+
+Community knowledge that isn't step-by-step assembly — printing, trackballs, fit,
+firmware, parts sources — lives in the repo wiki at [wiki/index.md](wiki/index.md),
+distilled from the Svalboard Discord.
