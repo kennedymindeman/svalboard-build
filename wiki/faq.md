@@ -3,12 +3,12 @@ type: FAQ
 title: FAQ
 description: "The newcomer questions asked more than once across three years of #general, with the channel's answers and how they changed."
 tags: [svalboard, discord, faq]
-source: "discord #general 1124364902811844739, 2023-09-07..2026-08-15 (gap 2025-08-10..2025-10-17)"
+source: "discord #general 1124364902811844739, 2023-06-30..2026-08-15 (gap 2025-08-10..2025-10-17)"
 ---
 
 # FAQ
 
-Message ids in parentheses are the last 6 digits of Discord snowflakes in `discord/raw/channel-1124364902811844739.jsonl`; a few 6-digit suffixes collide in the 41k-message export, so disambiguate by date if a lookup returns two hits. Agreement counts are floor estimates.
+Message ids in parentheses are the last 6 digits of Discord snowflakes in `discord/raw/channel-1124364902811844739.jsonl`; a few 6-digit suffixes collide in the 43k-message export, so disambiguate by date if a lookup returns two hits. Agreement counts are floor estimates.
 
 Where an answer changed over the three years, the entry leads with the current one and dates the shift.
 
@@ -98,7 +98,13 @@ Where an answer changed over the three years, the entry leads with the current o
 - **How hard is the self-print kit, and does it need soldering?** (736176, 343487, 432138) → No
   soldering, though heat-set inserts need a soldering *iron*; assembly is "tinker toys and glue" and
   magnet polarity is the fiddly part. Printing is the hard half: calibration cubes, retraction towers,
-  0.05-0.1 mm repeatable tolerances. claussen, beep (769664, 097630, 106142).
+  0.05-0.1 mm repeatable tolerances. claussen, beep (769664, 097630, 106142). claussen's 2023-09 summary
+  has not needed revising: "It's about as complicated as it gets in terms of precision printing, but it's
+  a different kind of complicated than hand-wiring a dactyl. Lots of little fiddly magnet gluing. No
+  soldering. Plenty of printing and cleaning up of prints unless your stuff is super dialed. But there
+  are pretty good fixtures for making most of it straightforward" (487208), alongside a Google Slides
+  build guide (233229). On the print list: **eight distinct key shapes**, in counts of 8, 24, 2, 2, 2, 2,
+  1 and 1 (796803).
 - **What material, and can I resin-print?** (681330, 949109, 136396, 235453, 839017) → FDM, plain PLA
   (ABS supported too, PETG for some); resin is out — not skin-safe, brittle (740672, 191973, 031350,
   851457). ABS buys durability, PLA is cheaper and thermoforms the palm rest, parts are interchangeable;
@@ -114,7 +120,12 @@ Where an answer changed over the three years, the entry leads with the current o
 - **What magnets and bearings do I need, and do I buy switches?** (090634, 371963, 706992, 112458,
   291935) → N35 2 mm × 1.5 mm magnets; 1/8" (3.175 mm) G5 ZrO2 bearings, 3-4 per side (663048, 865893,
   636353). No switches — the board is optical, magnets interrupt a beam. Polarity only has to be
-  self-consistent unless you ordered preassembled magnet parts. Raven System (344510, 395342). See
+  self-consistent unless you ordered preassembled magnet parts. Raven System (344510, 395342). **To tell
+  which pole is which**, use a phone compass or gaussmeter app — claussen uses keuwlsoft's on Android —
+  and hold the magnet very close, since it is "very near field"; or skip measuring and let an
+  already-installed magnet be the reference, attracting the next one to find which face goes out
+  (874277, 305444, 268557, 728037, 710016). Order replacement parts and **you get N-up keys and S-up
+  clusters** (315570). See
   [suppliers-and-parts](/suppliers-and-parts.md).
 - **V1 vs V2 printed parts — do I reprint?** (762481, 905628, 284424, 898728) → Print 2.0: V2
   keys/clusters aren't cross-compatible with V1 plastics, but PCBAs and hardware are unchanged (957603,
@@ -180,7 +191,10 @@ Where an answer changed over the three years, the entry leads with the current o
 - **Is there a wireless option?** (991464, 376303, 302122) → No, and probably never: the sensor LEDs
   pull ~300-500 mW, QMK and the non-USB inter-half link both block it, and ZMK has no split-pointing
   support. People bridge with a handheldsci.com/kb, HD-600 or BT600 adapter plus a power bank.
-  claussen, phreaker (833546, 583647, 328257). See [open-questions](/open-questions.md).
+  claussen, phreaker (833546, 583647, 328257). The answer is unchanged since 2023-08, when claussen had
+  already run one on "a $50 USB-BT adapter and a big battery pack, with the split connection still
+  wired", getting "at least a few days out of a big 10000mAh battery pack" — the target being
+  chair-mounting, not portability, because "Full wireless split is a whole other pot" (501051). See [open-questions](/open-questions.md).
 - **Is it open source?** (402625, 989697, 198997, 580497) → Split: software is FOSS (vial-qmk),
   mechanical solid models are open to customers — "free as in speech, not as in beer" — and the
   electronics stay closed because they're optical and subminiature. STEP yes, OnShape no, with a

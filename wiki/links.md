@@ -3,12 +3,12 @@ type: Reference
 title: Links
 description: Official pages, code and CAD repos, config tools, layouts, videos, press and parts sources cited in the channel, from the 2023 DataHand-successor era to 2026.
 tags: [svalboard, discord, links]
-source: "discord #general 1124364902811844739, 2023-09-07..2026-08-15 (gap 2025-08-10..2025-10-17)"
+source: "discord #general 1124364902811844739, 2023-06-30..2026-08-15 (gap 2025-08-10..2025-10-17)"
 ---
 
 # Links
 
-Message ids in parentheses are the last 6 digits of Discord snowflakes in `discord/raw/channel-1124364902811844739.jsonl`; a few 6-digit suffixes collide in the 41k-message export, so disambiguate by date if a lookup returns two hits. Agreement counts are floor estimates.
+Message ids in parentheses are the last 6 digits of Discord snowflakes in `discord/raw/channel-1124364902811844739.jsonl`; a few 6-digit suffixes collide in the 43k-message export, so disambiguate by date if a lookup returns two hits. Agreement counts are floor estimates.
 
 **Official — the pages claussen links by reflex** — svalboard.com/build (`!build`), the build guide,
 overhauled 2024-08-01 and the standard redirect for assembly questions (532, 767258, 317299, 164653,
@@ -52,7 +52,10 @@ docs.google.com/presentation/d/1GnWTA1rkspQECpYGpojspFwLH1Yve-2vgQR3afrVYJo/edit
 deck that gained a trackball-settings page 2024-07-22 (080597, 226918);
 docs.google.com/presentation/d/1_DrHTJUkBasXVhWWXIDQOFm8XLRYsMZlqR9PSKWPkNQ/edit, the slide-deck build
 guide claussen acknowledged as lagging v1.2 (464273, 335629); tinyurl.com/svalboard-discord, the
-permanent invite shortlink (128326).
+permanent invite shortlink (128326);
+docs.google.com/spreadsheets/d/1VAzIxrPBvEp1TnFaV-84NNul1r7xelKxk91l7gBLQo0/edit, the hand-measurement
+sheet claussen opened 2023-09-01 — "whether you're ordering a Svalboard or not, your hand measurements
+help me make Svalboard fit everyone better" (958144).
 
 **Firmware — the Svalboard fork** — github.com/svalboard/vial-qmk, made public 2023-10 and handed to
 every new owner (992539, 858959, 169236, 220992, 943998, 289801, 997278, 931004, 070785, 986525,
@@ -211,6 +214,8 @@ rests (351552).
 
 **Reviews and press** — hackaday.com/2024/02/14/inputs-of-interest-the-svalboard-could-be-your-salvation/,
 the Hackaday writeup (697130);
+kbd.news/Morgan-Venable-and-his-Svalboard-2097.html, the kbd.news feature of 2023-08-24 and the earliest
+press the channel reacted to (583176);
 reddit.com/r/MechanicalKeyboards/comments/199z4se/launching_svalboard_lightly/, the Lightly launch post
 (540679); note.com/myomyomyo4256/n/ne78090d0e7a9, a thorough Japanese review, "a labor of love" (371543);
 reddit.com/r/ErgoMechKeyboards/comments/1d9yazf/just_finished_printing_all_the_parts_for_my/, Axel's
@@ -224,6 +229,10 @@ discussion (118275); discord.gg/r-trackballs-801837730761015376, the r/trackball
 section (909504).
 
 **Video — official and claussen's** — youtube.com/@svalboard (824392), and specifically
+youtube.com/watch?v=feAgCKpLzhQ (thermoforming the palm rests) and youtube.com/watch?v=J9rZLDi8CJo (a
+typing demo), the two videos claussen seeded the channel with on 2023-06-30 (428712, 111120),
+youtu.be/YyQi69_lcNE and youtu.be/12so0lNGTVg, the first two intro videos, both posted 2023-08-24
+("Folksy youtuber status: extra folksy!", 384588, 690350),
 youtube.com/watch?v=a0s-XjzEFkY (intro/Vial walkthrough, 824392), youtube.com/watch?v=MlILG3Jew2w
 (tenting/mounting arms, 267712, 341702), youtu.be/g2qnoPZ-qYs (single-BTU undermount, 406810),
 youtube.com/watch?v=ArXnZVQM3LM in playlist PL_Jqu5bq_U_CQBhYryllArikWe-ns3g8q, the Svalboard Fit

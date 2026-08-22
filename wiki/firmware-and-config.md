@@ -3,12 +3,12 @@ type: Reference
 title: Firmware and config
 description: Which firmware release to run, Keybard versus Vial, flashing and building from source, mouse-layer and pointing settings, layer and modifier idioms, and how the answers changed from 2023 to 2026.
 tags: [svalboard, discord, firmware]
-source: "discord #general 1124364902811844739, 2023-09-07..2026-08-15 (gap 2025-08-10..2025-10-17)"
+source: "discord #general 1124364902811844739, 2023-06-30..2026-08-15 (gap 2025-08-10..2025-10-17)"
 ---
 
 # Firmware and config
 
-Message ids in parentheses are the last 6 digits of Discord snowflakes in `discord/raw/channel-1124364902811844739.jsonl`; a few 6-digit suffixes collide in the 41k-message export, so disambiguate by date if a lookup returns two hits. Agreement counts are floor estimates.
+Message ids in parentheses are the last 6 digits of Discord snowflakes in `discord/raw/channel-1124364902811844739.jsonl`; a few 6-digit suffixes collide in the 43k-message export, so disambiguate by date if a lookup returns two hits. Agreement counts are floor estimates.
 
 ## What to run
 
@@ -83,7 +83,13 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   old as the board — the sub "just sends the matrix" — and each half stores a *complete* keymap, which
   is both a feature (Windows map one side, Mac map the other) and the usual cause of "my layout changed
   by itself" (972772, 401349, 946699). The **sub-side ball tracks as if it had lower DPI at identical
-  CPI**, so re-bias when you swap sides (915082, 354430).
+  CPI**, so re-bias when you swap sides (915082, 354430). **The convention flipped in 2023-08 and the
+  reason was pointing devices**: on 2023-07-18 claussen's answer was "nope, no sidedness now, left is
+  master" (565230), and on 2023-08-22 "I realized while poking around at bkb stuff that it makes more
+  sense for master to be Right if you're doing pointing devices with the right hand" (453477). How
+  hard a requirement that is was disputed at the time — "It's basically a requirement to have your
+  pointing device on the master hand" against OrdovicianOperand's "I've found that non-master pointing
+  works fine for RP2040 boards" (905123, 405753).
 - **The halves talk full-duplex USART over the USB-C connector, not USB**; either side can be master and
   one half runs alone (`EE_HANDS`) (607994, 721862, 003178). **Since the 2024-03 move to ~500 kbps full
   duplex you must flash both halves**, and again whenever you change the number of layers — Raven
@@ -215,7 +221,12 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   mod-tap chords by default and is hard-wired against the physical matrix, so per-combination control
   means building your own firmware — that default is what makes a same-hand bottom-row mod look broken
   (Raven System 527219, 487401, 248214, 879553); `CHORDIAL_HOLD` is the intended replacement, in tree
-  but unconverted (128331). phreaker's tap-hold settings, under Keybard's `Menu → QMK settings →
+  but unconverted (128331). It got there by community PR: claussen asked "I think we need to get
+  Achordion ported into the vial build. Any takers?" on 2023-08-10 and mmarcello had
+  `svalboard/vial-qmk#1` open the same day — his build error
+  `arm-none-eabi-gcc: error: … features/achordion.o: No such file or directory` turned out to be "achordian" misspelt (130300, 957002, 228702, 007263). Home-row-mod
+  users were already pushing `TAPPING_TERM` "way up to 300" on the Svalboard before it landed
+  (037108). phreaker's tap-hold settings, under Keybard's `Menu → QMK settings →
   Tap-Hold`: permissive hold on, tapping force hold on, ignore mod-tap interrupt off, retro tapping off,
   tapping toggle 2 (827407, 230559). **Turn key repeat off for letters** — it is part of what makes
   hold-for-mod feel ambiguous (874638, 307295).
@@ -232,7 +243,20 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
 - **Chording works but stays unpopular**: QMK combos give 3D corner chords and NKRO is real, but
   claussen — "basically every week somebody comes in asking about this and nobody ever does it" — and
   cross-petal diagonals are physically hard, since once a key breaks away the force drops steeply and
-  the finger takes the path of least resistance (740670, 500801, 737768, 294661).
+  the finger takes the path of least resistance (740670, 500801, 737768, 294661). The authoring
+  friction is QMK's, not the board's: each combo means editing three separate data structures (an
+  enum, a const and an array), combos interact badly with layers, key overrides and one-shots, and
+  keycode bit sizes are "a legacy from the days of 8-bit controllers". The channel's fix is the
+  **gboards Dictionary Management** section of the QMK combo docs (288926, 388408, 549112, 674512,
+  559175).
+- **The original layer model, from 2023, still names the layers people use**: normal for alphas,
+  **NAS** (numbers and symbols) held like a shift, and **func** (arrows, home/insert/delete, F-keys)
+  toggled (971260, 322972). Its known weakness, called out at the time: a momentary Func "prevents any
+  Alt-Fkey", which is why claussen ran a Func key whose tap and hold differ so it can be locked
+  (432238, 930802, 913037, 120192). Also from 2023, and still worth telling newcomers: the stray
+  centre-key press "where you just randomly press the normal key frequently" is universal — "we all
+  have it!" (398043, 006778). And in Vial, `LSFT(kc)` "is actually just 'send left shift + kc'. Tap
+  hold is a different command" (890034).
 - **Odds and ends**: **LGui = Command on Mac**, with no Fn/globe key possible (224564), and bind the
   modifier — `LGUI(kc)` — rather than Vial's "copy"/"paste" keycodes, which don't send on macOS
   (542168); **emoji and long text are host-side problems**, since the board only sends keycodes —
@@ -306,3 +330,31 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   full duplex (741120, 292070), and the **pointing-device layer is Svalboard-specific middleware, not
   stock QMK** — phreaker is "99.9% sure upstream won't want it or take it," which is the root of the
   no-mainline story (578192, 847514).
+
+## History
+
+- **Why QMK and not ZMK (2023-08-31)**: "No wired split support" and "Also no visual configurator.
+  Big barrier for normal users", plus Svalboard being "fairly power hungry"; cryptanon added that
+  "waiting 2 minutes for each zmk build to complete gets old real fast" and that he preferred wired
+  after living with a wireless split (478541, 520744, 765362, 117329, 796129). Wireless was "on the
+  list for later generations, but not top priority compared to pointing" (110745).
+- **Why not KMK/CircuitPython (2023-09-05)**: "I generally run screaming from things that abstract
+  this high up -- makes debugging the detailed stuff nigh on impossible, and since I have not-normal
+  matrix stuff it makes me nervous… Main goal is accessibility with good GUI tools for normies", plus
+  "I've watched friends try to take CircuitPython to product with simple embedded systems and it gets
+  REAL ugly real fast" (045116, 080872). A lalboard owner running KMK reported it working "great aside
+  from taking a few seconds to start up, and a few random reboots" (425132, 578235). This was not
+  enthusiasm for the incumbent — "QMK drives me insane with its ridiculous repo structure and build
+  hell and persnickety PR process" (527110, 447184).
+- **The nRF52840 BLE experience is the reason wireless keeps getting deferred** (2023-09-06):
+  claussen's nice!nano Corne was "a total bust, basically unusable due to persistent pairing issues on
+  a Lenovo Carbon X1 running Windows… I honestly wouldn't be able to offer Svalboard with that level
+  of quality in good faith -- especially after seeing the mess of returns and sad customers on
+  Advantage 360." Two owners reported the same, and the fault looked protocol-level rather than
+  antenna-level: "I think it's BLE related, regular BT is generally not nearly as flakey", with the
+  *split* BT link reliable in his testing (988143, 301269, 779281, 513072, 276236).
+- **PS/2 trackpoint support started outside Vial** (2023-08): "Sadly it doesn't build yet in
+  Vial-QMK, only mainline" (518540, 776078). The RP2040 gotcha for anyone building it: "remember to
+  #define which PIO port you're using -- split comms for Svalboard are on PIO0 so you need to use
+  PIO1" (597131). The pin-order problem behind it is in
+  [pointing-devices](/pointing-devices.md).

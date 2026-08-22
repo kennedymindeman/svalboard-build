@@ -8,7 +8,7 @@ source: "discord #general 1124364902811844739, 2023-09-07..2026-08-15 (gap 2025-
 
 # Gaming
 
-Message ids in parentheses are the last 6 digits of Discord snowflakes in `discord/raw/channel-1124364902811844739.jsonl`; a few 6-digit suffixes collide in the 41k-message export, so disambiguate by date if a lookup returns two hits. Agreement counts are floor estimates.
+Message ids in parentheses are the last 6 digits of Discord snowflakes in `discord/raw/channel-1124364902811844739.jsonl`; a few 6-digit suffixes collide in the 43k-message export, so disambiguate by date if a lookup returns two hits. Agreement counts are floor estimates.
 
 - **Gaming layer recipe**: switch to the mouse layer (14/15), then press the automouse-toggle key so
   trackball motion can't yank you back to layer 0 (phreaker binds it into a macro), and **turn off

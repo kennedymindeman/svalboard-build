@@ -3,12 +3,12 @@ type: Reference
 title: Printing
 description: Self-print material, printer and build-volume choices, dimensional accuracy, IR opacity, slicer/plate settings, magnets, glue and tooling, and how the advice changed from 2023 to 2026.
 tags: [svalboard, discord, printing]
-source: "discord #general 1124364902811844739, 2023-09-07..2026-08-15 (gap 2025-08-10..2025-10-17)"
+source: "discord #general 1124364902811844739, 2023-06-30..2026-08-15 (gap 2025-08-10..2025-10-17)"
 ---
 
 # Printing
 
-Message ids in parentheses are the last 6 digits of Discord snowflakes in `discord/raw/channel-1124364902811844739.jsonl`; a few 6-digit suffixes collide in the 41k-message export, so disambiguate by date if a lookup returns two hits. Agreement counts are floor estimates.
+Message ids in parentheses are the last 6 digits of Discord snowflakes in `discord/raw/channel-1124364902811844739.jsonl`; a few 6-digit suffixes collide in the 43k-message export, so disambiguate by date if a lookup returns two hits. Agreement counts are floor estimates.
 
 ## Material
 
@@ -41,6 +41,14 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   315392); it belongs in palm rests (5% gyroid infill, not 15% — 266066) and 10 mm trackpoint nubs
   (064498), where **Bambu TPU 95A HF beats NinjaTek Cheetah 95A**, 12+ mm³/s vs 3.6 (989056).
   CF/GF-filled filament in keys "will feel hideous to rest your fingers on" (293372).
+- **Filament moisture shows up as stringing, and warm air is what makes it bite.** claussen,
+  2023-09: "PLA really takes on moisture fast when it's warm and humid", while "interestingly cold
+  and humid has very low impact" (000474, 403698). His first two questions for a stringy print are
+  layer height and whether the spool is fresh out of the dryer; one builder's stringing cleared
+  simply by swapping to a drier (if older) spool (364028, 767018, 213652, 227098). **Silk is the
+  worst offender** — "Silk definitely strings way worse, it has crazy high surface tension, look how
+  it shrinks up when oozing"; a temperature tower finds a given silk's window, and most slicers now
+  generate one without gcode fiddling (047185, 461183, 041819).
 
 ## Printer and build volume
 
@@ -62,6 +70,10 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
 - **Do not order the parts from a third-party print service**: "No one will guarantee the tolerances"
   (972808, 985918, 835631). A friend's or library's printer works only if you'll tune it together
   (392553).
+- **Ambient heat can beat the extruder, and the fix is airflow plus current, not settings** (2023-08,
+  MK3S era): claussen chased bad key prints to "my barely warm garage is just a bit too warm, and my
+  stepper torque on my MK3S's can't quite keep up with the heat creep. A big box fan and an increased
+  current startup gcode seems to have resolved the issue" (481150).
 
 ## Dimensional accuracy
 
@@ -86,6 +98,18 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   you can't fully validate without magnets (417102, 117018). Expect iteration: phreaker printed 3-4
   sets of clusters on his first build, and there is no fallback SKU for printed parts (251658,
   632623).
+- **Tolerances are per-filament, not better-or-worse** (2023-08): "it's not so much that the
+  tolerances are worse, just different per filament", with "Prusa is definitely sharpest, they
+  produce the tightest tolerance on diameter. But I've made everything work" (229818, 994852). A
+  sparkle PLA "prints just a bit tighter than the other filaments so a couple of the center key
+  sliders are out of tolerance" (582467). myxfit caught eSun changing factories from a ~3% density
+  jump, 1.24 → 1.28 g/cm³, because part of his QA was weighing every part (844810, 132846).
+- **A sticking key has three causes, checked in order: debris in the keywell, a rough back bottom
+  edge, or a key a hair too wide.** "Check the back bottom edge first, and sand it just a tiny bit at
+  45 degrees (don't shorten the key by sanding the bottom flat!) to remove any over-extruded first
+  layer material"; if that doesn't do it, "very gently sand one side of the key, check, then the
+  other" (654814, 380872, 408326). Separately, "FDM keys with inward slopes can be a little snaggy,
+  you may want to sand them" (789487).
 
 ## IR opacity
 
@@ -94,6 +118,9 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   it in one coat (376295, 345980, 527564). It is the most repeated fix in the archive — "Almost no
   common filaments are opaque enough to infrared" (262474) — and explains phantom held keys and keys
   that fire the wrong code (276540, 936465).
+- **Why the flag is L-shaped**: the vertical tab does the interrupting; the horizontal leg is there
+  "mostly [for] rigidity — no way that 0.6 nominal feature would survive without some add'l stiffness",
+  with blocking light from above in extreme ambient IR as the secondary reason (308446, 698523, 369111).
 - **Silver Sharpie beats black, on the key's L-shaped flag**: silver is "usually one and done"
   against 2-3 passes for black (164554, 399308, 944981, 826705); paint pens are "gunky, can clog opto
   slot" (637001). 3+ agree.
@@ -135,9 +162,23 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   PrusaSlicer's **"avoid curled overhangs"** on (805895, 313744); trackball holders want tree
   supports on the overhang (207976). **Stringing is a speed problem first**, and silks want *lower*
   temps, 230 °C on an X1C (679071).
+- **2023-era slicing notes, from when the house printer was an MK3S**: PrusaSlicer 2.6's organic
+  supports were the headline improvement ("Organic supports are amazing"), with a known bug that
+  started laying supports in midair (411347, 826047, 544650). Keys printed at 0.1 mm layers with a
+  10 mm inner radius and "roughly 6:1 slope on E/W/S key faces" (543185). A 0.2 mm nozzle was tried
+  and rejected — it "quadruples print times", and "changing key orientation would be a bigger benefit
+  IMO. Aligned layers with finger movement feel sooo nice" (155537). Wide-fingertip clusters cost
+  "like 25% longer to print due to all the supports" (556736), and gk got a cluster down to 15 min on
+  klipper at v400 by holding bridges, outer walls and top/bottom layers to 50 mm/s while running the
+  rest at 200 mm/s (867496).
 - **Get a filament dryer; it counts as basic starting equipment** (683038) — claussen runs a Sunlu
   S4 and says **4A molecular sieve beats silica** (279498, 959976). PLA also needs ambient air: a
-  sealed enclosure plus a heated bed invites clogs (279723).
+  sealed enclosure plus a heated bed invites clogs (279723). pnewb's mechanics, from 2023-09 and
+  still true of any heated dryer: **never park a spool over the centre vent** — "the air coming out
+  of the heater is significantly hotter than PLA can handle, even at 'low' temps" — throw a
+  temperature probe in to check the display against reality, and move dried filament into a sealed
+  container to keep it dry (600240, 109146). Cheap two-spool Amazon dryers are what claussen actually
+  runs (391130, 746361).
 
 ## Magnets, glue and key force
 
@@ -195,6 +236,14 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   "probably several times that as you dial things in" (799256); a case + plate is ~4 h at 0.2 mm on
   an X1C (722141, 169173). "The prints are the hard part. Specifically the keys" (017704) — assembly
   is "just tinker toys and glue... WAY less of a PITA than handwiring a dactyl" (294063, 296778).
+  The 2023 numbers were the same shape: "the whole rig is like 36hrs I think?", of which the plates
+  and cases were "about 16 hrs of print time in total" (266943, 976256).
+- **Mass, and where it goes** (2023-07): a finished side weighed **277 g** on claussen's scale — case
+  77 g, baseplate with towers and fasteners but no clusters 87 g. "Everything is like 15%-20% infill
+  but the case walls are only 2mm to begin with", and the design trend was toward *heavier* for
+  rigidity (797744, 182810, 978886). See [ergonomics-and-fit](/ergonomics-and-fit.md) for what that
+  weight means for slip-stick mousing.
+- **A hot air station beats a flame for cleaning up stringing** — "easier and tidier" (953363).
 - **Self-printing is not a money-saver** — "if you value your time at >=$5/hr, you're definitely not
   saving money", though it's "an *excellent* gateway to 3D printing" (540978, 608122). claussen's
   rule: **"if you have pain, just buy a full build. you can tune later"** (313334).
@@ -226,10 +275,25 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
 
 ## History
 
-- **The filament budget drifted upward in the telling, not in reality.** Measured builds in 2024-05
-  and 2025-02 came in at 410-500 g (109617, 981362); the later "under 1 kg" headline (665494) is a
-  shopping budget with reprint slack, not a parts weight. Keep 1 kg as the number to buy.
-- **Resin/SLA was a live option in 2023-2024 and is now closed.** 2023-09: the objection was
+- **The filament budget drifted upward in the telling, not in reality.** claussen's 2023-07 working
+  figure was "prolly 600g-700g" per build, bought as a fresh reel each time (010527); measured builds
+  in 2024-05 and 2025-02 came in at 410-500 g (109617, 981362); the later "under 1 kg" headline
+  (665494) is a shopping budget with reprint slack, not a parts weight. Keep 1 kg as the number to
+  buy.
+- **PLA-only is a 2023 decision that never moved much.** "I only use PLA as it has great properties,
+  colors, and is low occupational-hazard", and, asked what the alpha units were printed in: "PLA. I
+  don't mess with the smelly stuff" (344141, 606272). ABS arrived later as the factory material for
+  heat stability, not as a self-print default.
+- **Resin/SLA was a live option from 2023-07 to 2024 and is now closed.** In 2023-07 claussen was
+  enthusiastic: "SLA keys have a slightly smoother action at least initially", "the resin clusters
+  i've used have have been very enjoyable", and he hoped "to be able sell complete SLA keysets with
+  magnets pre-installed as a turnkey offering once I get a vendor validated" (020720, 864192). The
+  caveats even then were that SLA buys nothing outside the keys, costs you the colours, needs the
+  magnet holes resized, won't take heat-set inserts (screw in instead) and can't be thermoformed
+  (020720, 037865, 384977, 542871, 830248, 003570). **The drop test that later gets quoted as
+  settled fact happened on 2023-09-03**: "One of the SLA keys shattered at the magnet hole on impact
+  with the ground from waist height. PLA would never do so -- this was just generic JLC resin…
+  Concerned about UV embrittlement over time with resin" (421578). 2023-09: the objection was
   dimensional accuracy for the magnets, and claussen offered parts with reduced magnet holes for SLA
   (191499, 484234); by 2023-11 he was daily-driving an SLA prototype, blocked only on finding "a
   supplier who can actually deliver volume and quality" (300392). 2024-08: he printed full SLA

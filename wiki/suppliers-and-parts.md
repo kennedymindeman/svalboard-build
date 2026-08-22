@@ -3,12 +3,12 @@ type: Reference
 title: Suppliers and parts
 description: Part numbers and sources for magnets, sliders, bearings, balls, BTUs, cables, connectors, fasteners, tools, mounting hardware and cases.
 tags: [svalboard, discord, parts]
-source: "discord #general 1124364902811844739, 2023-09-07..2026-08-15 (gap 2025-08-10..2025-10-17)"
+source: "discord #general 1124364902811844739, 2023-06-30..2026-08-15 (gap 2025-08-10..2025-10-17)"
 ---
 
 # Suppliers and parts
 
-Message ids in parentheses are the last 6 digits of Discord snowflakes in `discord/raw/channel-1124364902811844739.jsonl`; a few 6-digit suffixes collide in the 41k-message export, so disambiguate by date if a lookup returns two hits. Agreement counts are floor estimates.
+Message ids in parentheses are the last 6 digits of Discord snowflakes in `discord/raw/channel-1124364902811844739.jsonl`; a few 6-digit suffixes collide in the 43k-message export, so disambiguate by date if a lookup returns two hits. Agreement counts are floor estimates.
 
 ## Magnets and sliders
 
@@ -101,7 +101,11 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   test for it (321282, 521626). **All internal connectors are FFC, 0.5 mm pitch, A-to-A always** —
   "If we do JST/Dupont it'll be debugging", and "There will never be a wire connector except for the
   non-existent battery" (757625, 244465, 314943). It is a commodity off Amazon; only the pointer
-  boards are custom (398490). FFC was a design requirement, not a cost choice: ultra-flexible so it
+  boards are custom (398490). **The board-side connector is a Hirose `FH34SRJ-8S-0.5SH-50`**, LCSC
+  `C88372` ("digikey is for fancy people lol"), dual-contact so "you can use either same or opposite
+  side cables"; the brand is deliberate — "its not to cheap out on connectors… Hirose is really a cut
+  above. Panasonic too. I've watched cheap subs go SUPER badly in volume production" (394862, 672966,
+  875907, 043085). FFC was a design requirement, not a cost choice: ultra-flexible so it
   doesn't backdrive the fitment mechanisms, and low-inertia under shock (922472, 343542).
 - **Thumb ports are 8-pin except the Azoteq ("Azo") port, which is 6** (705536, 732853); an encoder
   alongside a trackball needs a 6-pin FFC breakout, one replacing the trackball needs 8 (891537). On
@@ -139,7 +143,9 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
 - **Kit screwdriver is T10** (was 2.5 mm hex, 508160); a **T6** bit ships in the spares kit — steel, so
   it takes a magnet — and the holder screws are T10 (804672, 516542).
 - **Fasteners are M3 and M2 only, M3×6 mm, black oxide carbon steel; the self-tapping M3 are
-  galvanized**, and the square nuts are DIN562 M3 (686288, 896144, 627841). On stainless: "Stainless
+  galvanized**, and the square nuts are DIN562 M3 (686288, 896144, 627841). The PCBAs are the
+  exception: **M2×4 mm T6 pan-head thread-cutting screws for plastic**, "Everything else is M3, a bit
+  overkill" — 114 M2 screws go into a unit (534270, 664769). On stainless: "Stainless
   brings other problems in manufacturing… and is sofffft", plus "So far zero people have reported rust
   on any fasteners" (131807, 126460).
 - **Knipex parallel pliers are the magnet-seating tool** (e.g. `amazon.se/dp/B0001P0CJS`, 847298);
@@ -150,11 +156,17 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   with no radius at the tip so a slip doesn't change the angle (292410, 490323).
 - **CA glue**: Bob Smith Industries is "much better value and quality than the loctite/crazy glue CA"
   (770308); claussen uses Starbond and has used BSI — "It's mostly a question of viscosity" (877190).
-  Molecular-sieve desiccant stops CA going off (140940). See [printing](/printing.md).
+  Molecular-sieve desiccant stops CA going off (140940). Thin CA through the pressure-relief hole in
+  the back of the key, rather than into the magnet holes, was claussen's 2023-08 idea "since it wicks
+  so effectively" (674176). Loctite 638 was tried and dropped in 2023 — see History. See
+  [printing](/printing.md).
 - **Rechargeable compressed-air duster** `B0BMG7P86R` (541386) — but dust only as needed, a key well
   "maybe once or twice a year" (120445).
 - **Foot pedals**: a plain industrial foot switch, not sewing-machine gear priced for a captive market
-  (143251); Adafruit 423 is what people bought, with six-plus spare GPIOs free (761942, 385209). River
+  (143251); Adafruit 423 is what people bought, with six-plus spare GPIOs free (761942, 385209). **Wire them into
+  the Svalboard, not the host, if you want the pedals to follow the active layer** (505534, 410048);
+  there is headroom, since column 6 is unused on the finger clusters and "the switch scanning already
+  exists" for eight more switches (839828). River
   argues pedals suit press-and-hold, infrequent, big-muscle actions only: "I tried one for left click
   once and even with very light springs I think it would have taken my leg off" (707116).
 
@@ -180,7 +192,11 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   bolts are annoying to source in Europe, though most camera arms ship with the screw (857404,
   308753); claussen's alternative is using the M5 inserts to hold the board to a plate (820039).
   Printed steel towers are in the self-print repo, metal ones on the shop (779757); the stainless
-  towers are laser cut, bent and sandblasted (725919).
+  towers are laser cut, bent and sandblasted (725919). **The sheet metal comes from SendCutSend** —
+  1.5-1.8 mm mild steel in 2023, "sendcutsend does a great job", "a great quick turn resource and not
+  *crazy* expensive" (684025, 731918, 676760). The stiffer "burly" thumb towers date to 2023-07, with
+  2 mm bent laser-cut stainless called "the best ultimate solution" from the start: "Eventually these
+  will all be stainless. Easy upgrade after the fact" (748821, 106398).
 - **Palm rests**: TPU Humpbacks are the shipped option; claussen's easy softening test is 7 mm wetsuit
   neoprene glued on, and the silicone rests he teased are "20x too expensive" to sell in that form
   (302480, 347530, 666176). His TPU-for-AMS (~70D) prototypes print "incredibly clean" but are too
@@ -198,7 +214,9 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   pluck foam (304381, 981517). Cheaper: the empty case plus an old memory-foam pillow (777146), or the
   earlier $35 Monoprice 11×8×7 hard case `B013Z73TWA` with the middle foam removed, clamping both
   halves against a printed bracket (075520, 675442). A case design contest produced designs but
-  "nothing actually built" (799454).
+  "nothing actually built" (799454). Before the Nanuk, claussen used a **Pelican 1400**, "sturdy,
+  badass-looking, and comes with that nice tear-out customizable foam" (080627, 2023-08); for a
+  tighter fit in any case, cut kaizen foam from kaizensource.com to shape (873011).
 - **Broken or melted parts: claussen ships spare plastics from the parts bin at cost of shipping**,
   "because the whole point of the design of the product is survivability" — trustno1 melted half a
   board against a car heater and rebuilt it (688450, 593759).
@@ -247,3 +265,21 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
 - **Accessories were undocumented until 2024-05**, when claussen said "Need a recommended accessories
   page on the shop" and Jolly was "deputized with edit access to the docs for his sins" (486886,
   848815); before that, links lived only in channel pins.
+- **Loctite 638 retaining compound was tried and dropped, 2023-07 to 2023-08.** claussen assembled his
+  first keyset and clusters with it instead of CA because it "cures nicely in the absence of oxygen and
+  presence of metal", and it was "very nice to be able to just shoot it in all the keys and clusters at
+  once without worrying about it drying up" (739694, 439344, 914386). Six weeks later: "my experiments
+  with retaining compound were not a success -- the uncured stuff that squeezes out is too hard to
+  clean up and is suuuuper viscous", and "if it creeps out during cure, it fouls the slider mechanism
+  especially". Verdict: "So sticking with CA unless I find some magical UV-cure solution. Cheap,
+  plentiful, familiar" (946463, 034887, 651823). The CA-only guidance above is the outcome of that
+  experiment, not an untested default.
+- **Where the 2023 production parts came from.** PCBAs at JLCPCB — a single kit-PCBA order was "damn
+  near $2000" in 2023-08, with MCU-board yields of 97% on the latest batch and just over 98% across the
+  previous 60 (945789, 622344). Sheet metal and the first non-JLCPCB SLA prototypes came from a CNC
+  specialty manufacturer in Guangdong, with SendCutSend for quick turns; Protolabs "quoted literally
+  100x China prices" for SLA (919737, 676760). For pogo-pin test fixtures, LordOfGears2 recommended
+  merifix.com — you supply a drill-location file (329547, 323394). Single Sprintek trackpoints were
+  "~$60 shipped from sprintek in socal. Not insane for a hobbyist" (941674). PMW3360 sensors were the
+  hard one: aliexpress-only, "MOQ probably too big for batch builds anyway", and reusing the Charybdis
+  PMW3360 base would have meant coming "to terms with Quentin on commercial licensing" (098134).
