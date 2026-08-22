@@ -3,12 +3,12 @@ type: Reference
 title: Open questions
 description: Contested or unresolved topics across three years — wireless, bearings and ball size, openness and printing rights, layouts, palm rests, firmware state.
 tags: [svalboard, discord, open-questions]
-source: "discord #general 1124364902811844739, 2023-09-07..2026-08-15 (gap 2025-08-10..2025-10-17)"
+source: "discord #general 1124364902811844739, 2023-06-30..2026-08-15 (gap 2025-08-10..2025-10-17)"
 ---
 
 # Open questions
 
-Message ids in parentheses are the last 6 digits of Discord snowflakes in `discord/raw/channel-1124364902811844739.jsonl`; a few 6-digit suffixes collide in the 41k-message export, so disambiguate by date if a lookup returns two hits. Agreement counts are floor estimates.
+Message ids in parentheses are the last 6 digits of Discord snowflakes in `discord/raw/channel-1124364902811844739.jsonl`; a few 6-digit suffixes collide in the 43k-message export, so disambiguate by date if a lookup returns two hits. Agreement counts are floor estimates.
 
 Each item gives the arc: when the debate appeared, how positions moved, where it stands now.
 
@@ -78,6 +78,29 @@ Each item gives the arc: when the debate appeared, how positions moved, where it
   473822, 823113, 583632, 289159, 733678). Consensus killed the 6-key cluster in 2024-12, but Cyrus
   daily-drove one and concluded "so it's not fully, 100% dead" — hence 2026's unlisted 6-key PCBAs (108817,
   715659, 188873).
+
+- **Hall-effect sensing instead of optical: explored in 2023, never closed, never started.** claussen
+  hand-built a scattergun test PCB — "just chuck various sensor footprints all over the board and see what
+  sticks" — and kept hunting parts through 2023-09: Allegro right-angle SMT hall switches for sensing at
+  90° to the Z axis, and TI's `TMAG5273` 3-axis part, "super low power considering what it does", though
+  that would mean "one I2C device per key, basically" (725761, 491929, 610664). **The honest benefit list
+  is short**: immunity to ambient IR from sunlight, which all-black units don't suffer anyway; somewhat
+  lower power; and a simpler key with no flag to print, freeing up material choices. It is **not faster**
+  than optical — hall sensors are slow to power up — and getting a consistent, tunable actuation point is
+  the hard part (921553, 212576, 324687, 344782). Against it: hall sensors are themselves ferromagnetic
+  and can drag on the mechanism, "Optical is impressively affordable", and claussen refuses to trade away
+  independent sensing — "All keys should be independently senseable". His estimate: even at two sensors
+  per cluster it is only 2-4x the cost of optical, but it is "a new key architecture that would probably
+  take me a year to work out given that the existing design is tried and true and shipping" (632551,
+  681819, 687908, 795284, 200221). **The physics were checked and they work**: AlmostRandom modelled the
+  NSEW magnet pairs in magpylib — the "SHIT - Svalboard Hall-effect Integration Testbed" colab, at
+  colab.research.google.com/gist/anderso/8e8935f7a289ca38f7ffb2750c3ce2c4/sbheit.ipynb — getting 2242
+  resting versus 2130 triggered for one switch, which claussen read as "about 10 counts at 8-bit
+  resolution, not bad"; replacing the fixed magnet with a **steel cylinder** came out of the same thread
+  as a way to cut the standing field (465342, 206608, 409903, 067483, 424646). Historical note from Dale,
+  the DataHand inventor: **hall effect was DataHand's preferred mass-production path**, because LEDs and
+  phototransistors of the era had durability problems, and it was blocked by a Russian patent they could
+  not license (130287).
 
 ## Firmware and configuration
 

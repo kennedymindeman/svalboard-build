@@ -3,23 +3,23 @@ type: Reference
 title: "Svalboard Discord #general — overview"
 description: "What the Svalboard Discord #general channel is across three years, how the product and the recurring voices changed, and what the distillation does not cover."
 tags: [svalboard, discord]
-source: "discord #general 1124364902811844739, 2023-09-07..2026-08-15 (gap 2025-08-10..2025-10-17)"
+source: "discord #general 1124364902811844739, 2023-06-30..2026-08-15 (gap 2025-08-10..2025-10-17)"
 ---
 
 # Svalboard Discord #general — overview
 
-Message ids in parentheses are the last 6 digits of Discord snowflakes in `discord/raw/channel-1124364902811844739.jsonl`; a few 6-digit suffixes collide in the 41k-message export, so disambiguate by date if a lookup returns two hits. Agreement counts are floor estimates.
+Message ids in parentheses are the last 6 digits of Discord snowflakes in `discord/raw/channel-1124364902811844739.jsonl`; a few 6-digit suffixes collide in the 43k-message export, so disambiguate by date if a lookup returns two hits. Agreement counts are floor estimates.
 
 ## Source
 
 Discord channel `1124364902811844739`, distilled by LLM passes over
 `discord/raw/channel-1124364902811844739.jsonl`: seven chunks covering 2025-10-17..2026-08-15 (8,921
-messages, distilled 2026-08-15) plus 25 backfill chunks covering 2023-09-07..2025-08-10, merged.
-Coverage is 41,085 of the channel's ~48,135 messages; captured **2023-09-07..2025-08-10** and
-**2025-10-17..2026-08-15**, uncovered **2023-06-30** (channel creation) **..2023-09-07** and
-**2025-08-10..2025-10-17**. Agreement counts are floor estimates (who spoke up), not polls. Advice
-changed a lot over three years, so bullets say what changed and when; read anything undated as
-"as of the end of the range."
+messages, distilled 2026-08-15), 25 backfill chunks covering 2023-09-07..2025-08-10, and four chunks
+covering 2023-06-30..2023-09-06 (1,776 messages, the channel's founding months, distilled 2026-08-22),
+merged. Coverage is 42,861 of the channel's ~48,135 messages; captured **2023-06-30..2025-08-10** and
+**2025-10-17..2026-08-15**, uncovered **2025-08-10..2025-10-17**. Agreement counts are floor estimates
+(who spoke up), not polls. Advice changed a lot over three years, so bullets say what changed and when;
+read anything undated as "as of the end of the range."
 
 ## What the channel is about
 
@@ -41,6 +41,11 @@ continuing alongside (109949).
 Where a cited message sits in the product's history. See [timeline](/timeline.md) for dated events in
 the 2025-11..2026-08 span.
 
+- **2023-06..09 — the channel's founding months.** claussen splits #general off from the lalboard
+  world on 2023-06-30 because "there are now likely more Svalboards in the world than lalboards" (569192);
+  rigs are still ESP32-based until the RP2040 MCU boards land 2023-08-18 (049660, 726786), palm rests are
+  thermoformed by hand (428712), self-print kit orders open 2023-08-25 (995149), and Dale — the DataHand's
+  inventor — joins on 2023-08-01 (173607). No shop pointing device, no public firmware repo.
 - **2023-09..10 — hand-built "Svalboard Alpha."** One-man Prusa MK3S print farm, units announced with
   "Typed on <user>'s Svalboard Alpha!" (072201, 553578); no shop link (355796), no trackball or
   trackpoint product, ~15 DIY kits outstanding (063441); clusters named by slider-offset generation
@@ -130,7 +135,7 @@ the 2025-11..2026-08 span.
 
 - Channel name is inferred ("general"); the export carries ids only, and claussen = Morgan Venable /
   founder is inferred, never stated outright.
-- **6-digit ids collide** in a 41k-message export — `608671` appears on both 2024-04-16 and 2024-05-02 —
+- **6-digit ids collide** in a 43k-message export — `608671` appears on both 2024-04-16 and 2024-05-02 —
   so disambiguate any lookup by date.
 - **Attachment URLs are expiring Discord CDN links**, the largest single loss: claussen's prototype
   stream is photo-with-one-line-caption for three years, so fit photos, PCB damage, V1-vs-V2

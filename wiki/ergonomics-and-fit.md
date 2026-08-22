@@ -3,12 +3,12 @@ type: Reference
 title: Ergonomics and fit
 description: Fit order and method, cluster geometry, key weight and fingertip sizing, palm rests, mounting and tenting, adaptation timelines, and fixes for specific pains.
 tags: [svalboard, discord, ergonomics]
-source: "discord #general 1124364902811844739, 2023-09-07..2026-08-15 (gap 2025-08-10..2025-10-17)"
+source: "discord #general 1124364902811844739, 2023-06-30..2026-08-15 (gap 2025-08-10..2025-10-17)"
 ---
 
 # Ergonomics and fit
 
-Message ids in parentheses are the last 6 digits of Discord snowflakes in `discord/raw/channel-1124364902811844739.jsonl`; a few 6-digit suffixes collide in the 41k-message export, so disambiguate by date if a lookup returns two hits. Agreement counts are floor estimates.
+Message ids in parentheses are the last 6 digits of Discord snowflakes in `discord/raw/channel-1124364902811844739.jsonl`; a few 6-digit suffixes collide in the 43k-message export, so disambiguate by date if a lookup returns two hits. Agreement counts are floor estimates.
 
 ## Fit method
 
@@ -38,6 +38,12 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   lowering the cluster (420136, 462952, 115482). **Adjustability is
   deliberate**, and a cascade of adjustments "will never completely destroy your fit" (953652, 907985,
   424617).
+- **Aim for neutral resting pressure on every center key, and even spacing between N and S.** Resting
+  against S "a *bit* is fine, touching N tends to be more error-prone as extension is less controlled"
+  (010497). claussen's own industrial-design target for the whole fit is **the bottom of the pinky
+  cluster within 1 mm of the desk surface** (896088). **Too much arch in the fingers throws N and center
+  errors** — fingertips too vertical in the wells makes extension unstable and sympathetic; the fix is
+  flattening the posture and moving the palms back a few mm rather than reaching forward (541964).
 
 ## Cluster geometry
 
@@ -106,7 +112,14 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   for on-screen sizing** — no printer needed (476342, 694848).
   **When borderline, go wider**: too tight is worse than too spacious for accuracy, and the Datahand
   default was ~20-21 mm, "huge by Sval standards" (612373, 217035, 012392, 022238). **16 mm is the
-  smallest key size built** and 14/15 mm are the same physical key (752848, 655589, 609428). Put
+  smallest key size built** and 14/15 mm are the same physical key (752848, 655589, 609428). claussen's
+  2023-08 framing was in **key-to-key interior keywell width**: "The DH fit seems to be a key-to-key
+  interior keywell width of about 18mm. The lal/Svalboard default is about 16mm, and I actually prefer
+  thicker keys that further reduce it to about 14mm" — narrower than DH on purpose, because DH forced
+  smaller hands to actively splay (273232, 092453); his DH rigs measured 19.7 mm across at the key tops
+  against a Svalboard's 20.7 mm (695137). **Thick-fingered users going the other way need ~18 mm or
+  more**, reached with outward-offset or backset key tops; those limit how close the clusters can
+  squeeze, because the keys tip outward when they actuate (273232, 092453, 735561, 687774). Put
   per-finger widths in the order form's **"Full Fingertip Measurements" box in `P R M I I M R P` order**
   (550421, 651815, 050172, 564136).
 - **Taller side keys are a trap.** claussen printed +1 and +2 mm (8.5 mm inner, 7.5 mm outer vs 6.5 mm
@@ -130,14 +143,20 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   Guyon's canal**; add traction instead. The Sval needs ~1 cm less splay than a DataHand (628081,
   405875, 451700, 150410).
 - **They are palm rests, not wrist rests** — wrists in the air, base of palms down (093616, 358747,
-  653079). Support the fleshy pads at the base of the palm and behind the middle knuckle, not the
-  centerline: "putting pressure on the middle is gonna give your median nerve a nice squeeze" (033293,
+  653079). claussen's underlying rule, stated for mice in 2023-08, is that the hand should rest
+  comfortably **without touching the desk surface** at all: dragging "a square inch of flesh on the
+  desktop" adds friction you'd never accept on a mouse, and "'You shouldn't rest your wrists' is only
+  relevant in context of the alternatives" (875910, 953927). Support the fleshy pads at the base of the
+  palm and behind the middle knuckle, not the centerline: "putting pressure on the middle is gonna give your median nerve a nice squeeze" (033293,
   344424). Load the **full width** — on a pressure map loaded only at the outer heel, "you'll eventually
   get arthritis under the pisiform" (935626). Palm-to-center-key drop is ~40 mm (534821).
 - **Height is a shim job, not a screw job.** The pillar screws only locate the rest — "don't use those
   screws to bear load"; shim under the posts or the whole carrier, and note the stock range is biased low
-  by demand for lower rests (373863, 280280). **Raise the palm
-  rest before blaming the N key** — trouble hitting N is "universally… from having the palmrest too low",
+  by demand for lower rests (373863, 280280). The shim mechanics have been the same since 2023-07: the
+  four legs slip-fit into the pylons and are clamped by the side screws, so **an M2 4 mm screw dropped
+  down a leg hole gives about 5 mm of lift**, up to ~8 mm total, and pulling the screws back out lowers
+  it again; destructively shortening the rest works but is the last resort (593174, 142598). **Raise the
+  palm rest before blaming the N key** — trouble hitting N is "universally… from having the palmrest too low",
   a higher palm giving a better entry angle against the fixed tower angle (560508, 222407, 621329).
   **Tighten the wrist-side screw harder than the fingertip-side one** to leave rotational play, using a
   washer rather than more torque if it must stay rotatable (809505, 732968).
@@ -149,7 +168,10 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   At steep tent you want a hook under the side of the hand, but not close to the pinky (056596).
 - **Gel rests and going palmless are both legitimate.** phreaker tolerates no hard rest — "do not cheap
   out. Get ones with cloth coverings" (792916). At least 5% of users go palmless (506304, 526144,
-  903880), but users with joint-loading pathology find hovering "very painful" (668659, 888583). Learn
+  903880) — a 2023-08 discovery, where mmarcello found it "super helpful" for his RSI and noted it
+  "creates tons of space for a pointing device under the hand", with claussen agreeing after trying it on
+  an original DataHand rig (934895, 216650), but users with joint-loading pathology find hovering "very
+  painful" (668659, 888583). Learn
   *with* a rest either way (923424); the rests measurably *reduce* false N/S hits when going lateral
   (088414).
   **Datahand converts should expect more outward roll**: the truncated Sval rest gives "less support in
@@ -213,6 +235,9 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   landing palms first onto the rests and then settling fingers and thumbs (288940, 148750). Practice on
   keybr, then Monkeytype with punctuation and symbols (502264, 576256, 734725); **Svalbr** is a keybr
   fork that renders your live keymap from the device (416726, 587482).
+- **The long-form numbers, from claussen's own DataHand transition: functional at work in 4-6 weeks,
+  fully adapted in 4-6 months.** Age matters, and coming from a thumby split puts you in good position
+  (474226, 2023-07).
 - **Speed is not the pitch**, and expect parity at best: "sval is focused on letting you go for longer,
   not faster", "comfort is endurance, endurance is productivity" (591063, 637888, 306488, 223691).
   **Posture beats keyboard, keyboard beats layout** (726878). **Do not ramp from 15 minutes a day to 8
@@ -228,7 +253,12 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   thumbs with no home-row mods is a viable 20-year answer** (928060).
 - **North keys and repeats are the universal complaint; thicker + lighter norths are the fix** (301843,
   004830), with heat-bending the keys in a bit and doing all north motions as flicks as alternatives
-  (525194, 941269, 671642). **Pinky north is the worst key; fix it in the layout** — myxfit's
+  (525194, 941269, 671642). Both date to 2023-08: cryptanon dipped his north keys in hot water and
+  reshaped them to add a slope — "now they feel perfect" — but found an aggressive slope suited only his
+  index fingers, cramping the rest and costing 20 wpm (872128, 034152, 239950); claussen made **thick N
+  keys the default on all units going forward** that same week, while still not shipping them to
+  big-fingered users who have trouble with them (273219). **Pinky north is the worst key; fix it in the
+  layout** — myxfit's
   dvorak-for-DH swaps L↔Z, V↔R, C↔W plus a K→Q→P three-way, or bind a Repeat key (283944, 041266). Fit
   first, though: pinkies that "feel useless" on north usually need cluster rotation to match finger
   splay, since "if you have to push off-axis to hit a north key it's much harder" (447489, 442902).
@@ -244,8 +274,10 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   and middle are genuinely new movements** (183424, 310331). **Ring-out is the exception everyone
   hates**; fix it with outward roll, a stiffer or more spacious key, or don't map it (619275, 013317,
   694694, 853835).
-- **Thumbs: nail over knuckle, unanimously** (083694, 395392), with Pad the favourite (155753). **Thumb
-  motion is inward, not lifting**, and the clusters sit *around* your thumbs, so they aren't reached for
+- **Thumbs: nail over knuckle, unanimously** (083694, 395392), with Pad the favourite (155753).
+  **Knuckle is the worst thumb key and belongs to a modifier**, not a letter; the easiest thumb chords
+  are Down + Pad, then Down + Pad + Knuckle, "but it's a bit of a contortion" (564050, 496731, 225903).
+  **Thumb motion is inward, not lifting**, and the clusters sit *around* your thumbs, so they aren't reached for
   (387392, 701259). **Thumb-down's half-press is "the single hardest adjustment"**: the key can travel
   ~75% without actuating, and the fix is moving the cluster south with the thumb as deep in as is
   comfortable (729728, 761184). **Double-down is a separate mechanical tact switch the down key rests
@@ -291,7 +323,12 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   his RSI. Measured noise: Sval 51 dB vs Gateron browns 52. A mat and wrist strap is enough ESD gear, but
   treadmill desks are "literal Van de Graaff generators" (368980, 431794, 576642, 049458, 286578) —
   matching earlier reports of it being quieter than browns, "maybe a little bit louder than a recent
-  (post-butterfly key) macbook keyboard" (350782). **Maintenance is light**: soapy water or a q-tip with
+  (post-butterfly key) macbook keyboard" (350782). The 2023-08 originals of both: jeebus put it at "a
+  little louder than browns, but so much smoother", and the noise "mostly comes from bottoming out"
+  (967504, 561199). claussen's first foam test found the same trade the mod still has — quieter, but
+  "the force profile is definitely less sharp"; kapton tape "did very little other than stopping the
+  sharper 'tick' of the magnets", and gk's cheaper fix for that tick is a layer of glue over the magnets
+  (894492, 492446). **Maintenance is light**: soapy water or a q-tip with
   rubbing alcohol, keys lifting straight out, center keycaps on press-fit sliders removable from the back
   once the cluster is loosened (348487); "you can easily go 6-9 months without cleaning it" (149168).
 - **Size, weight and travel**: roughly 190-210 × 130 × 90-95 mm per half, ~85 mm without thumb-up keys,

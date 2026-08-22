@@ -3,12 +3,12 @@ type: Reference
 title: Pointing devices
 description: Trackball size, sourcing and holder tuning, bearings versus BTUs, trackpad and trackpoint limits, friction fixes, and how the recommendations changed from 2023 to 2026.
 tags: [svalboard, discord, trackball]
-source: "discord #general 1124364902811844739, 2023-09-07..2026-08-15 (gap 2025-08-10..2025-10-17)"
+source: "discord #general 1124364902811844739, 2023-06-30..2026-08-15 (gap 2025-08-10..2025-10-17)"
 ---
 
 # Pointing devices
 
-Message ids in parentheses are the last 6 digits of Discord snowflakes in `discord/raw/channel-1124364902811844739.jsonl`; a few 6-digit suffixes collide in the 41k-message export, so disambiguate by date if a lookup returns two hits. Agreement counts are floor estimates.
+Message ids in parentheses are the last 6 digits of Discord snowflakes in `discord/raw/channel-1124364902811844739.jsonl`; a few 6-digit suffixes collide in the 43k-message export, so disambiguate by date if a lookup returns two hits. Agreement counts are floor estimates.
 
 ## Which device
 
@@ -147,7 +147,10 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   off and unplugging at the sensor PCB, is what claussen and phreaker actually do (533962, 174466). True
   since the beginning: devices can be **added or changed at any time after purchase** over the same
   8-pin FFC the clusters use — "just screws and a cable" — and changing ball size is a holder reprint
-  plus a ball (762516, 093797, 313444).
+  plus a ball (762516, 093797, 313444). The catch, from 2023-09: that is only true **if you accept a
+  position that fits around the current key layout**. Wanting the ball where thumb keys are — Arska
+  proposed dropping the pad and up keys of one thumb — means a new thumb-cluster design, not a bolt-on
+  (986846, 632781).
 - **Connector map: trackball → `TrkPt`; touchpad → `Azo` (Azoteq)** — not both at once; lift the latch,
   slide in with no force, close it. **Jitter that flips you out of text mode is usually mechanical** —
   the thumb cluster bumping the trackball holder (711323, 712627, 432306).
@@ -181,7 +184,12 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   with no distinct Linux device name to hang udev rules on (962418, 405193). It is not a ThinkPad
   trackpoint: the nub is ~12 mm against Lenovo's ~2 mm (976668). **Nub geometry is concave, not convex**,
   radius ~10-12 mm (859604, 235058); run high sensitivity, which reduces torque on the last finger joint
-  (310054). It mounts under the middle finger on tape, deliberately (732261, 386365).
+  (310054). It mounts under the middle finger on tape, deliberately (732261, 386365). Both choices were
+  made in 2023-08, before the product existed: the case already had a slot for a trackpoint bracket,
+  like the ones holding the finger clusters, index/middle was "an easy fit", and claussen's own
+  preference was between the middle finger and the palm rest. Concave over nub was reasoned, not inherited — "I hate having to go to the opposite side to
+  move in a direction, and I don't like how much force Thinkpad trackpoints take" (616185, 053733,
+  018648).
 - **Drift is the defining defect and a hardware property of the module.** claussen, 2024-04: "Drift is
   inducible on all trackpoints, but this is exceptionally severe for many, though not all, folks"
   (734639), with at least five users reporting it that window (451536, 994588). Still applicable: **two
@@ -239,6 +247,26 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   place of the right thumb cluster is a bad trade** — "you can have a trackpoint and not lose 5 important
   thumb keys" (833914) — and **cheap I2C trackball breakouts (Pimoroni) are not an option**, "hot
   garbage", ~2 DPI against the PMW sensor's 20000 (087562, 397820).
+- **Eye tracking and key-driven mouse cursors were the 2023 answers for people who wanted no pointing
+  device at all.** On gaze: "Tobii is the only real game in town, but it's not linux friendly" — the
+  4C is 60 Hz and Linux-capable but discontinued with a high failure rate, the Tobii 5 is 30 Hz and
+  reliable; usable to about a 24" screen, best on a 14-16" laptop panel, poor across multiple monitors,
+  and Talon's Tobii 5 integration was called "a life [saver]" (925204, 523052, 560130, 841162). On keys:
+  warpd is "pretty damn good", with hint2 one-shot mode the mode people actually use — macOS and Linux
+  only, no Windows (569252, 547903).
+- **Sticking a whole separate pointing device to the case works better than it sounds.** cryptanon taped
+  an orbital trackpad onto his Svalboard in 2023-08 — "quite comfortable to use", with the dead driver
+  software, jitter on precise selection with acceleration off, and a half-second wake delay as the
+  drawbacks (849148, 950244). Cirque Glidepoint was suggested the same summer; claussen: "it's pretty
+  easy to retrofit a ctrackpad onto a Svalboard board even without customization. There's a lot of room
+  to just put another USB device in there to prototype", but "track pads are really really bad for my
+  specific RSI issues so it hasn't been a priority for me" (829684, 312400).
+- **"The whole keyboard is the mouse" — slip-stick — is the oldest idea here and is still unbuilt.**
+  Vulcan proposed an optical sensor under a half with friction elements that engage only when the half
+  is fully loaded, so pointing uses wrist and shoulder instead of fingers; claussen: "This was actually
+  the plan for the original Datahand, believe it or not. DH was WAY too heavy for it to not suck, but
+  Svalboard is light enough" — 277 g/side, with maybe 200 g reachable, "only an ounce more than my
+  normal mouse". The unsolved part is mode switching for stability (695840, 446420, 988192, 621481).
 - **Wireless with a pointing device is unsupported** — the LEDs and optical sensors draw current
   continuously. carcosa's Handheld Scientific adapter on MCU 1.0 types but won't reflash or appear in the
   config tool (439824, 616846, 119637). See [open-questions](/open-questions.md).
@@ -260,6 +288,24 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   110° rear uppers, ~57.5° for height, 4.0 mm Bosch bearing depth, "make at least one top bearing
   removable" (767047) — but claussen parked the mount "until there's a sunken case option that goes all
   the way to the table" (649600). From 2024-11 the answer is flatly statics (270430).
+- **The connector plan predates every product, 2023-07.** The MCU headers were laid out for "pimoroni,
+  bkb-style SPI trackball, [trackball] and trackpoint all in one. And I guess some dumb ps2 trackpad if
+  you're into that kind of thing", the architecture covering SPI, I2C and PS/2 (970142, 061561). Of
+  those, the Pimoroni option was later rejected outright — see the I2C breakout note above.
+- **PS/2 on the RP2040 was the trackpoint's real blocker.** Every trackpoint claussen could source was
+  PS/2 (565359), and QMK's then-new official RP2040 PS/2 driver **required the clock pin to be exactly
+  one higher than the data pin** — "(WTF)" — which the v1 MCU pinout did not satisfy (224070). wolfwood
+  explained why it was not just a code fix: the PIO program works on contiguous virtual pins with a base
+  pin number, so swapping the two pins means reassembling the PIO program, and "the patch authors are
+  cowards and just inserted the pre-assembled binary as a `#define` instead of adding the whole RP2040
+  toolchain to qmk" (900156). claussen's fix was hardware: v2 MCU boards ordered 2023-08 with a
+  PS/2-friendly pinout, against a bag of 20-odd trackpoints already on the shelf (366720). See
+  [firmware-and-config](/firmware-and-config.md).
+- **The 2023-08 fitment survey for balls, before any mount existed**: at least a 40 mm ball fits with no
+  modification, more if you sink it into a concavity in the baseplate, though the thumb cluster starts to
+  interfere; a 33 mm perixx ball on a bkb Charybdis mount fits too. The constraint is the **53 mm of
+  unshaped height under the centre of the palm rest**, about 27 mm at the thumb corner (250816, 094948,
+  190154).
 - **The pointing devices are younger than the board.** 2023-09: the trackball was "already fully
   validated" in firmware but had no product-quality mount or PCBA (150236, 939304). The PMW3360 board
   went to fab 2023-11-14 and **ran on the first try on 2023-11-26** (176462, 405531). Early trackpoint

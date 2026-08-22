@@ -1,14 +1,45 @@
 ---
 type: Timeline
 title: Timeline
-description: Dated Svalboard product news, policy and firmware announcements from September 2023 to August 2026.
+description: Dated Svalboard product news, policy and firmware announcements from the channel's founding in June 2023 to August 2026.
 tags: [svalboard, discord, timeline]
-source: "discord #general 1124364902811844739, 2023-09-07..2026-08-15 (gap 2025-08-10..2025-10-17)"
+source: "discord #general 1124364902811844739, 2023-06-30..2026-08-15 (gap 2025-08-10..2025-10-17)"
 ---
 
 # Timeline
 
-Message ids in parentheses are the last 6 digits of Discord snowflakes in `discord/raw/channel-1124364902811844739.jsonl`; a few 6-digit suffixes collide in the 41k-message export, so disambiguate by date if a lookup returns two hits. Agreement counts are floor estimates.
+Message ids in parentheses are the last 6 digits of Discord snowflakes in `discord/raw/channel-1124364902811844739.jsonl`; a few 6-digit suffixes collide in the 43k-message export, so disambiguate by date if a lookup returns two hits. Agreement counts are floor estimates.
+
+### June – early September 2023 — the founding months
+- **06-30 — claussen creates the channel**: "Svalboard probably deserves its own channel now since there
+  are now likely more Svalboards in the world than lalboards," and seeds it with the five-keys-per-finger
+  mechanism explainer, cluster and palm fitment photos, a palm-rest thermoforming video
+  (youtube.com/watch?v=feAgCKpLzhQ) and a typing demo (youtube.com/watch?v=J9rZLDi8CJo) (569192, 078725,
+  400819, 428712, 111120).
+- **07-28 — down to five sets of RP2040 MCU boards** and about out of base plates; claussen holds off on
+  reordering the old design because **the next rev gets much tidier internal cable routing** and
+  strain relief (530782).
+- **08-01 — Dale, the DataHand's inventor, joins the channel** (173607). **08-13 — claussen posts a digest
+  of a long call with him**: market and UX suggestions, and the note that **hall effect was DataHand's
+  preferred mass-production path**, blocked by a Russian patent they could not license (621481, 130287).
+- **08-10 — a trial-rig rental is floated**: idle older ESP32-based rigs at ~$100/mo plus shipping and a
+  deposit, credited towards a purchase; S/M/L hands only, finger widths to about 17 mm (049660). Nothing
+  in the later record suggests this ran.
+- **08-18 — new MCU boards arrive, 30/30 good**: low-side FET instead of BJT for cluster power, pinout
+  fixes so **PS/2 drivers work with less QMK-bashing**, and double-tap RESET to enter the bootloader
+  (single tap still exits) (726786, 206861).
+- **08-21 — heat management fixed on the key prints**: a barely-warm garage plus heat creep was stalling
+  the MK3S steppers; a box fan and a higher-current startup gcode cleared it (481150).
+- **08-24 — first press**: the kbd.news feature, plus two intro videos the same afternoon (583176, 690350,
+  384588).
+- **08-25 — self-print kit orders open and the build queue is four deep** (995149, 891483, 080889);
+  **09-01 it is "approaching double digits"** and the hand-measurement sheet goes up (633264, 958144).
+- **09-02..09-06 — cable routing settles**: new routing strategy plus semi-captive nut slots, and the
+  strain-relief clamp is judged unnecessary — "FFCs are so nice and creasable" that the left side's
+  crossovers barely change assembly (979398, 557137, 280612, 670401).
+- **09-03 — claussen breaks his fibula.** An extended-wait note goes on the shop; he keeps two printers
+  running from a second-storey flat on crutches, and floats **regular voice/video office hours** by way of
+  compensation (986846, 073684, 757894, 745495, 976032, 428987).
 
 ### September – December 2023
 - **09-07 — self-print repo access goes live**, still churning: "things will flicker" (497701, 875454).
