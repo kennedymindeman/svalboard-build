@@ -224,8 +224,7 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   but unconverted (128331). It got there by community PR: claussen asked "I think we need to get
   Achordion ported into the vial build. Any takers?" on 2023-08-10 and mmarcello had
   `svalboard/vial-qmk#1` open the same day — his build error
-  `arm-none-eabi-gcc: error: .build/obj_svalboard_vial/features/achordion.o: No such file or
-  directory` turned out to be "achordian" misspelt (130300, 957002, 228702, 007263). Home-row-mod
+  `arm-none-eabi-gcc: error: … features/achordion.o: No such file or directory` turned out to be "achordian" misspelt (130300, 957002, 228702, 007263). Home-row-mod
   users were already pushing `TAPPING_TERM` "way up to 300" on the Svalboard before it landed
   (037108). phreaker's tap-hold settings, under Keybard's `Menu → QMK settings →
   Tap-Hold`: permissive hold on, tapping force hold on, ignore mod-tap interrupt off, retro tapping off,
