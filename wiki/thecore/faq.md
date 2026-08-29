@@ -13,12 +13,12 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
 ## Which version should I download?
 
 - **Take v6 in JuicyJuuce's build — `TheCore6g_Juuce_1.2.3` from 2024 on, `1.2.2` before — unless fluent in an older one** (476478, 268756, 799844, 088832, 146752, 857927). It is the maintained continuation, not a side branch: Core plus campaign, co-op and post-v6 abilities (531971, 212211), quoted in full as `TheCore6g_Juuce_1.2.2_right_US_Qwerty.SC2Hotkeys` (943238, 145770).
-- "5 or 6?" recurs in nearly every chunk, 2019 to 2024 (954006, 615828, 513098, 870741, 532865, 378378, 019674, 017694, 913812, 082556, 145351, 669594, 329530, 944064, 499088, 202282, 410827, 226586, 035594, 388402), with "should I switch from v5?" alongside (981576, 897857, 075881). The answer moved:
+- "5 or 6?" recurs across the whole period, 2019 to 2024 (954006, 615828, 513098, 870741, 532865, 378378, 019674, 017694, 913812, 082556, 145351, 669594, 329530, 944064, 499088, 202282, 410827, 226586, 035594, 388402), with "should I switch from v5?" alongside (981576, 897857, 075881). The answer moved:
   - To 2019-11-11, stay on 5 (361556). From 2019-11-26, take the 6 beta and don't relearn each change (203371). From 2019-12-20, "Switch now unless you care about coop and camp keys" (620224, 098187).
   - Through 2020, 6g from the beta channel plus the changes under it, then Core+ if wanted (798464, 187914, 336266, 795995, 869318, 989740, 132673, 818292, 032232, 970791, 380353, 880598, 375101, 432907, 623860, 096380, 663563, 227578). Zerg starting fresh should weight v6's cameras and injects (561392, 464341, 071233); don't switch if comfortable on 5 (854605); 1 to 4 are legacy (032401).
   - 2021–2022 softened it: "marginal difference; take v6 unless you run a customized v5 or have pinky trouble" (757087, 460180, 514813); both fine, v5 for control group feel, v6 for cameras and injects (136336, 010428).
   - From 2022-09, JuicyJuuce's updated build (704050, 992754, 914489, 523452).
-- **No size or race variants** since v5 (811469, 941886).
+- **No size or race variants** since v4 (811469, 941886).
 
 ## Right or Left, Core or Core Lite?
 

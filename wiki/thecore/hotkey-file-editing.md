@@ -810,13 +810,13 @@ Enter=Apostrophe
   Hallucinate Adepts unbound**, reproduced from a fresh copy (503358, 506582). The US file binds all
   three; Evolve Burrow uses `\`, which is `#` on a UK board (964275). JuicyJuuce thinks the file was
   generated against a different UK physical layout, and asked for a keyboard photo and the amended
-  keyset (591752, 505537, 285339, 674782). No fix shipped in this chunk.
+  keyset (591752, 505537, 285339, 674782). No fix had shipped by then.
 - **Debugging a foreign-layout file by hand**: compare key by key against the US QWERTY file, and
   rebind through the in-game editor to learn what StarCraft calls the key, "because sometimes what
   starcraft calls the key is different than what it is actually called" (142216, 662808, 365845,
   148121). Uploading the US file to the visualizer helps you see positions (470814). The scalable fix
   is adding your layout to TheCoreConverter (418431).
-- The UK QWERTY gap was still open in the 2024-08+ chunk: bind Evolve Burrow, Spray and Hallucinate
+- The UK QWERTY gap was still open in the 2024-08+ period: bind Evolve Burrow, Spray and Hallucinate
   Adepts to `#` (564567), though ScaryMouse prefers `[` for Evolve Burrow (578836).
 
 ## Game settings and modes that interact with the file
