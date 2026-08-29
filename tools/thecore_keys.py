@@ -29,12 +29,14 @@ MODS = {"Control", "Shift", "Alt"}
 def parse(path):
     """Yield (command, key, modifier-combo) for every alternate in [Hotkeys] and [Commands]."""
     section = None
-    for line in open(path, encoding="utf-8-sig"):
+    with open(path, encoding="utf-8-sig") as f:
+        lines = f.read().splitlines()
+    for line in lines:
         line = line.strip()
         if line.startswith("["):
             section = line
             continue
-        if "=" not in line or section == "[Settings]":
+        if "=" not in line or section not in ("[Hotkeys]", "[Commands]"):
             continue
         cmd, val = line.split("=", 1)
         for alt in val.split(","):

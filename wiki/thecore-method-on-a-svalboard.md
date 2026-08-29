@@ -40,7 +40,7 @@ This page is about TheCore's *method*, not its layout. For the layout itself and
 
 **The mouse carries almost nothing, and all of it optional.** The only mouse suggestions in the corpus are *"Change 'select all warp gates' to back mouse button"* (Handbook), Shift+Alt+Right Mouse Click as an alternate for Smart Command (`Customization Ideas`), and left click in the ability-target alternate list. There is no mouse-button budget.
 
-**6.0 changed the mechanism without documenting why.** The keyscore rows are gone, there is a fourth zone, the modifier set is re-cut into seven columns (`No-modifer / Ctrl / Shift / Alt / Ctrl+Shift / Alt+Shift / Ctrl+Alt`), and a per-structure priority rank appears as annotations like `1 k;` and `3 pk`. The Handbook has a dated section for the 5.0 rework and none for 6.0, and no document defines the rank notation.
+**6.0 changed the mechanism without documenting why.** The keyscore rows are gone, there is a fourth zone, the modifier set is re-cut into seven columns (`No-modifer` (sic) `/ Ctrl / Shift / Alt / Ctrl+Shift / Alt+Shift / Ctrl+Alt`), and a per-structure priority rank appears as annotations like `1 k;` and `3 pk`. The Handbook has a dated section for the 5.0 rework and none for 6.0, and no document defines the rank notation.
 
 **What the documents never cover:** split, ortholinear, columnar or finger-cluster keyboards, and any per-key timing, error-rate or force measurement. The only physical variables the corpus recognises are keyboard region, laptop versus desktop, mouse hand, and which modifier keys sit next to Ctrl.
 
@@ -158,7 +158,7 @@ Left hand is the command hand, right thumb is on the trackball. Modifier columns
 | L ring north | 2 | CG 7 | Create CG 7 | Add/Steal CG 7 | |
 | L ring outward | 3 | CG 8 | Create CG 8 | Add/Steal CG 8 | |
 | L pinky centre | 1 | Command 1 | Command 1 | Add/Steal CG 5 | Jump to Cam 1 |
-| L pinky south | 1 | Command 6 | Command 6 | Base Camera (banished) | |
+| L pinky south | 1 | Command 6 | Command 6 | Base Camera | |
 | L pinky inward | 2 | Command 8 | Command 8 | | |
 | L pinky outward | 3 | Command 9 | Command 9 | | |
 | L pinky north | 3 | Command 12 | Command 12 | | |
