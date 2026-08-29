@@ -57,7 +57,7 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes. Bare ids
 - **Before QMK, use the board's own internal remapping.** bunfoof's Keychron K2 fix: "I have a keyboard with a similar layout and used its internal functionality to swap the ctrl and left arrow buttons on a separate layer than my normal typing layer" (H:569105), endorsed by Mell00yell00 (H:504138); you reach that firmware through a dipswitch or a key combination (H:160627).
 - **Not programmable? The 1upkeyboards USB-to-USB converter through TMK** (407452). QMK covers what the game won't but is not very accessible (101143).
 - **Software routes, in order**: registry (SharpKeys), PowerToys (535167), vendor software, AutoHotkey last. Disabling an AHK script needs a log off and back on (410044), and it must be scoped with `#ifWinActive StarCraft II` so the remap does not follow you out of the game (213623, 659532). **SharpKeys gotcha**: right Ctrl mapped to Alt sends Ctrl+Alt, because it lands on AltGr; map it to Left shift instead (686451, diagnosed 260487).
-- **AutoHotkey is only ever used for 1-to-1 remaps**: "We us AHK which also has the capability of programming sequences, but we only use it for 1 to 1" (H:236865). The canonical snippet, from an AZERTY board with no right Ctrl (H:791860):
+- **AutoHotkey is only ever used for 1-to-1 remaps**: "We us [sic] AHK which also has the capability of programming sequences, but we only use it for 1 to 1" (H:236865). The canonical snippet, from an AZERTY board with no right Ctrl (H:791860):
 
   ```
   #IfWinActive StarCraft II
