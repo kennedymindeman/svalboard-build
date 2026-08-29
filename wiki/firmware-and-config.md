@@ -146,7 +146,7 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
 - **Mouse buttons go on whichever cluster your modifiers aren't on** — phreaker runs mods on thumbs and
   clicks on index/middle/ring souths; with home-row mods, buttons go on the thumbs, and clicking with
   the *other* hand is "100x more ergonomic" (204741, 219595, 382400). **Clicks default to Center now,
-  previously South** (057237). **Spurious entry into the layer is usually mechanical** — a loosened or
+  previously South** (056916, 057237). **Spurious entry into the layer is usually mechanical** — a loosened or
   rotated thumb cluster brushing the ball puts you there on every space (449074, 412681).
 
 ## Pointing settings

@@ -30,7 +30,7 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   (950312). If you type an alt layout, **keep a QWERTY left-hand layer for gaming** (phreaker 890540).
 - **WASD**: A/S/D on south keys with W on the middle-finger center; hold center keys, not north, and let
   OS key-repeat work. **High-APM (Tetris/osu) is unresolved** — 6.7 cps on a Sval vs 6.9 on a Wooting
-  (489416, 856650, 609447); phreaker has never pitched it as a gaming board — "Is it the best gaming
+  (244127, 856650, 609447); phreaker has never pitched it as a gaming board — "Is it the best gaming
   board? Probably not. Wooting puts a ton of effort into their boards" (942945). This placement has been
   stable since 2024: phreaker's Fallout 4 map adds Q on
   center ring and E on center index (339404, 225480, 240243, 157231, 829826, 702251, 792449), Sc0tTy

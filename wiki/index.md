@@ -22,6 +22,7 @@ Build and configuration knowledge for the Svalboard in this repo, as an [OKF v0.
 - [firmware-and-config](/firmware-and-config.md) — Which firmware release to run, Keybard versus Vial, flashing and building from source, mouse-layer and pointing settings, layer and modifier idioms, and how the answers changed from 2023 to 2026.
 - [gaming](/gaming.md) — Gaming-layer setup, WASD placement, which genres work on trackballs, and the gaming-keypad comparisons.
 - [svalboard-and-thecore](/svalboard-and-thecore.md) — What TheCore StarCraft II hotkey community's layout principles, modifier habits and hotkey-file tricks imply for playing on a Svalboard, and what neither community has settled.
+- [thecore-method-on-a-svalboard](/thecore-method-on-a-svalboard.md) — TheCore's design method (rank keys by ease, rank commands by use, assign deterministically, efficiency over intuition) stated from its own documents, the Svalboard's per-position ease evidence, and a derived recipe and worked assignment for a Svalboard.
 
 ## TheCore (separate bundle)
 
