@@ -39,7 +39,7 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
 - 2020-04-12 — Tournament rules on firmware remapping asked again, never answered (JimKlide 558474).
 - 2020-04-18 — v5 predates several units and upgrades, so lurker upgrades and microbial shroud are unbound in it (Sora 345600).
 - 2020-05-21 — A new nexus ability is announced for the next patch (AvroArrow 957908); TheCore will not cover it (JaKaTaK 439545).
-- 2020-05-22 — **The thecore website is about four versions out of date; do not use it.** "The core site is like 4 versions ago... there is literally nothing that is the same" (Poletes 624628). Use the Drive spreadsheet (904677).
+- 2020-05-22 — **The TheCore website is about four versions out of date; do not use it.** "The core site is like 4 versions ago... there is literally nothing that is the same" (Poletes 624628). Use the Drive spreadsheet (904677).
 - 2020-06-01 — Rapid-fire inject confirmed dead. Poletes: "rapidfire inject does not work anymore, lotv busted it" (007008), confirmed by TOMES (807646). AvroArrow proposes holding `/` through the camera sequence instead of tapping (456854); holding rapid-fires on the first hatch and pulls every queen there (673829), and streetplay finds it selects the hatchery and sticks on spawn larva (151294). The tap sequence stands (jaydik 716836).
 - 2020-06-03 — Battery Overcharge is reworked to be "less niche" and bound for the first time; 60-second global cooldown (Siaal 840788, ScaryMouse 544981). Poletes rates it above Recall (697893).
 - 2020-06-07 — Warp gate transformation is automatic now, so gateways no longer need a control group to be transformed (Poletes 110578, 293876, 966167, 629894).

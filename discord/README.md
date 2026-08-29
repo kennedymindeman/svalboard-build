@@ -1,7 +1,7 @@
 # Discord — distilled notes
 
 Community knowledge pulled out of the Svalboard Discord (server `1053081626898337902`)
-and the TheCore hotkey Discord (server `389438169520799744`) so I don't have to keep up
+and TheCore hotkey Discord (server `389438169520799744`) so I don't have to keep up
 with the channels. Raw exports live in `raw/` (gitignored:
 other people's messages don't get committed); the pages here are the distilled result.
 

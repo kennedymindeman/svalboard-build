@@ -248,7 +248,7 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
 
 ## Spreadsheets
 
-- **The TheCore 6.0 / v6 spreadsheet is the reference for picking binds — authoritative but
+- **TheCore 6.0 / v6 spreadsheet is the reference for picking binds — authoritative but
   unmaintained and outdated in places** (569499, 646260, 899516; Edennil 314960). It carries the
   rapid-fire column and control group recommendations on the far right (569499, 646260), and its
   abilities tab is ordered with more efficient keys further left, which is the method for binding
