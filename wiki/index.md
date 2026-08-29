@@ -4,7 +4,7 @@ okf_version: "0.2"
 
 # Svalboard knowledge base
 
-Build and configuration knowledge for the Svalboard in this repo, as an [OKF v0.2](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) bundle. Everything here is sourced so far from the distillation of the Svalboard Discord #general channel, 2023-06-30..2026-08-15 with one uncovered gap (2025-08-10..2025-10-17) — see [discord/README.md](../discord/README.md) for provenance and for how to fill the gap or add other channels. Record changes in [log.md](/log.md); the log is oldest-first.
+Build and configuration knowledge for the Svalboard in this repo, as an [OKF v0.2](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) bundle. Everything here is sourced so far from the distillation of the Svalboard Discord #general channel, 2023-06-30..2026-08-15 with one uncovered gap (2025-08-10..2025-10-17) — see [discord/README.md](../discord/README.md) for provenance and for how to fill the gap or add other channels. A second bundle, [thecore/index.md](thecore/index.md), distils the TheCore StarCraft II hotkey Discord; [svalboard-and-thecore](/svalboard-and-thecore.md) reads the two together. Record changes in [log.md](/log.md); the log is oldest-first.
 
 ## Overview
 
@@ -21,6 +21,11 @@ Build and configuration knowledge for the Svalboard in this repo, as an [OKF v0.
 
 - [firmware-and-config](/firmware-and-config.md) — Which firmware release to run, Keybard versus Vial, flashing and building from source, mouse-layer and pointing settings, layer and modifier idioms, and how the answers changed from 2023 to 2026.
 - [gaming](/gaming.md) — Gaming-layer setup, WASD placement, which genres work on trackballs, and the gaming-keypad comparisons.
+- [svalboard-and-thecore](/svalboard-and-thecore.md) — What the TheCore StarCraft II hotkey community's layout principles, modifier habits and hotkey-file tricks imply for playing on a Svalboard, and what neither community has settled.
+
+## TheCore (separate bundle)
+
+- [thecore/index.md](thecore/index.md) — The TheCore hotkey Discord distilled: layouts and variants, `.SC2Hotkeys` file editing beyond what the in-game editor allows, keyboards, tools, learning, patches, FAQ.
 
 ## Reference
 
