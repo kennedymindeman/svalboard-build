@@ -130,7 +130,7 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   reducing travel" (444776).
 - **Slim clusters for narrow hands** — mix with standard, print one first to test-fit, and pair opposite
   "missing corners" to squeeze tighter; slim clusters need slim PCBAs, no going back after purchase.
-  **Laterals**: inward are light and quick to learn, outward awkward, worst on the ring (498001, 224460).
+  **Laterals**: inward are light and quick to learn, outward awkward, worst on the ring (224460).
   They help most at a ≤16-17 mm fit by cutting splay; larger hands see less angular benefit and hit
   key-to-key interference instead, and the cost is reprinting every key (777213, 984800). The related
   "Ultralightly" variant, clusters with no outward keys, is for people who otherwise couldn't use the
@@ -247,7 +247,7 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
 
 ## Laterals, norths and thumbs
 
-- **Key difficulty runs "down > south > inward = north > outward"** (660969, 456597, 159072); porting a
+- **Key difficulty runs "down > south > inward = north > outward"** (660969; the other two rankings put north last, "down, south, inward, outward, north" (456597), or above inward, "Middle > South > North > Inwards > Outwards" (159072)); porting a
   flat layout, put the inner diagonal reaches on inward middle/ring (177041). **HD-Promethium is the
   in-crowd pick**, with R on thumb but not E, since thumbs hate repeats (099753, 500369); **modifiers on
   thumbs with no home-row mods is a viable 20-year answer** (928060).
@@ -285,8 +285,9 @@ Message ids in parentheses are the last 6 digits of Discord snowflakes in `disco
   primary use (196816, 052409, 794521, 026035); "long boi" thumb keys at 0.8 mm offset are a workaround
   (170945,
   675539). **Bending the stainless thumb tower bracket is sanctioned** as a one-time change (664373), and
-  **thumb clusters are marked L/R on the bottom** (982181). **There is no sixth "up" key**: "the anatomy
-  just doesn't support it" (410610, 139005).
+  **thumb clusters are marked L/R on the bottom** (982181). **Fingers get no sixth "up" key** (this is about
+  finger clusters, not thumbs): "Fingers don't go up", "Up for fingers is really, really bad", "the anatomy
+  just doesn't support it" (410610, 139005, 891237).
 
 ## Pain, injury and what the board can't fix
 

@@ -32,7 +32,7 @@ Sources: [Layouts and variants](/thecore/layouts-and-variants.md), [Keyboards an
 
 ## Concrete implications for the Svalboard
 
-Derived below, not said by either channel: nobody in either Discord has run TheCore on a DataHand-style board. Background: [Firmware and config](/firmware-and-config.md), [Hotkey file editing](/thecore/hotkey-file-editing.md).
+Derived below, not said by either channel: nobody in either Discord has run TheCore on a DataHand-style board. Background: [Firmware and config](/firmware-and-config.md), [Hotkey file editing](/thecore/hotkey-file-editing.md). For TheCore's design method itself (key scoring, command ranking, the efficiency-over-intuition rule) applied to the Svalboard's clusters rather than its layout ported, see [TheCore's method on a Svalboard](/thecore-method-on-a-svalboard.md).
 
 - **Start from a `right` TheCore file**, since the filename names the mouse hand (C:520701) and the Svalboard consensus is one half plus a real mouse (S:132796) — putting the left half in the position TheCore was built for (C:485864).
 - **Passes on the thumb, fails on the index.** The thumb cluster carries the four critical thumb keys (C:823040), but a five-direction index cluster cannot hold 9-11 index keys (C:495781) and ~23 easily-hit switches (S:244511) do not cover ~32 keys (C:514098). Index overflow goes on a layer, the `F` / `Fn+F` substitution small-board users already run (C:917360).
