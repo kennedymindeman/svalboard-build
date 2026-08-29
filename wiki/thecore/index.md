@@ -4,7 +4,7 @@ okf_version: "0.2"
 
 # TheCore knowledge base
 
-What the TheCore Discord (the community around [JaKaTaK's TheCore](https://github.com/JaKaTaKSc2/TheCore) StarCraft II hotkey layouts) has settled on across seven years, as an [OKF v0.2](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) bundle. Everything here comes from distilling #general (channel 389438169520799746), 2019-08-24..2026-08-27, 23,419 messages in 18 chunks read in full — see [discord/README.md](../../discord/README.md) for provenance and the pipeline. It sits beside the [Svalboard bundle](../index.md) because both feed the same question: how to play SC2 well on a custom keyboard; the cross-community reading is in [svalboard-and-thecore](../svalboard-and-thecore.md). Record changes in [log.md](/log.md); the log is oldest-first.
+What the TheCore Discord (the community around [JaKaTaK's TheCore](https://github.com/JaKaTaKSc2/TheCore) StarCraft II hotkey layouts) has settled on across seven years, as an [OKF v0.2](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) bundle. Everything here comes from distilling #general (channel 389438169520799746), 2019-08-24..2026-08-27, 23,419 messages in 18 chunks read in full, plus the whole of #hardware (channel 530711772496396288), 2019-01-05..2026-06-04, 2,602 messages, folded into the hardware page with `H:`-prefixed ids — see [discord/README.md](../../discord/README.md) for provenance and the pipeline. It sits beside the [Svalboard bundle](../index.md) because both feed the same question: how to play SC2 well on a custom keyboard; the cross-community reading is in [svalboard-and-thecore](../svalboard-and-thecore.md). Record changes in [log.md](/log.md); the log is oldest-first.
 
 ## Overview
 
@@ -14,7 +14,7 @@ What the TheCore Discord (the community around [JaKaTaK's TheCore](https://githu
 
 - [layouts-and-variants](/layouts-and-variants.md) — Version history (5, 6b–6g, 6.0, Juuce 1.x), left/right and size variants, race-specific placements, and how the "which file should I use" answer changed.
 - [hotkey-file-editing](/hotkey-file-editing.md) — The `.SC2Hotkeys` text file: where it lives, what the in-game editor refuses that the file accepts (unlimited alternates per command, rapid-fire, mouse buttons, multi-command keys, modifier limits), and known-broken binds.
-- [keyboards-and-hardware](/keyboards-and-hardware.md) — Which keyboards, sizes, switches, mice and remapping tools the channel recommends, and why QMK/VIA boards beat software remappers.
+- [keyboards-and-hardware](/keyboards-and-hardware.md) — Which keyboards, sizes, switches, mice and remapping tools the channels recommend, why QMK/VIA boards beat software remappers, and how people fitted TheCore onto finger-cluster keypads and split boards (from #general and the whole #hardware channel).
 - [tools-and-scripts](/tools-and-scripts.md) — Generators, converters, AutoHotkey/SharpKeys setups, trainers and other scripts people built or recommended.
 
 ## Playing on it
