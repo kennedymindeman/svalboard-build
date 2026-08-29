@@ -24,6 +24,9 @@ and re-run the distillation over the new messages (see "Coverage" below for the 
   18 ~1,300-message chunks (`tools/chunk.py` prefix `cchunk`, per-chunk `cdistill-NN.md`, sliced by topic into
   `csect-*.md`, one merge per page) into its own bundle: [../wiki/thecore/index.md](../wiki/thecore/index.md).
   Cross-community notes: [../wiki/svalboard-and-thecore.md](../wiki/svalboard-and-thecore.md).
+- TheCore #hardware `530711772496396288`, 2,602 messages, 2019-01-05 → 2026-06-04 (the whole channel; captured from
+  `raw/discord-core-hardware.com.har`), distilled on 2026-08-29 in 2 chunks (`hchunk`, `hdistill-NN.md`) and folded into
+  [../wiki/thecore/keyboards-and-hardware.md](../wiki/thecore/keyboards-and-hardware.md), where its ids carry an `H:` prefix.
 
 ## Coverage / how to resume scrolling
 
