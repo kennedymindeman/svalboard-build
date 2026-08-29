@@ -1,0 +1,52 @@
+---
+type: Reference
+title: Svalboard and TheCore
+description: What the Svalboard and TheCore Discords each know about one-handed layouts, and what TheCore's design implies for playing StarCraft II on a Svalboard.
+tags: [svalboard, thecore, starcraft, gaming, discord]
+source: "Svalboard Discord #general 1124364902811844739 and TheCore Discord #general 389438169520799746, distilled 2026-08-29"
+---
+
+# Svalboard and TheCore
+
+Message ids in parentheses are the last 6 digits of Discord snowflakes, prefixed by channel: `S:` ids resolve in `discord/raw/channel-1124364902811844739.jsonl` (Svalboard), `C:` ids in `discord/raw/channel-389438169520799746.jsonl` (TheCore). Keep the prefix when quoting: 6-digit suffixes collide within and across the exports.
+
+## What each community knows
+
+The Svalboard Discord knows nothing about StarCraft. The word appears once in the export, in an off-topic joke (S:286082). What it does have, on [Gaming](/gaming.md), is a gaming-layer recipe: mouse layer (14/15), automouse toggle on, autoshift off (S:612489, S:139654). Strip the QMK cleverness off it — no home-row mods (S:316392), no one-shot mods (S:018053) — because games assume WASD and hold/tap behaviours misfire (S:283391). Make it locking, not held; `TG` is what phreaker wanted (S:437698). WASD goes on souths with `W` on the middle-finger centre; collapsing it onto one finger's cluster "just becomes cursor diamond and is a recipe for RSI" (S:369527). The standard setup is one Svalboard half plus a real mouse, "Make the half whose keys you press the master" (S:132796, S:974367), giving ~23 easily-hit switches per hand (S:244511).
+
+TheCore Discord is the mirror image: eight years on a one-handed SC2 hotkey layout, and zero mentions of DataHand or Svalboard in its export. It is unmaintained by its author, with Edennil as de facto maintainer (C:113163, C:660914); see the [overview](/thecore/thecore-overview.md). Half the traffic is editing the `.SC2Hotkeys` text file and a quarter is hardware, and that quarter is the useful part: the channel has spent years on the exact problem a Svalboard poses, a modifier-heavy one-hand layout on a board with too few keys.
+
+## TheCore's layout principles that transfer to a Svalboard
+
+Sources: [Layouts and variants](/thecore/layouts-and-variants.md), [Keyboards and hardware](/thecore/keyboards-and-hardware.md), [Learning and practice](/thecore/learning-and-practice.md).
+
+- **One hand on the keyboard, on the far side, one on the mouse.** "The fundamental change that TheCore makes is moving your hand to the non-standard side of the keyboard" (C:485864), and the far side exists to get all three modifiers under the thumb, like a split ergo board (C:571093). `left` / `right` in a filename names the **mouse** hand (C:520701).
+- **Modifiers on the thumb is the design.** "At its core, the key change of TheCore is moving the modifier keys to the thumb" (C:509204), and "The thumb rests between Shift and Ctrl and never travels" (C:508427). Two home rows anchor the fingers, `JIOP` for macro and `JKL;` for micro (C:598722).
+- **Modifier load.** Ctrl adds/steals to a control group, Shift creates one, Alt creates a camera and centres on the selection (C:720394); Ctrl add/steal alone is ~99% of control-group use (C:294559). v6 never asks for two modifiers at once (C:490189), and Shift and Ctrl carry extra weight because shift-queue and ctrl-select-all-of-type are hard-coded (C:997340). "Core+" is an external modifier remap — Shift→Ctrl, Ctrl→Alt, List/Menu→Shift, priority Control > Shift > Alt (C:848208).
+- **Control-group density is bounded by the hand:** nine usable groups, seven easy, from pro replay analysis (C:927076), comfortable keys `J I O L H N M` (C:861835), and only town hall on `o` and production on `i` prescribed (C:708443).
+- **The key budget is measured per finger** — 3-4 thumb, 8-9 pinky, 4-5 ring, 4-5 middle, 9-11 index, about 32 keys in total including the three modifiers (C:495781, C:514098) — **and too few keys is a solved problem, answered with layers.** A 28-key gamo-28 works with layering (C:514098) and a 40% is "100% doable" with a macropad as a thumb cluster (C:414528), while a ZSA Voyager's 8/4/4/8/2 falls short of the 11/4/4/11/3-4 wanted (C:134036). The recipe: "use Ctrl, Shift and Fn as the thumb modifiers and put the overflow on an Fn layer. SC2 can't bind an arbitrary modifier+key per command, so `F` and `Fn+F` replace `Alt+F`" (C:917360). Edennil's admission test: "If you can put control, shift, and alt on the thumb then you can use TheCore on it" (C:763427), only four thumb keys being truly critical (C:823040).
+- **No rotation or mirroring needed.** Rotating the board physically was a v5 practice v6 dropped (C:553092), the only shipped variants are left-mouse and right-mouse (C:730217), and a left-handed 6d exists only as a community mirror conversion (C:448596). Ports go by position — Edennil mapped his Redox key by key (C:529395) — and split boards are the natural home, their left half mirroring the right side of a normal board (C:097745).
+- **QMK/VIA firmware is the recommended remap layer**, over AutoHotkey or SharpKeys: it survives Windows updates, runs no background process, travels to any PC and matches tournament rules (C:190652). AHK must be scoped `#ifWinActive StarCraft II` and cannot touch an Fn key at all (C:213623, C:544202). Poletes built a camera layer in QMK — "Took me like 10 min to do in qmk" (C:988010) — and binds Alt as `MO` so Alt-combinations emit plain keys (C:107752).
+
+## Concrete implications for the Svalboard
+
+Derived below, not said by either channel: nobody in either Discord has run TheCore on a DataHand-style board. Background: [Firmware and config](/firmware-and-config.md), [Hotkey file editing](/thecore/hotkey-file-editing.md).
+
+- **Start from a `right` TheCore file**, since the filename names the mouse hand (C:520701) and the Svalboard consensus is one half plus a real mouse (S:132796) — putting the left half in the position TheCore was built for (C:485864).
+- **Passes on the thumb, fails on the index.** The thumb cluster carries the four critical thumb keys (C:823040), but a five-direction index cluster cannot hold 9-11 index keys (C:495781) and ~23 easily-hit switches (S:244511) do not cover ~32 keys (C:514098). Index overflow goes on a layer, the `F` / `Fn+F` substitution small-board users already run (C:917360).
+- **Do all modifier work in Vial, none in the hotkey file**, since modifiers cannot be rebound in game at all (C:748265) and firmware is the recommendation anyway (C:190652); check key ordering, since a board emitting alt+ctrl in only one order breaks binds silently (C:738544).
+- **Give modifiers plain held thumb keys on a locking layer.** The gaming page rules out home-row and one-shot mods (S:316392, S:018053) and wants `TG` (S:437698); TheCore holds a modifier through whole sequences (C:141570), and a dropped Shift turns a camera jump into a shift-queued inject (C:282113).
+- **Put per-command work in the text file, which lifts the editor's two-key cap.** The in-game editor allows a hotkey plus one alternate; the file takes as many keys per command as you want (C:483486, C:949022). That is the lever against a small key count.
+- **Rapid fire is a file trick that buys a hold-to-repeat key for free**: add the key to the alternates of "Choose Ability or AI Target", impossible in the UI (C:815756); `K` stays non-rapid-fire as the one precision key (C:928114).
+- **Alternates collapse two presses into one hold**: select-larva is alternate-bound onto every hatchery production key, so you hold `;` for lings instead of pressing `K` then `;` (C:635624).
+- **Bind mouse buttons in the file when the client refuses.** Substitute `ForwardMouseButton`, `BackMouseButton` or `MiddleMouseButton` for a key token, as in `MorphMorphalisk/Queen=Slash,Minus`, where the comma is a second combination on one command (C:363230, C:993133). `LeftMouseButton` and `RightMouseButton` parse; there is no scroll-wheel token (C:580180).
+- **`Command/Unit=Key` scoping makes one physical key carry several commands.** `Lower/SupplyDepot=K` and `MassRecall/Mothership=K` bind per unit (C:489064), and the same syntax clears collisions, as `ResearchHighCapacityBarrels/Hellion=Q` does for blue-flame versus hellbat morph (C:548619).
+- **One case that must be firmware, not file:** SC2 rejected a hand-added `Alt+J` as a second inject key, reporting a conflict at launch (C:296287), and the fix was firmware emitting a plain `J` (C:535377). Back the file up outside the SC2 folder first, since the game rewrites it on a mode switch (C:227476, C:842399).
+
+## Open questions
+
+- **Has anyone run TheCore, or any SC2 layout, on a DataHand-style board?** Not discussed in either channel: one incidental StarCraft mention on the Svalboard side (S:286082), none of DataHand or Svalboard on TheCore's.
+- **Does Svalboard input timing survive rapid fire, and what is its APM ceiling?** TheCore leans on OS key repeat for ~+30 APM (C:675623), while Svalboard latency is uncharacterised (S:760445), its switches are deliberately not "optimized for repeating the same click rapidly" (S:958616), and the only speed datum is 6.7 vs 6.9 cps against a Wooting (S:489416).
+- **Can one finger's five directions carry a TheCore index load** without breaking its no-finger-repetition rule (C:686336), given the warning against collapsing a cluster onto one finger (S:369527)? Not discussed in either channel.
+- **Where do next and previous subgroup go?** TheCore assumes mouse side buttons (C:928960); whether the trackball or spare cluster directions can take that is not discussed in either channel.
+- **Can the learning loop be automated?** TheCore's prescribed drill is quit-and-rewind from a replay (C:664916), and the repo owner's private notes (outside this repo) park an AI coaching loop over one's own replays using the same Resume from Replay feature. Neither channel discusses using such a loop to learn a layout rather than a build order.
