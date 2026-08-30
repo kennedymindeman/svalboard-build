@@ -565,14 +565,15 @@ def main():
         }
         data["order"].append(name)
 
+    if markdown:
+        for name, table in tables:
+            print("\n### %s\n\n%s" % (name, table))
+        return
     html = TEMPLATE.replace("__DATA__", json.dumps(data, separators=(",", ":")))
     out = os.path.join(HERE, OUT)
     with open(out, "w", encoding="utf-8") as f:
         f.write(html)
     print("\nwrote %s (%.0f KB)" % (OUT, os.path.getsize(out) / 1024.0))
-    if markdown:
-        for name, table in tables:
-            print("\n### %s\n\n%s" % (name, table))
 
 
 TEMPLATE = r"""<!DOCTYPE html>
