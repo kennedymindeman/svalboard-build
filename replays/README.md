@@ -15,6 +15,9 @@ were measured from, and how to fetch it again.
   Terran 167, Protoss 106, Zerg 101.
 - **Patch**: 5.0.12.91115 (all 187).
 - **Parsing**: all 187 parsed with sc2reader 1.9.0 at `load_level=4`; none failed.
+- **Clock**: all 187 are LotV on "Faster", i.e. 22.4 game loops per real
+  second, which is how event times become seconds. `extract` refuses a replay
+  that is not LotV/Faster rather than mis-time it.
 
 ## Fetch again
 
@@ -50,7 +53,7 @@ python3.12 -m venv ~/scratch/thecore/venv-replays
 ~/scratch/thecore/venv-replays/bin/python tools/sc2_sequences.py extract ...
 ```
 
-The event stream is ~2.2M events (12 MB gzipped) and takes ~20 min to extract; keep it
+The event stream is 2,156,868 events (13 MB gzipped) and takes ~40 s to extract; keep it
 outside the repo. `report` needs no replays and no sc2reader: it also accepts the
 committed `thecore/sequences-summary.json` in place of the event file, which is how the
 wiki page is rebuilt.
