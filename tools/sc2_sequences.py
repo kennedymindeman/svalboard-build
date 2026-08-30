@@ -34,8 +34,9 @@ Event stream: the first line of each replay is a `kind: "game"` record (map,
 length, patch, players) so `report` can compute per-game and per-minute rates;
 every other line is one event.  Paths ending in .gz are read/written gzipped.
 
-Times are game seconds.  These are LotV replays on "Faster", where sc2reader's
-LotV speed factor is 1.0, so game seconds are also real seconds.
+Times are real seconds.  LotV on "Faster" runs 22.4 game loops per real second
+(LOOPS_PER_SECOND below), so an event's frame divided by that is the wall-clock
+time a viewer sees; `extract` refuses replays that are not LotV/Faster.
 """
 import argparse
 import collections
@@ -59,8 +60,12 @@ HOTKEYS = os.path.join(HERE, "thecore", "TheCore_5.0_Right_Plus.SC2Hotkeys")
 # above it (see wiki/sc2-command-sequences.md).
 JUMP_UNITS = 20.0
 
-# Consecutive events by the same player closer than this (game seconds) count as
-# a pair for the bigram, trigram and same-finger numbers.
+# LotV "Faster" runs 22.4 game loops per real second; sc2reader's `real_length`
+# uses the same factor.  Event frames are game loops, so frame / 22.4 is seconds.
+LOOPS_PER_SECOND = 22.4
+
+# Consecutive events by the same player closer than this (seconds) count as a
+# pair for the bigram, trigram and same-finger numbers.
 WINDOW = 1.0
 
 # Tail lengths kept in the summary JSON.
@@ -153,6 +158,12 @@ CG_KINDS = {0: "cg_set", 1: "cg_add", 2: "cg_get", 3: "cg_del",
 def extract_replay(path, sc2reader):
     """Yield JSON-able records for one replay: a game record, then its events."""
     replay = sc2reader.load_replay(path, load_level=4)
+    if replay.expansion != "LotV" or replay.speed != "Faster":
+        raise ValueError(
+            "%s is %s on %s; this tool only reads LotV replays on Faster, where "
+            "one second is %g game loops"
+            % (os.path.basename(path), replay.expansion, replay.speed,
+               LOOPS_PER_SECOND))
     game = os.path.splitext(os.path.basename(path))[0]
     races = {}
     for p in replay.players:
@@ -169,7 +180,7 @@ def extract_replay(path, sc2reader):
             continue
         name = type(e).__name__
         rec = {"game": game, "player": pid, "race": races[pid],
-               "t": round(e.frame / 16.0, 3)}
+               "t": round(e.frame / LOOPS_PER_SECOND, 3)}
         if name.endswith("CommandEvent"):
             rec["kind"] = "command_update" if name.startswith("Update") else "command"
             rec["ability"] = e.ability_name or None
@@ -247,6 +258,12 @@ def load_hotkeys(path=HOTKEYS):
 PREFIXES = ("Train", "Build", "WarpIn", "Warpin", "Use", "MorphTo", "Morph",
             "Research", "Calldown", "UpgradeTo", "Upgrade")
 SIBLINGS = ("Train", "Build", "WarpIn", "Morph", "MorphTo")
+
+# Stripping a unit name off a prefixed form can leave the prefix alone
+# ("WarpInBarracksTechLab" -> "WarpIn"), and the file binds some of those as
+# real global commands (WarpIn=Control+Shift+Alt+F10).  A bare prefix says
+# nothing about which ability was used, so it is never a candidate on its own.
+BARE_PREFIXES = {p.lower() for p in PREFIXES + SIBLINGS}
 UNIT_NAMES = sorted((u for u in UNIT_FACTIONS if len(u) >= 3), key=len, reverse=True)
 
 
@@ -277,7 +294,8 @@ def candidates(ability):
     TrainCyclone where the file says BuildCyclone/Factory); UpgradeX1 as
     XLevel1; then the same set again with a leading and with a trailing unit
     name removed (SCVRepair -> Repair, LiftBarracks -> Lift,
-    BuildBarracksReactor -> Reactor).  Matching is exact first, then
+    BuildBarracksReactor -> Reactor).  A form that is nothing but a bare prefix
+    is dropped (see BARE_PREFIXES).  Matching is exact first, then
     case-insensitive, since the file mixes MorphTo, Morphto and lower case.
     """
     if ability in ALIASES:
@@ -292,6 +310,10 @@ def candidates(ability):
         for unit in UNIT_NAMES:
             if f.endswith(unit) and len(f) > len(unit):
                 forms += _expand(f[: -len(unit)])
+    # Drop bare prefixes before the race forms are built, or "WarpIn" comes
+    # back as "ProtossWarpIn"/"ProtossBuild", which the file does bind.
+    forms = [f for f in forms if f and (f.lower() not in BARE_PREFIXES
+                                        or f == ability)]
     forms += [r + f for f in list(forms) for r in ("Protoss", "Terran", "Zerg")]
     seen, uniq = set(), []
     for c in forms:
@@ -337,6 +359,50 @@ def cg_keys(path=HOTKEYS):
     return out
 
 
+# The normalisation is a pile of string rules, so these cases are checked on
+# every `report` run (and by `--selftest`).  The six F10 entries are the ones a
+# bare `WarpIn` candidate used to swallow; the rest are rules worth pinning.
+NORMALISATION_CASES = {
+    "TrainDisruptor": ("BracketOpen", "WarpinDisruptor"),
+    "BuildBarracksTechLab": None,
+    "BuildFactoryTechLab": None,
+    "BuildStarportTechLab": None,
+    "BuildLurkerDenMP": None,
+    "MorphSwarmHost": None,
+    "Revelation": ("BracketOpen", "OracleRevelation"),
+    "SetWorkerRally": ("F", "RallySCV"),
+    "BurrowLurker": ("J", "LurkerBurrowDown"),
+    "RightClick": None,
+    "TrainCyclone": ("BracketOpen", "BuildCyclone"),
+    "ScanMove": ("P", "Attack"),
+}
+
+
+def selftest(index=None):
+    """Check NORMALISATION_CASES; return a list of failure strings."""
+    if index is None:
+        index, _ = load_hotkeys()
+    lower = {}
+    for name in index:
+        lower.setdefault(name.lower(), name)
+    bad = []
+    for ability, want in sorted(NORMALISATION_CASES.items()):
+        key, cand = key_for(ability, index, lower)
+        got = (key, cand) if key else None
+        if got != want:
+            bad.append("%s: expected %s, got %s" % (ability, want, got))
+    return bad
+
+
+def check_normalisation(index=None):
+    bad = selftest(index)
+    if bad:
+        raise AssertionError("normalisation selftest failed:\n  "
+                             + "\n  ".join(bad))
+    print("selftest: %d normalisation cases OK" % len(NORMALISATION_CASES),
+          file=sys.stderr)
+
+
 # ----------------------------------------------------------------- report
 
 
@@ -366,6 +432,12 @@ def aggregate(path):
             if rec["kind"] == "game":
                 games[rec["game"]] = rec
                 continue
+            if rec["game"] not in games:
+                raise ValueError(
+                    "event for game %r before its `kind: \"game\"` record; the "
+                    "stream must open each game with that record, and `extract` "
+                    "writes a game's events only after it"
+                    % rec["game"])
             race, kind = rec["race"], rec["kind"]
             r = races[race]
             key = (rec["game"], rec["player"])
@@ -386,7 +458,7 @@ def aggregate(path):
                 r["cg"]["%s/%d" % (kind, rec["group"])] += 1
             elif kind == "camera":
                 r["camera"] += 1
-                if rec.get("dist", 0) >= JUMP_UNITS:
+                if rec.get("dist", 0) > JUMP_UNITS:
                     r["camera_jumps"] += 1
             tok = token(rec)
             if tok:
@@ -397,23 +469,28 @@ def aggregate(path):
 def sequence_stats(races, streams, mapping, cg_finger):
     """Fill in bigrams, trigrams and the per-finger and same-finger numbers."""
     fingers = collections.defaultdict(collections.Counter)      # race -> finger
-    same = collections.defaultdict(lambda: [0, 0])              # race -> [same, pairs]
+    # race -> [same finger, scored pairs, same key]; same key is a subset of
+    # same finger, so "same finger, different key" is the difference.
+    same = collections.defaultdict(lambda: [0, 0, 0])
     offenders = collections.defaultdict(collections.Counter)    # race -> pair
     mapped = collections.defaultdict(lambda: [0, 0])            # race -> [mapped, total]
     unmapped = collections.defaultdict(collections.Counter)
 
-    def finger(tok):
+    def place(tok):
+        """(key, finger) for a token, or (None, None) if it maps to neither."""
         if tok.startswith("CG") and tok[2:].isdigit():
-            return cg_finger[int(tok[2:])][1]
+            return cg_finger[int(tok[2:])]
         hit = mapping.get(tok)
-        return hit[1] if hit else None
+        return (hit[0], hit[1]) if hit else (None, None)
 
     for (_game, _pid), stream in streams.items():
-        stream.sort()
+        # No sort: the stream is already in replay order, and events sharing a
+        # frame have no other order to give them.  Sorting by token would
+        # invent a direction for the ~8% of pairs that are same-frame.
         race = stream[0][2]
         r = races[race]
         for i, (t, tok, _) in enumerate(stream):
-            f = finger(tok)
+            k, f = place(tok)
             mapped[race][1] += 1
             if f:
                 mapped[race][0] += 1
@@ -427,12 +504,16 @@ def sequence_stats(races, streams, mapping, cg_finger):
                 continue
             r["bigrams"]["%s > %s" % (ptok, tok)] += 1
             r["pairs"] += 1
-            pf = finger(ptok)
+            pk, pf = place(ptok)
             if f and pf:
                 same[race][1] += 1
                 if f == pf:
                     same[race][0] += 1
-                    offenders[race]["%s > %s (%s)" % (ptok, tok, f)] += 1
+                    if k == pk:
+                        # The same key twice: a repeat no layout can move away.
+                        same[race][2] += 1
+                    else:
+                        offenders[race]["%s > %s (%s)" % (ptok, tok, f)] += 1
             if i > 1:
                 ppt, pptok, _ = stream[i - 2]
                 if pt - ppt <= WINDOW:
@@ -442,6 +523,7 @@ def sequence_stats(races, streams, mapping, cg_finger):
 
 def summarise(events_path, replay_set, parse_note):
     index, ambiguous = load_hotkeys()
+    check_normalisation(index)
     cg_finger = cg_keys()
     games, races, streams = aggregate(events_path)
     abilities = set()
@@ -458,6 +540,7 @@ def summarise(events_path, replay_set, parse_note):
         "patches": patches.most_common(),
         "parse": parse_note,
         "window_seconds": WINDOW,
+        "loops_per_second": LOOPS_PER_SECOND,
         "jump_units": JUMP_UNITS,
         "hotkeys": os.path.relpath(HOTKEYS, HERE),
         "ambiguous_commands": len(ambiguous),
@@ -469,7 +552,9 @@ def summarise(events_path, replay_set, parse_note):
         cmd_mapped = sum(c for a, c in r["abilities"].items() if a in mapping)
         cmd_mouse = sum(c for a, c in r["abilities"].items() if a in MOUSE)
         by_finger = fingers[race]
-        s_same, s_pairs = same[race]
+        s_same, s_pairs, s_key = same[race]
+        s_diff = s_same - s_key
+        pct = lambda n: round(100.0 * n / s_pairs, 1) if s_pairs else None
         out["races"][race] = {
             "player_games": pg,
             "minutes": round(mins, 1),
@@ -509,7 +594,11 @@ def summarise(events_path, replay_set, parse_note):
             "finger_counts": dict(by_finger.most_common()),
             "same_finger_pairs": s_same,
             "scored_pairs": s_pairs,
-            "same_finger_rate": round(100.0 * s_same / s_pairs, 1) if s_pairs else None,
+            "same_finger_rate": pct(s_same),
+            "same_key_pairs": s_key,
+            "same_key_rate": pct(s_key),
+            "same_finger_diff_key_pairs": s_diff,
+            "same_finger_diff_key_rate": pct(s_diff),
             "top_same_finger": [[p, c, round(c / pg, 2)]
                                 for p, c in offenders[race].most_common(TOP_PAIRS)],
             "top_unmapped": [[a, c] for a, c in unmapped[race].most_common(TOP_UNMAPPED)],
@@ -584,9 +673,12 @@ def render(s):
              "hotkey presses." % (s["jump_units"], s["jump_units"]))
     L.append("- **Sequence**: consecutive events by the same player no more than "
              "%g s apart, over a stream of commands and control-group recalls "
-             "(the two things a hand does between camera moves). Game seconds "
-             "are real seconds here: these are LotV replays on Faster, where "
-             "sc2reader's speed factor is 1.0." % s["window_seconds"])
+             "(the two things a hand does between camera moves). Times come "
+             "from the replay's game loops at %g loops per second, the LotV "
+             "\"Faster\" rate every game in this set was played at, so they are "
+             "real seconds a viewer would count. Events that share a loop keep "
+             "the order the replay records them in; nothing is re-sorted."
+             % (s["window_seconds"], s.get("loops_per_second", LOOPS_PER_SECOND)))
     L.append("- **TheCore projection**: sc2reader ability names normalised to the "
              "command names in `%s`, then to that file's key and to the finger "
              "that presses it (`FINGERS` in `tools/thecore_keys.py`). Modifiers "
@@ -690,12 +782,16 @@ def render(s):
                    [[f, "%s%%" % sh, r["finger_counts"][f]]
                     for f, sh in r["finger_share"].items()])
         L.append("")
-        rate = r["same_finger_rate"]
         L.append("**Same-finger repetition: %s%%** of the %d within-%gs pairs "
-                 "where both events map to a key land on the same finger."
-                 % (rate, r["scored_pairs"], s["window_seconds"]))
+                 "where both events map to a key land on the same finger. That "
+                 "splits into %s%% the same key twice (a repeat no layout can "
+                 "move apart, mostly a control group recalled again) and "
+                 "**%s%% the same finger on a different key**, which is the "
+                 "part a layout controls."
+                 % (r["same_finger_rate"], r["scored_pairs"], s["window_seconds"],
+                    r["same_key_rate"], r["same_finger_diff_key_rate"]))
         L.append("")
-        L.append("Worst pairs:")
+        L.append("Worst pairs (same finger, different key):")
         L.append("")
         L += table(["#", "Pair (finger)", "Count", "Per game"],
                    [[i + 1, p, c, pg] for i, (p, c, pg)
@@ -723,6 +819,7 @@ def render(s):
 
 def cmd_report(args):
     if args.input.endswith(".json"):
+        check_normalisation()
         with open(args.input, encoding="utf-8") as f:
             summary = json.load(f)
     else:
@@ -736,6 +833,15 @@ def cmd_report(args):
     with open(args.out, "w", encoding="utf-8") as f:
         f.write(render(summary))
     print("wrote %s" % args.out, file=sys.stderr)
+
+
+def cmd_selftest(_args):
+    bad = selftest()
+    for line in bad:
+        print("FAIL " + line, file=sys.stderr)
+    print("%d of %d normalisation cases OK"
+          % (len(NORMALISATION_CASES) - len(bad), len(NORMALISATION_CASES)))
+    return sys.exit(1) if bad else None
 
 
 def main():
@@ -753,6 +859,8 @@ def main():
                    help="name of the replay set, for the page")
     r.add_argument("--parse-note", default="", help="one sentence on parse coverage")
     r.set_defaults(func=cmd_report)
+    t = sub.add_parser("selftest", help="check the ability-name normalisation")
+    t.set_defaults(func=cmd_selftest)
     args = ap.parse_args()
     args.func(args)
 
