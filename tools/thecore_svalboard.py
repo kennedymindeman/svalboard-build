@@ -291,15 +291,12 @@ def replay_load(summary, path):
         if cmd.startswith("ControlGroupRecall"):
             cg[cmd[len("ControlGroupRecall"):]] = key
     load = collections.Counter()
-    unmapped = collections.Counter()
     for race in races:
         for name, count, _pm, _s, _cs in races[race]["top_abilities"]:
             if name == "RightClick":
                 continue
             if name in amap:
                 load[amap[name][0]] += count
-            else:
-                unmapped[name] += count
         for row, (count, _pg) in races[race]["control_groups"].items():
             group = row.split("/")[1]
             if group in cg:
@@ -321,7 +318,7 @@ def replay_load(summary, path):
                 pairs[(ka, kb)] += count
     return ({k: c / minutes for k, c in load.items()},
             {p: c / minutes for p, c in pairs.items()},
-            {"minutes": minutes, "unmapped": unmapped.most_common(8)})
+            {"minutes": minutes})
 
 
 def cost(place, slots, load, pairs):
@@ -859,7 +856,7 @@ function openKey(k) {
 }
 
 function facButton(name) {
-  return '<button class="t" data-f="' + name + '">' + name + "</button>";
+  return '<button class="t" data-f="' + esc(name) + '">' + esc(name) + "</button>";
 }
 function init() {
   var sel = document.getElementById("file");

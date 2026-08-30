@@ -183,7 +183,7 @@ function openKey(k) {
 }
 
 function facButton(name) {
-  return '<button class="t" data-f="' + name + '">' + name + "</button>";
+  return '<button class="t" data-f="' + esc(name) + '">' + esc(name) + "</button>";
 }
 function init() {
   var sel = document.getElementById("file");
