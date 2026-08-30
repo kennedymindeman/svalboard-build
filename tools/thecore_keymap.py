@@ -58,7 +58,7 @@ UNIT_FACTIONS = {
     'Adept': ['Protoss'],
     'AlarakCoop': ['Alarak'],
     'AlarakReviveBeacon': ['Alarak'],
-    'ArbiterMP': ['Fenix'],
+    'ArbiterMP': ['Protoss'],
     'Archon': ['Protoss'],
     'Armory': ['Terran'],
     'Baneling': ['Zerg'],
@@ -92,7 +92,7 @@ UNIT_FACTIONS = {
     'DarkShrine': ['Protoss'],
     'DarkTemplar': ['Protoss'],
     'DarkTemplarShakuras': ['Vorazun'],
-    'DarkTemplarTaldarim': ['Alarak'],
+    'DarkTemplarTaldarim': ['Protoss'],
     'DehakaBarracks': ['Dehaka'],
     'DehakaBarracksUprooted': ['Dehaka'],
     'DehakaCoop': ['Dehaka'],
@@ -119,7 +119,7 @@ UNIT_FACTIONS = {
     'DehakaUltraliskLevel2': ['Dehaka'],
     'DehakaUltraliskLevel3': ['Dehaka'],
     'DehakaZerglingLevel2': ['Dehaka'],
-    'DevilDog': ['Raynor'],
+    'DevilDog': ['Terran'],
     'Devourer': ['Abathur'],
     'Disruptor': ['Protoss'],
     'DrakkenLaserDrillCoop': ['Swann'],
@@ -179,15 +179,15 @@ UNIT_FACTIONS = {
     'HighTemplar': ['Protoss'],
     'HighTemplarTaldarim': ['Alarak'],
     'Hive': ['Zerg'],
-    'HotSHunter': ['Zagara', 'Kerrigan'],
-    'HotSHunterBurrowed': ['Zagara', 'Kerrigan'],
+    'HotSHunter': ['Zerg'],
+    'HotSHunterBurrowed': ['Zerg'],
     'HotSLeviathan': ['Abathur'],
-    'HotSNoxious': ['Zagara', 'Kerrigan'],
-    'HotSRaptor': ['Zagara', 'Kerrigan'],
-    'HotSSplitterlingBig': ['Zagara', 'Kerrigan'],
-    'HotSSplitterlingBigBurrowed': ['Zagara', 'Kerrigan'],
-    'HotSSwarmling': ['Zagara', 'Kerrigan'],
-    'HotSTorrasque': ['Zagara', 'Kerrigan'],
+    'HotSNoxious': ['Zerg'],
+    'HotSRaptor': ['Kerrigan'],
+    'HotSSplitterlingBig': ['Zagara'],
+    'HotSSplitterlingBigBurrowed': ['Zagara'],
+    'HotSSwarmling': ['Zagara'],
+    'HotSTorrasque': ['Kerrigan'],
     'HugeSwarmQueen': ['Zagara'],
     'Hydralisk': ['Zerg'],
     'HydraliskDen': ['Zerg'],
@@ -198,7 +198,7 @@ UNIT_FACTIONS = {
     'HyperionKorhal': ['Raynor'],
     'HyperionVoidCoop': ['Raynor'],
     'Immortal': ['Protoss'],
-    'ImmortalShakuras': ['Vorazun'],
+    'ImmortalShakuras': ['Protoss'],
     'InfestationPit': ['Zerg'],
     'InfestationPitStetmann': ['Stetmann'],
     'Infestor': ['Zerg'],
@@ -231,14 +231,14 @@ UNIT_FACTIONS = {
     'Medic': ['Raynor'],
     'Medivac': ['Terran'],
     'Medivac_BlackOps': ['Nova'],
-    'MercMedic': ['Raynor'],
+    'MercMedic': ['Terran'],
     'MissileTurret': ['Terran'],
-    'Monitor': ['Alarak'],
+    'Monitor': ['Protoss'],
     'Mothership': ['Protoss'],
     'MothershipAiur06': ['Artanis'],
     'MothershipCore': ['Protoss'],
     'Mutalisk': ['Zerg'],
-    'MutaliskBroodlord': ['Abathur'],
+    'MutaliskBroodlord': ['Kerrigan'],
     'MutaliskViper': ['Abathur'],
     'MutatorWidowMine': ['Terran'],
     'Nexus': ['Protoss'],
@@ -250,7 +250,7 @@ UNIT_FACTIONS = {
     'NovaReviveBeacon': ['Nova'],
     'NydusNetwork': ['Zerg'],
     'Observer': ['Protoss'],
-    'Odin': ['Raynor'],
+    'Odin': ['Terran'],
     'Oracle': ['Protoss'],
     'OrbitalCommand': ['Terran'],
     'Overlord': ['Zerg'],
@@ -278,7 +278,7 @@ UNIT_FACTIONS = {
     'Reaver': ['Protoss'],
     'Roach': ['Zerg'],
     'RoachBurrowed': ['Zerg'],
-    'RoachCorpser': ['Abathur'],
+    'RoachCorpser': ['Zerg'],
     'RoachVile': ['Abathur'],
     'RoachVileBurrowed': ['Abathur'],
     'RoachWarren': ['Zerg'],
@@ -315,7 +315,7 @@ UNIT_FACTIONS = {
     'Scourge': ['Zagara'],
     'ScourgeNest': ['Zagara'],
     'Sentry': ['Protoss'],
-    'SentryAiur': ['Artanis'],
+    'SentryAiur': ['Protoss'],
     'SentryFenix': ['Fenix'],
     'SentryPurifier': ['Karax'],
     'ShieldBattery': ['Protoss'],
@@ -324,7 +324,7 @@ UNIT_FACTIONS = {
     'SolarForge': ['Karax'],
     'SpawningPool': ['Zerg'],
     'SpawningPoolStetmann': ['Stetmann'],
-    'Spectre': ['Nova'],
+    'Spectre': ['Terran'],
     'SpineCrawler': ['Zerg'],
     'SpineCrawlerStetmann': ['Stetmann'],
     'SpineCrawlerUprooted': ['Zerg'],
@@ -363,11 +363,11 @@ UNIT_FACTIONS = {
     'SwarmHostSplitBRooted': ['Zerg'],
     'SwarmQueen': ['Zagara'],
     'Tempest': ['Protoss'],
-    'TempestPurifier': ['Karax'],
+    'TempestPurifier': ['Protoss'],
     'TemplarArchive': ['Protoss'],
     'Thor': ['Terran'],
     'ThorWreckageSwann': ['Swann'],
-    'Tosh': ['Nova'],
+    'Tosh': ['Terran'],
     'ToxicNest': ['Abathur'],
     'TwilightCouncil': ['Protoss'],
     'TychusArmory': ['Tychus'],
@@ -435,8 +435,8 @@ UNIT_FACTIONS = {
 KEY_ROWS = [
     ["6", "7", "8", "9", "0", "Minus", "Equals", "Backspace"],
     ["Y", "U", "I", "O", "P", "BracketOpen", "BracketClose", "BackSlash"],
-    ["H", "J", "K", "L", "SemiColon", "Apostrophe"],
-    ["N", "M", "Comma", "Period", "Slash"],
+    ["G", "H", "J", "K", "L", "SemiColon", "Apostrophe"],
+    ["B", "N", "M", "Comma", "Period", "Slash"],
     ["Shift", "Alt", "Control"],
 ]
 KEY_LABELS = {
@@ -501,6 +501,13 @@ def factions_for(unit):
     return list(owners)
 
 
+def own_factions(unit):
+    """Factions that own this unit outright in UNIT_FACTIONS, without race expansion."""
+    if unit is None:
+        return [GLOBAL]
+    return list(UNIT_FACTIONS.get(unit) or [UNCLASSIFIED])
+
+
 def build_file(path):
     idx = {f: i for i, f in enumerate(FACTIONS)}
     entries, unclassified, counts = [], set(), {f: 0 for f in FACTIONS}
@@ -511,7 +518,8 @@ def build_file(path):
             unclassified.add(unit)
         for f in facs:
             counts[f] += 1
-        entries.append([ability, unit or "", [idx[f] for f in facs], key, combo, raw])
+        entries.append([ability, unit or "", [idx[f] for f in facs], key, combo, raw,
+                        [idx[f] for f in own_factions(unit)]])
     return entries, sorted(unclassified), counts
 
 
@@ -587,14 +595,16 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: #
 <h1>TheCore key map</h1>
 <p class="lede">Every binding in TheCore's hotkey files, on the key that presses it. Pick a file, then a melee race or a
 co-op commander. Commander views show all melee units of that commander's race plus the commander's own units, so a
-commander that lacks a unit still shows it. Unit-less commands and everything in <code>[Hotkeys]</code> are Global and
-appear in every view. Click a key for the full list.</p>
+commander that lacks a unit still shows it; tick <em>commander-specific only</em> to drop the inherited ones.
+Unit-less commands and everything in <code>[Hotkeys]</code> are Global and appear in every view. Click a key for the
+full list.</p>
 
 <div class="bar">
   <div class="row"><b>File</b><select id="file"></select><span id="src" style="color:#777;font-size:12px"></span></div>
   <div class="row"><b>Melee</b><span id="fac-melee"></span></div>
   <div class="row"><b>Co-op</b><span id="fac-coop"></span></div>
   <div class="row"><b>Other</b><span id="fac-other"></span></div>
+  <div class="row"><b>Commander</b><label id="ownlab"><input type="checkbox" id="own"> commander-specific only</label></div>
   <div class="row"><b>Modifier</b><span id="mods"></span></div>
   <div class="row"><b>Search</b><input type="text" id="q" placeholder="ability or unit name"><span id="stat" style="color:#555"></span></div>
 </div>
@@ -612,19 +622,24 @@ Object.keys(DATA.fingers).forEach(function (f) { DATA.fingers[f].forEach(functio
 var inRows = {};
 DATA.rows.forEach(function (r) { r.forEach(function (k) { inRows[k] = 1; }); });
 
-var state = { file: DATA.order[0], faction: "Terran", mod: "all", q: "" };
+var state = { file: DATA.order[0], faction: "Terran", mod: "all", q: "", own: false };
 
 function words(s) {
   return s.replace(/_/g, " ").replace(/([a-z0-9])([A-Z])/g, "$1 $2")
           .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2").trim();
 }
 function label(k) { return DATA.labels[k] || k; }
-function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function plural(n, word) { return n + " " + word + (n === 1 ? "" : "s"); }
+function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
 
 function visible(e) {
   var fi = FAC.indexOf(state.faction), f = e[2];
   if (state.faction === "Global") { if (f.indexOf(GI) < 0) return false; }
   else if (state.faction === "Unclassified") { if (f.indexOf(UI) < 0) return false; }
+  else if (state.own && DATA.commanders[state.faction]) {
+    // commander-specific only: the unit must be filed under this commander itself.
+    if (e[6].indexOf(fi) < 0 && e[6].indexOf(GI) < 0) return false;
+  }
   else if (f.indexOf(fi) < 0 && f.indexOf(GI) < 0) return false;
   if (state.q) {
     var q = state.q.toLowerCase();
@@ -648,7 +663,7 @@ function keyCell(k, list) {
   var f = fingerOf[k] || "other", n = list ? list.length : 0;
   var h = '<div class="key f-' + f + (n ? "" : " dim") + '" data-k="' + k + '" title="' + k + " · " + f + '">';
   h += '<div class="kn"><span>' + esc(label(k)) + '</span><span class="c">' + n + "</span></div>";
-  var sorted = (list || []).slice().sort(function (a, b) { return a[0] < b[0] ? -1 : 1; });
+  var sorted = (list || []).slice().sort(function (a, b) { return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0; });
   sorted.slice(0, 6).forEach(function (e) {
     h += '<div class="e" title="' + esc(e[5]) + '">' + esc(words(e[0])) +
          (e[1] ? ' <u>· ' + esc(words(e[1])) + "</u>" : "") + "</div>";
@@ -661,7 +676,7 @@ function render() {
   var m = byKey(true), all = DATA.files[state.file].entries;
   var shown = 0;
   Object.keys(m).forEach(function (k) { shown += m[k].length; });
-  document.getElementById("stat").textContent = shown + " of " + all.length + " bindings";
+  document.getElementById("stat").textContent = shown + " of " + plural(all.length, "binding");
   document.getElementById("src").textContent = DATA.files[state.file].source;
   var html = "";
   DATA.rows.forEach(function (r) {
@@ -686,16 +701,19 @@ function render() {
   Array.prototype.forEach.call(document.querySelectorAll("button.t[data-m]"), function (b) {
     b.className = "t" + (b.getAttribute("data-m") === state.mod ? " on" : "");
   });
+  var isCmd = !!DATA.commanders[state.faction];
+  document.getElementById("own").disabled = !isCmd;
+  document.getElementById("ownlab").style.opacity = isCmd ? "1" : "0.45";
 }
 
 function openKey(k) {
-  var m = byKey(false)[k] || [];
+  var m = byKey(true)[k] || [];
   var h = "<h3>" + esc(label(k)) + "</h3><p class=\"sub\">" + esc(k) + " · " +
-          (fingerOf[k] || "other") + " · " + m.length + " bindings · " + esc(state.faction) + "</p>";
+          (fingerOf[k] || "other") + " · " + plural(m.length, "binding") + " · " + esc(state.faction) + "</p>";
   DATA.combos.forEach(function (c) {
     var list = m.filter(function (e) { return e[4] === c[0]; });
     if (!list.length) return;
-    list.sort(function (a, b) { return a[0] < b[0] ? -1 : 1; });
+    list.sort(function (a, b) { return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0; });
     h += '<div class="grp">' + esc(c[1]) + " (" + list.length + ")</div>";
     list.forEach(function (e) {
       h += '<div class="ent"><span class="a" title="' + esc(e[0]) + '">' + esc(words(e[0])) + "</span>" +
@@ -732,6 +750,9 @@ function init() {
   Array.prototype.forEach.call(document.querySelectorAll("button.t[data-m]"), function (b) {
     b.onclick = function () { state.mod = b.getAttribute("data-m"); render(); };
   });
+  var own = document.getElementById("own");
+  own.checked = false;
+  own.onchange = function () { state.own = !!own.checked; render(); };
   document.getElementById("q").oninput = function (ev) { state.q = ev.target.value; render(); };
   document.getElementById("legend").innerHTML = ["pinky", "ring", "middle", "index", "thumb", "other"]
     .map(function (f) { return '<span class="f-' + f + '">' + f + "</span>"; }).join("");

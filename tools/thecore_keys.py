@@ -41,11 +41,17 @@ def parse(path):
         cmd, val = line.split("=", 1)
         for alt in val.split(","):
             parts = [p for p in alt.split("+") if p]
-            base = [p for p in parts if p not in MODS]
-            if not base:
+            if not parts:
                 continue
-            combo = "+".join(sorted(p for p in parts if p in MODS)) or "plain"
-            yield cmd, base[-1], combo
+            base = [p for p in parts if p not in MODS]
+            if base:
+                key, mods = base[-1], [p for p in parts if p in MODS]
+            else:
+                # Modifier-only binding (CameraCenter=Alt): the last modifier is
+                # the key, any others are held with it.
+                key, mods = parts[-1], parts[:-1]
+            combo = "+".join(sorted(mods)) or "plain"
+            yield cmd, key, combo
 
 
 def main():
