@@ -1,0 +1,761 @@
+#!/usr/bin/env python3
+"""Measure command frequency, control-group use and event sequences in SC2 replays.
+
+Two subcommands:
+
+  extract  parse .SC2Replay files into a JSONL event stream
+  report   aggregate that stream into a wiki page and a JSON summary
+
+Parsing is sc2reader at load_level=4 (s2protocol is not needed: sc2reader read
+every replay in the set).  sc2reader does not install on system python 3.14, so
+run it under 3.12:
+
+  uv run --python 3.12 --with sc2reader python tools/sc2_sequences.py \
+      extract replays/iem-katowice-2024 -o ~/scratch/thecore/events.jsonl.gz
+
+  uv run --python 3.12 --with sc2reader python tools/sc2_sequences.py \
+      report ~/scratch/thecore/events.jsonl.gz \
+      -o wiki/sc2-command-sequences.md --summary thecore/sequences-summary.json \
+      --replay-set "IEM Katowice 2024 main event" \
+      --parse-note "All 187 replays in the pack parsed; none failed, ..."
+
+The committed numbers were produced with a venv kept outside the repo,
+/Users/kennedy/scratch/thecore/venv-replays (python 3.12, sc2reader 1.9.0):
+
+  /Users/kennedy/scratch/thecore/venv-replays/bin/python tools/sc2_sequences.py ...
+
+`report` also accepts the summary JSON in place of the event stream, so the page
+rebuilds without the replays (and without sc2reader, on any python 3):
+
+  python3 tools/sc2_sequences.py report thecore/sequences-summary.json \
+      -o wiki/sc2-command-sequences.md
+
+Event stream: the first line of each replay is a `kind: "game"` record (map,
+length, patch, players) so `report` can compute per-game and per-minute rates;
+every other line is one event.  Paths ending in .gz are read/written gzipped.
+
+Times are game seconds.  These are LotV replays on "Faster", where sc2reader's
+LotV speed factor is 1.0, so game seconds are also real seconds.
+"""
+import argparse
+import collections
+import gzip
+import json
+import math
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from thecore_keys import FINGERS  # noqa: E402
+from thecore_keymap import (MELEE, GLOBAL, UNIT_FACTIONS, own_factions,  # noqa: E402
+                            parse_entries)
+
+HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+HOTKEYS = os.path.join(HERE, "thecore", "TheCore_5.0_Right_Plus.SC2Hotkeys")
+
+# A camera move is counted as a hotkey-style jump above this distance in map
+# units.  Chosen from the measured distribution: successive camera positions
+# have a dense scroll mode below ~8 units, a trough at 14-20 and a second mode
+# above it (see wiki/sc2-command-sequences.md).
+JUMP_UNITS = 20.0
+
+# Consecutive events by the same player closer than this (game seconds) count as
+# a pair for the bigram, trigram and same-finger numbers.
+WINDOW = 1.0
+
+# Tail lengths kept in the summary JSON.
+TOP_ABILITIES, TOP_BIGRAMS, TOP_TRIGRAMS, TOP_PAIRS, TOP_UNMAPPED = 120, 200, 120, 60, 80
+
+# sc2reader ability names that no rule below reaches from a command name in the
+# .SC2Hotkeys file.  Built by hand from the names this replay set produced;
+# every name the rules and this table miss is counted as unmapped and listed in
+# the report.
+ALIASES = {
+    "RightClick": None,          # Smart Command: the mouse, not a key
+    "ScanMove": "Attack",        # a-move
+    "HoldPosition": "MoveHoldPosition",
+    "Patrol": "MovePatrol",
+    "Gather": "GatherProt",      # the file has one Gather binding, shared by all races
+    "GatherProtoss": "GatherProt",
+    "GatherTerran": "GatherProt",
+    "GatherZerg": "GatherProt",
+    "ScannerSweep": "Scan",
+    "ExtraSupplies": "SupplyDrop",
+    "CancelLast": "Cancel",
+    "CancelSlot": "Cancel",
+    "CancelBuilding": "Cancel",
+    "PsionicStorm": "PsiStorm",
+    "EMPRound": "EMP",
+    "Consume": "ViperConsume",
+    "SetWorkerRally": "RallySCV",
+    "SetRallyPoint": "Rally",
+    "SetRallyUnit": "Rally",
+    "TrainViking": "VikingFighter",
+    "LiberatorAGTarget": "LiberatorAGMode",
+    "LiberatorAATarget": "LiberatorAAMode",
+    "Revelation": "OracleRevelation",
+    "BuildOracleStasisTrap": "OracleBuildStasisTrap",
+    "OracleWeapon": "OracleWeaponOn",
+    "BurrowWidowMine": "BurrowDown",
+    "UnburrowWidowMine": "BurrowUp",
+    "BurrowLurker": "LurkerBurrowDown",
+    "UnburrowLurker": "LurkerBurrowUp",
+    "LowerSupplyDepot": "Lower",
+    "RaiseSupplyDepot": "Raise",
+    "TankMode": "Unsiege",
+    "UnloadAll": "CommandCenterUnloadAll",
+    "UnloadAllBunker": "BunkerUnloadAll",
+    "RootSporeCrawler": "SporeCrawlerRoot",
+    "UprootSporeCrawler": "SporeCrawlerUproot",
+    "RootSpineCrawler": "SpineCrawlerRoot",
+    "MorphToLurker": "LurkerMP",
+    "ResearchCombatShield": "ResearchShieldWall",
+    "EvolveGlialReconstitution": "EvolveGlialRegeneration",
+    "ResearchConcussiveShells": "ResearchPunisherGrenades",
+    "ResearchZergGroundArmorsLevel1": "zerggroundarmor1",
+    "EvolveMetabolicBoost": "zerglingmovementspeed",
+    "UprootSpineCrawler": "SpineCrawlerUproot",
+}
+
+# Counted apart from key bindings: the mouse buttons, which have no finger in
+# TheCore's chart.
+MOUSE = {"RightClick"}
+
+
+# ---------------------------------------------------------------- extract
+
+
+def open_out(path):
+    return gzip.open(path, "wt", encoding="utf-8") if path.endswith(".gz") \
+        else open(path, "w", encoding="utf-8")
+
+
+def open_in(path):
+    return gzip.open(path, "rt", encoding="utf-8") if path.endswith(".gz") \
+        else open(path, "r", encoding="utf-8")
+
+
+def replay_paths(inputs):
+    out = []
+    for item in inputs:
+        if os.path.isdir(item):
+            for root, _, files in os.walk(item):
+                out += [os.path.join(root, f) for f in files if f.endswith(".SC2Replay")]
+        else:
+            out.append(item)
+    return sorted(out)
+
+
+CG_KINDS = {0: "cg_set", 1: "cg_add", 2: "cg_get", 3: "cg_del",
+            4: "cg_steal", 5: "cg_steal"}
+
+
+def extract_replay(path, sc2reader):
+    """Yield JSON-able records for one replay: a game record, then its events."""
+    replay = sc2reader.load_replay(path, load_level=4)
+    game = os.path.splitext(os.path.basename(path))[0]
+    races = {}
+    for p in replay.players:
+        races[p.pid] = (p.play_race or "?")
+    yield {"kind": "game", "game": game, "map": replay.map_name,
+           "patch": ".".join(str(n) for n in replay.versions[1:5]),
+           "seconds": replay.game_length.seconds,
+           "players": [{"pid": p.pid, "name": p.name, "race": races[p.pid],
+                        "result": p.result} for p in replay.players]}
+    last_cam = {}
+    for e in replay.events:
+        pid = getattr(getattr(e, "player", None), "pid", None)
+        if pid not in races:
+            continue
+        name = type(e).__name__
+        rec = {"game": game, "player": pid, "race": races[pid],
+               "t": round(e.frame / 16.0, 3)}
+        if name.endswith("CommandEvent"):
+            rec["kind"] = "command_update" if name.startswith("Update") else "command"
+            rec["ability"] = e.ability_name or None
+            rec["target"] = ("point" if "TargetPoint" in name else
+                             "unit" if "TargetUnit" in name else "none")
+        elif name.endswith("ControlGroupEvent"):
+            rec["kind"] = CG_KINDS.get(e.update_type, "cg_other")
+            rec["group"] = e.control_group
+        elif name == "CameraEvent":
+            rec["kind"] = "camera"
+            prev = last_cam.get(pid)
+            if prev is not None:
+                rec["dist"] = round(math.hypot(e.x - prev[0], e.y - prev[1]), 2)
+            last_cam[pid] = (e.x, e.y)
+        else:
+            continue
+        yield rec
+
+
+def cmd_extract(args):
+    import sc2reader
+
+    paths = replay_paths(args.inputs)
+    parsed = failed = events = 0
+    errors = []
+    with open_out(args.out) as out:
+        for i, path in enumerate(paths, 1):
+            try:
+                recs = list(extract_replay(path, sc2reader))
+            except Exception as exc:  # a replay sc2reader cannot read
+                failed += 1
+                errors.append("%s: %s: %s" % (os.path.basename(path),
+                                              type(exc).__name__, exc))
+                print("FAIL %s: %s" % (path, exc), file=sys.stderr)
+                continue
+            parsed += 1
+            events += len(recs) - 1
+            for r in recs:
+                out.write(json.dumps(r, separators=(",", ":")) + "\n")
+            if i % 25 == 0 or i == len(paths):
+                print("  %d/%d replays, %d events" % (i, len(paths), events),
+                      file=sys.stderr)
+    print("parsed %d of %d replays (%d failed), %d events -> %s"
+          % (parsed, len(paths), failed, events, args.out), file=sys.stderr)
+    for e in errors:
+        print("  " + e, file=sys.stderr)
+
+
+# ---------------------------------------------- TheCore key/finger mapping
+
+
+def load_hotkeys(path=HOTKEYS):
+    """Command name -> key, using only melee and global bindings.
+
+    The file also binds ~17 co-op commanders, whose units reuse ability names
+    (Blink/Stalker=J but Blink/SuperWarpGate=Y).  Entries whose unit is not
+    Terran/Zerg/Protoss or global are dropped; the rest are grouped by the
+    ability part of `Ability/Unit`, and the key most bindings agree on wins.
+    """
+    keys = collections.defaultdict(collections.Counter)
+    for cmd, key, combo, _raw in parse_entries(path):
+        ability, unit = (cmd.split("/", 1) + [None])[:2] if "/" in cmd else (cmd, None)
+        facs = own_factions(unit)
+        if not any(f in MELEE or f == GLOBAL for f in facs):
+            continue
+        keys[ability][key] += 1
+    index, ambiguous = {}, {}
+    for ability, counter in keys.items():
+        index[ability] = counter.most_common(1)[0][0]
+        if len(counter) > 1:
+            ambiguous[ability] = counter.most_common()
+    return index, ambiguous
+
+
+PREFIXES = ("Train", "Build", "WarpIn", "Warpin", "Use", "MorphTo", "Morph",
+            "Research", "Calldown", "UpgradeTo", "Upgrade")
+SIBLINGS = ("Train", "Build", "WarpIn", "Morph", "MorphTo")
+UNIT_NAMES = sorted((u for u in UNIT_FACTIONS if len(u) >= 3), key=len, reverse=True)
+
+
+def _expand(name):
+    """One name plus its prefix-swapped, Level-numbered, Mode-less and burrow forms."""
+    out = [name]
+    for p in PREFIXES:
+        if name.startswith(p) and len(name) > len(p):
+            rest = name[len(p):]
+            out.append(rest)
+            out += [q + rest for q in SIBLINGS]
+            break
+    out += [x[:-1] + "Level" + x[-1] for x in list(out) if x and x[-1].isdigit()]
+    out += [x[:-6] + x[-1] for x in list(out) if x[-6:-1] == "Level"]
+    out += [x[:-4] for x in list(out) if x.endswith("Mode") and len(x) > 4]
+    if name.startswith("Unburrow"):
+        out.append("BurrowUp")
+    elif name.startswith("Burrow"):
+        out.append("BurrowDown")
+    return out
+
+
+def candidates(ability):
+    """Command names in the hotkey file that this sc2reader ability may be.
+
+    Rules, in order: the name itself; the name with a Train/Build/WarpIn/Morph/
+    Research/Upgrade prefix stripped or swapped for a sibling (sc2reader says
+    TrainCyclone where the file says BuildCyclone/Factory); UpgradeX1 as
+    XLevel1; then the same set again with a leading and with a trailing unit
+    name removed (SCVRepair -> Repair, LiftBarracks -> Lift,
+    BuildBarracksReactor -> Reactor).  Matching is exact first, then
+    case-insensitive, since the file mixes MorphTo, Morphto and lower case.
+    """
+    if ability in ALIASES:
+        alias = ALIASES[ability]
+        return [] if alias is None else [alias]
+    forms = _expand(ability)
+    for f in list(forms):
+        for unit in UNIT_NAMES:
+            if f.startswith(unit) and len(f) > len(unit):
+                forms += _expand(f[len(unit):])
+    for f in list(forms):
+        for unit in UNIT_NAMES:
+            if f.endswith(unit) and len(f) > len(unit):
+                forms += _expand(f[: -len(unit)])
+    forms += [r + f for f in list(forms) for r in ("Protoss", "Terran", "Zerg")]
+    seen, uniq = set(), []
+    for c in forms:
+        if c and c not in seen:
+            seen.add(c)
+            uniq.append(c)
+    return uniq
+
+
+def key_for(ability, index, lower):
+    cands = candidates(ability)
+    for cand in cands:
+        if cand in index:
+            return index[cand], cand
+    for cand in cands:
+        hit = lower.get(cand.lower())
+        if hit:
+            return index[hit], hit
+    return None, None
+
+
+def build_map(abilities, index):
+    """{sc2reader ability: (key, finger, matched command)} for what maps."""
+    finger_of = {k: f for f, keys in FINGERS.items() for k in keys}
+    lower = {}
+    for name in index:
+        lower.setdefault(name.lower(), name)
+    mapping = {}
+    for ability in abilities:
+        key, cand = key_for(ability, index, lower)
+        if key:
+            mapping[ability] = (key, finger_of.get(key, "other"), cand)
+    return mapping
+
+
+def cg_keys(path=HOTKEYS):
+    """{group: (recall key, finger)} from ControlGroupRecall<n>."""
+    finger_of = {k: f for f, keys in FINGERS.items() for k in keys}
+    out = {}
+    for cmd, key, combo, _raw in parse_entries(path):
+        if cmd.startswith("ControlGroupRecall"):
+            out[int(cmd[-1])] = (key, finger_of.get(key, "other"))
+    return out
+
+
+# ----------------------------------------------------------------- report
+
+
+def token(rec):
+    """The sequence token for an event, or None if it is not in the stream."""
+    if rec["kind"] == "command":
+        return rec.get("ability") or "?unnamed"
+    if rec["kind"] == "cg_get":
+        return "CG%d" % rec["group"]
+    return None
+
+
+def aggregate(path):
+    games = {}
+    # per race
+    R = lambda: {"player_games": 0, "seconds": 0, "commands": 0, "command_updates": 0,
+                 "unnamed": 0, "abilities": collections.Counter(),
+                 "cg": collections.Counter(), "camera": 0, "camera_jumps": 0,
+                 "bigrams": collections.Counter(), "trigrams": collections.Counter(),
+                 "pairs": 0}
+    races = collections.defaultdict(R)
+    streams = collections.defaultdict(list)   # (game, pid) -> [(t, token)]
+    seen = set()
+    with open_in(path) as f:
+        for line in f:
+            rec = json.loads(line)
+            if rec["kind"] == "game":
+                games[rec["game"]] = rec
+                continue
+            race, kind = rec["race"], rec["kind"]
+            r = races[race]
+            key = (rec["game"], rec["player"])
+            if key not in seen:
+                seen.add(key)
+                r["player_games"] += 1
+                r["seconds"] += games[rec["game"]]["seconds"]
+            if kind == "command":
+                r["commands"] += 1
+                ability = rec.get("ability")
+                if ability:
+                    r["abilities"][ability] += 1
+                else:
+                    r["unnamed"] += 1
+            elif kind == "command_update":
+                r["command_updates"] += 1
+            elif kind.startswith("cg_"):
+                r["cg"]["%s/%d" % (kind, rec["group"])] += 1
+            elif kind == "camera":
+                r["camera"] += 1
+                if rec.get("dist", 0) >= JUMP_UNITS:
+                    r["camera_jumps"] += 1
+            tok = token(rec)
+            if tok:
+                streams[key].append((rec["t"], tok, race))
+    return games, races, streams
+
+
+def sequence_stats(races, streams, mapping, cg_finger):
+    """Fill in bigrams, trigrams and the per-finger and same-finger numbers."""
+    fingers = collections.defaultdict(collections.Counter)      # race -> finger
+    same = collections.defaultdict(lambda: [0, 0])              # race -> [same, pairs]
+    offenders = collections.defaultdict(collections.Counter)    # race -> pair
+    mapped = collections.defaultdict(lambda: [0, 0])            # race -> [mapped, total]
+    unmapped = collections.defaultdict(collections.Counter)
+
+    def finger(tok):
+        if tok.startswith("CG") and tok[2:].isdigit():
+            return cg_finger[int(tok[2:])][1]
+        hit = mapping.get(tok)
+        return hit[1] if hit else None
+
+    for (_game, _pid), stream in streams.items():
+        stream.sort()
+        race = stream[0][2]
+        r = races[race]
+        for i, (t, tok, _) in enumerate(stream):
+            f = finger(tok)
+            mapped[race][1] += 1
+            if f:
+                mapped[race][0] += 1
+                fingers[race][f] += 1
+            else:
+                unmapped[race][tok] += 1
+            if i == 0:
+                continue
+            pt, ptok, _ = stream[i - 1]
+            if t - pt > WINDOW:
+                continue
+            r["bigrams"]["%s > %s" % (ptok, tok)] += 1
+            r["pairs"] += 1
+            pf = finger(ptok)
+            if f and pf:
+                same[race][1] += 1
+                if f == pf:
+                    same[race][0] += 1
+                    offenders[race]["%s > %s (%s)" % (ptok, tok, f)] += 1
+            if i > 1:
+                ppt, pptok, _ = stream[i - 2]
+                if pt - ppt <= WINDOW:
+                    r["trigrams"]["%s > %s > %s" % (pptok, ptok, tok)] += 1
+    return fingers, same, offenders, mapped, unmapped
+
+
+def summarise(events_path, replay_set, parse_note):
+    index, ambiguous = load_hotkeys()
+    cg_finger = cg_keys()
+    games, races, streams = aggregate(events_path)
+    abilities = set()
+    for r in races.values():
+        abilities |= set(r["abilities"])
+    mapping = build_map(abilities, index)
+    fingers, same, offenders, mapped, unmapped = sequence_stats(
+        races, streams, mapping, cg_finger)
+
+    patches = collections.Counter(g["patch"] for g in games.values())
+    out = {
+        "replay_set": replay_set,
+        "games": len(games),
+        "patches": patches.most_common(),
+        "parse": parse_note,
+        "window_seconds": WINDOW,
+        "jump_units": JUMP_UNITS,
+        "hotkeys": os.path.relpath(HOTKEYS, HERE),
+        "ambiguous_commands": len(ambiguous),
+        "control_group_keys": {str(g): list(v) for g, v in sorted(cg_finger.items())},
+        "races": {},
+    }
+    for race, r in sorted(races.items()):
+        pg, mins = r["player_games"], r["seconds"] / 60.0
+        cmd_mapped = sum(c for a, c in r["abilities"].items() if a in mapping)
+        cmd_mouse = sum(c for a, c in r["abilities"].items() if a in MOUSE)
+        by_finger = fingers[race]
+        s_same, s_pairs = same[race]
+        out["races"][race] = {
+            "player_games": pg,
+            "minutes": round(mins, 1),
+            "commands": r["commands"],
+            "commands_per_game": round(r["commands"] / pg, 1),
+            "commands_per_minute": round(r["commands"] / mins, 1),
+            "command_updates": r["command_updates"],
+            "unnamed_commands": r["unnamed"],
+            "distinct_abilities": len(r["abilities"]),
+            "top_abilities": [[a, c, round(c / pg, 2), round(c / mins, 2),
+                               round(100.0 * c / r["commands"], 2)]
+                              for a, c in r["abilities"].most_common(TOP_ABILITIES)],
+            "top_share": round(100.0 * sum(c for _, c in r["abilities"].most_common(40))
+                               / r["commands"], 1),
+            "control_groups": {k: [v, round(v / pg, 2)]
+                               for k, v in sorted(r["cg"].items())},
+            "camera_events_per_game": round(r["camera"] / pg, 1),
+            "camera_jumps_per_game": round(r["camera_jumps"] / pg, 1),
+            "camera_jumps_per_minute": round(r["camera_jumps"] / mins, 2),
+            "sequence_events": mapped[race][1],
+            "pairs": r["pairs"],
+            "pairs_per_game": round(r["pairs"] / pg, 1),
+            "top_bigrams": [[b, c, round(c / pg, 2)]
+                            for b, c in r["bigrams"].most_common(TOP_BIGRAMS)],
+            "top_trigrams": [[b, c, round(c / pg, 2)]
+                             for b, c in r["trigrams"].most_common(TOP_TRIGRAMS)],
+            "mapped_commands": cmd_mapped,
+            "mapped_command_share": round(100.0 * cmd_mapped / r["commands"], 1),
+            "mouse_commands": cmd_mouse,
+            "mouse_command_share": round(100.0 * cmd_mouse / r["commands"], 1),
+            "unmapped_command_share": round(
+                100.0 * (r["commands"] - cmd_mapped - cmd_mouse) / r["commands"], 1),
+            "mapped_sequence_events": mapped[race][0],
+            "mapped_sequence_share": round(100.0 * mapped[race][0] / mapped[race][1], 1),
+            "finger_share": {f: round(100.0 * c / sum(by_finger.values()), 1)
+                             for f, c in by_finger.most_common()},
+            "finger_counts": dict(by_finger.most_common()),
+            "same_finger_pairs": s_same,
+            "scored_pairs": s_pairs,
+            "same_finger_rate": round(100.0 * s_same / s_pairs, 1) if s_pairs else None,
+            "top_same_finger": [[p, c, round(c / pg, 2)]
+                                for p, c in offenders[race].most_common(TOP_PAIRS)],
+            "top_unmapped": [[a, c] for a, c in unmapped[race].most_common(TOP_UNMAPPED)],
+            "unmapped_events": mapped[race][1] - mapped[race][0],
+        }
+    out["ability_key_map"] = {a: [v[0], v[1], v[2]] for a, v in sorted(mapping.items())}
+    out["ambiguous_examples"] = sorted(ambiguous)[:40]
+    return out
+
+
+# ------------------------------------------------------------- markdown
+
+
+def table(headers, rows):
+    out = ["| " + " | ".join(headers) + " |",
+           "|" + "|".join("---" for _ in headers) + "|"]
+    for row in rows:
+        out.append("| " + " | ".join(str(c) for c in row) + " |")
+    return out
+
+
+def render(s):
+    races = s["races"]
+    order = [r for r in ("Terran", "Protoss", "Zerg") if r in races] + \
+            [r for r in sorted(races) if r not in ("Terran", "Protoss", "Zerg")]
+    L = []
+    L.append("---")
+    L.append("type: Reference")
+    L.append("title: SC2 command sequences, measured")
+    L.append("description: Command frequencies, control-group and camera use, "
+             "and event sequences measured from %d professional StarCraft II "
+             "replays, projected onto TheCore 5.0's keys and fingers."
+             % s["games"])
+    L.append("tags: [starcraft, thecore, gaming, measurement, hotkeys]")
+    L.append('source: "%s; measured with tools/sc2_sequences.py"' % s["replay_set"])
+    L.append("---")
+    L.append("")
+    L.append("# SC2 command sequences, measured")
+    L.append("")
+    if len(s["patches"]) == 1:
+        patches = s["patches"][0][0]
+    else:
+        patches = ", ".join("%s (%d games)" % (p, n) for p, n in s["patches"])
+    L.append(("Every number on this page is measured from replays, not estimated. "
+              "The set is **%s**: %d games, patch %s, parsed with sc2reader at "
+              "`load_level=4`."
+              % (s["replay_set"], s["games"], patches)).rstrip())
+    L.append("")
+    L.append("`tools/sc2_sequences.py` produced both this page and "
+             "`thecore/sequences-summary.json`, which holds the same aggregates; "
+             "the page can be rebuilt from that file alone, without the replays. "
+             "`replays/README.md` says how to fetch the set again.")
+    L.append("")
+    L.append("## What is counted")
+    L.append("")
+    L.append("- **Command**: one `CommandEvent` in the replay, i.e. one ability "
+             "the player issued. Right-clicks (`RightClick`) are in the counts "
+             "and are a mouse action, not a key.")
+    L.append("- Follow-up `UpdateTargetPoint`/`UpdateTargetUnit` events (a target "
+             "dragged while the mouse is down) are counted separately and left "
+             "out of every rate below; including them would roughly double the "
+             "right-click count.")
+    L.append("- **Control group**: `set` (Shift+key in TheCore), `add` "
+             "(Shift+Alt+key), `steal` (Ctrl+key, the steal-and-add and "
+             "steal-and-set update types), `recall` (the bare key).")
+    L.append("- **Camera jump**: two successive camera positions more than "
+             "%g map units apart. The distribution of that distance is bimodal, "
+             "with scrolling below ~8 units, a trough at 14-20 and a second mode "
+             "above it, so %g sits in the trough. Replays record where the camera "
+             "went, never which key moved it, so minimap clicks and follow-unit "
+             "land in the same bucket: read jumps as an upper bound on camera "
+             "hotkey presses." % (s["jump_units"], s["jump_units"]))
+    L.append("- **Sequence**: consecutive events by the same player no more than "
+             "%g s apart, over a stream of commands and control-group recalls "
+             "(the two things a hand does between camera moves). Game seconds "
+             "are real seconds here: these are LotV replays on Faster, where "
+             "sc2reader's speed factor is 1.0." % s["window_seconds"])
+    L.append("- **TheCore projection**: sc2reader ability names normalised to the "
+             "command names in `%s`, then to that file's key and to the finger "
+             "that presses it (`FINGERS` in `tools/thecore_keys.py`). Modifiers "
+             "ride the thumb in TheCore, so a modified binding is counted on the "
+             "finger of its base key." % s["hotkeys"])
+    L.append("")
+    L.append("## Coverage")
+    L.append("")
+    if s["parse"]:
+        L.append(s["parse"])
+        L.append("")
+    rows = []
+    for race in order:
+        r = races[race]
+        rows.append([race, r["player_games"], r["commands"], r["distinct_abilities"],
+                     "%s%%" % r["mapped_command_share"],
+                     "%s%%" % r["mouse_command_share"],
+                     "%s%%" % r["unmapped_command_share"], r["unnamed_commands"]])
+    L += table(["Race", "Player-games", "Commands", "Distinct abilities",
+                "On a TheCore key", "Mouse (right-click)", "No binding found",
+                "Unnamed by sc2reader"], rows)
+    L.append("")
+    L.append("Right-clicking is the mouse and has no key in the file, so it is "
+             "its own column. What is left over is ability names the file does "
+             "not bind under any name the normalisation reaches: mostly upgrades "
+             "at tech buildings, and a few sizeable gaps (`SpawnLarva`, the "
+             "queen inject, is the largest). The biggest unmapped names per race "
+             "are listed with each race below. The hotkey file also binds 17 co-op commanders "
+             "whose units share ability names with the melee ones (%d command "
+             "names carry more than one key); only Terran/Zerg/Protoss and global "
+             "bindings are used here." % s["ambiguous_commands"])
+    L.append("")
+
+    for race in order:
+        r = races[race]
+        L.append("## %s" % race)
+        L.append("")
+        L.append("%d player-games, %.0f minutes played, %d commands: "
+                 "**%s per game, %s per minute**. Control-group and camera "
+                 "numbers are per game."
+                 % (r["player_games"], r["minutes"], r["commands"],
+                    r["commands_per_game"], r["commands_per_minute"]))
+        L.append("")
+        L.append("### Top 40 abilities")
+        L.append("")
+        L.append("These 40 are %s%% of all %s commands." % (r["top_share"], race))
+        L.append("")
+        rows = [[i + 1, a, c, per_game, per_min, "%s%%" % share]
+                for i, (a, c, per_game, per_min, share)
+                in enumerate(r["top_abilities"][:40])]
+        L += table(["#", "Ability", "Count", "Per game", "Per minute", "Share"], rows)
+        L.append("")
+        L.append("### Control groups")
+        L.append("")
+        actions = [("cg_set", "set"), ("cg_add", "add"), ("cg_steal", "steal"),
+                   ("cg_get", "recall")]
+        rows = []
+        for g in range(10):
+            row = [g]
+            for kind, _label in actions:
+                row.append(r["control_groups"].get("%s/%d" % (kind, g), [0, 0])[1])
+            rows.append(row)
+        totals = ["all"]
+        for kind, _label in actions:
+            totals.append(round(sum(v[1] for k, v in r["control_groups"].items()
+                                    if k.startswith(kind + "/")), 2))
+        rows.append(totals)
+        L += table(["Group", "Set/game", "Add/game", "Steal/game", "Recall/game"], rows)
+        L.append("")
+        L.append("### Camera")
+        L.append("")
+        L.append("%s camera events per game, of which %s are jumps over %g map "
+                 "units (%s per minute)."
+                 % (r["camera_events_per_game"], r["camera_jumps_per_game"],
+                    s["jump_units"], r["camera_jumps_per_minute"]))
+        L.append("")
+        L.append("### Sequences")
+        L.append("")
+        L.append("%d consecutive pairs within %gs, %s per game."
+                 % (r["pairs"], s["window_seconds"], r["pairs_per_game"]))
+        L.append("")
+        L.append("Top 30 bigrams:")
+        L.append("")
+        L += table(["#", "Pair", "Count", "Per game"],
+                   [[i + 1, b, c, pg] for i, (b, c, pg)
+                    in enumerate(r["top_bigrams"][:30])])
+        L.append("")
+        L.append("Top 20 trigrams:")
+        L.append("")
+        L += table(["#", "Triple", "Count", "Per game"],
+                   [[i + 1, b, c, pg] for i, (b, c, pg)
+                    in enumerate(r["top_trigrams"][:20])])
+        L.append("")
+        L.append("### TheCore 5.0 projection")
+        L.append("")
+        L.append("%s%% of the %d sequence events (commands plus control-group "
+                 "recalls) map to a key. Share of those events per finger:"
+                 % (r["mapped_sequence_share"], r["sequence_events"]))
+        L.append("")
+        L += table(["Finger", "Share of mapped events", "Events"],
+                   [[f, "%s%%" % sh, r["finger_counts"][f]]
+                    for f, sh in r["finger_share"].items()])
+        L.append("")
+        rate = r["same_finger_rate"]
+        L.append("**Same-finger repetition: %s%%** of the %d within-%gs pairs "
+                 "where both events map to a key land on the same finger."
+                 % (rate, r["scored_pairs"], s["window_seconds"]))
+        L.append("")
+        L.append("Worst pairs:")
+        L.append("")
+        L += table(["#", "Pair (finger)", "Count", "Per game"],
+                   [[i + 1, p, c, pg] for i, (p, c, pg)
+                    in enumerate(r["top_same_finger"][:15])])
+        L.append("")
+        L.append("Largest unmapped names: %s."
+                 % ", ".join("`%s` (%d)" % (a, c) for a, c in r["top_unmapped"][:10]))
+        L.append("")
+    L.append("## Reproducing")
+    L.append("")
+    L.append("```")
+    L.append("# fetch the replays: see replays/README.md")
+    L.append("uv run --python 3.12 --with sc2reader python tools/sc2_sequences.py \\")
+    L.append("    extract replays/ -o ~/scratch/thecore/events.jsonl.gz")
+    L.append("uv run --python 3.12 --with sc2reader python tools/sc2_sequences.py \\")
+    L.append("    report ~/scratch/thecore/events.jsonl.gz \\")
+    L.append("    -o wiki/sc2-command-sequences.md --summary thecore/sequences-summary.json")
+    L.append("# or rebuild this page from the committed summary alone:")
+    L.append("python3 tools/sc2_sequences.py report thecore/sequences-summary.json \\")
+    L.append("    -o wiki/sc2-command-sequences.md")
+    L.append("```")
+    L.append("")
+    return "\n".join(L)
+
+
+def cmd_report(args):
+    if args.input.endswith(".json"):
+        with open(args.input, encoding="utf-8") as f:
+            summary = json.load(f)
+    else:
+        summary = summarise(args.input, args.replay_set, args.parse_note)
+    if args.summary:
+        with open(args.summary, "w", encoding="utf-8") as f:
+            json.dump(summary, f, separators=(",", ":"), sort_keys=False)
+        print("wrote %s (%.0f KB)" % (args.summary,
+                                      os.path.getsize(args.summary) / 1024.0),
+              file=sys.stderr)
+    with open(args.out, "w", encoding="utf-8") as f:
+        f.write(render(summary))
+    print("wrote %s" % args.out, file=sys.stderr)
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    e = sub.add_parser("extract", help="parse replays into a JSONL event stream")
+    e.add_argument("inputs", nargs="+", help=".SC2Replay files or directories")
+    e.add_argument("-o", "--out", required=True, help="output .jsonl or .jsonl.gz")
+    e.set_defaults(func=cmd_extract)
+    r = sub.add_parser("report", help="aggregate a stream into a page and a summary")
+    r.add_argument("input", help="events .jsonl[.gz], or a summary .json to re-render")
+    r.add_argument("-o", "--out", required=True, help="output markdown page")
+    r.add_argument("--summary", help="output summary JSON")
+    r.add_argument("--replay-set", default="IEM Katowice 2024 main event",
+                   help="name of the replay set, for the page")
+    r.add_argument("--parse-note", default="", help="one sentence on parse coverage")
+    r.set_defaults(func=cmd_report)
+    args = ap.parse_args()
+    args.func(args)
+
+
+if __name__ == "__main__":
+    main()
