@@ -10,3 +10,5 @@ Copies of four files from TheCore's public Google Drive folder ("TheCore", linke
 The drive also holds 12 other keyboard layouts for each version, the 1.0–4.0 archives, the 5.0 and 6.0 "important keys" spreadsheets, and the handbook and customization documents; those stay outside the repo. The wiki page [thecore-method-on-a-svalboard](../wiki/thecore-method-on-a-svalboard.md) transcribes what it needs from them.
 
 `tools/thecore_keys.py <file> [--commands]` prints per-key binding counts and modifier combinations grouped by the 5.0 Right finger chart.
+
+`tools/thecore_keymap.py` (no arguments) regenerates [`thecore/keymap.html`](keymap.html), a self-contained page showing every binding on the key that presses it, toggled by melee race and co-op commander.
