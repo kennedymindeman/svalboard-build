@@ -12,3 +12,5 @@ The drive also holds 12 other keyboard layouts for each version, the 1.0–4.0 a
 `tools/thecore_keys.py <file> [--commands]` prints per-key binding counts and modifier combinations grouped by the 5.0 Right finger chart.
 
 `tools/thecore_keymap.py` (no arguments) regenerates [`thecore/keymap.html`](keymap.html), a self-contained page showing every binding on the key that presses it, toggled by melee race and co-op commander.
+
+`tools/thecore_svalboard.py` (no arguments) regenerates [`thecore/svalboard-keymap.html`](svalboard-keymap.html), the same bindings drawn on two Svalboard hands under the key mapping derived in [thecore-method-on-a-svalboard](../wiki/thecore-method-on-a-svalboard.md) section 4d.
