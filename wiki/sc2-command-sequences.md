@@ -18,7 +18,7 @@ Every number on this page is measured from replays, not estimated. The set is **
 - Follow-up `UpdateTargetPoint`/`UpdateTargetUnit` events (a target dragged while the mouse is down) are counted separately and left out of every rate below; including them would roughly double the right-click count.
 - **Control group**: `set` (Shift+key in TheCore), `add` (Shift+Alt+key), `steal` (Ctrl+key, the steal-and-add and steal-and-set update types), `recall` (the bare key).
 - **Camera jump**: two successive camera positions more than 20 map units apart. The distribution of that distance is bimodal, with scrolling below ~8 units, a trough at 14-20 and a second mode above it, so 20 sits in the trough. Replays record where the camera went, never which key moved it, so minimap clicks and follow-unit land in the same bucket: read jumps as an upper bound on camera hotkey presses.
-- **Sequence**: consecutive events by the same player no more than 1 s apart, over a stream of commands and control-group recalls (the two things a hand does between camera moves). Game seconds are real seconds here: these are LotV replays on Faster, where sc2reader's speed factor is 1.0.
+- **Sequence**: consecutive events by the same player no more than 1 s apart, over a stream of commands and control-group recalls (the two things a hand does between camera moves). Times come from the replay's game loops at 22.4 loops per second, the LotV "Faster" rate every game in this set was played at, so they are real seconds a viewer would count. Events that share a loop keep the order the replay records them in; nothing is re-sorted.
 - **TheCore projection**: sc2reader ability names normalised to the command names in `thecore/TheCore_5.0_Right_Plus.SC2Hotkeys`, then to that file's key and to the finger that presses it (`FINGERS` in `tools/thecore_keys.py`). Modifiers ride the thumb in TheCore, so a modified binding is counted on the finger of its base key.
 
 ## Coverage
@@ -27,9 +27,9 @@ All 187 replays in the pack parsed; none failed, so no s2protocol fallback was n
 
 | Race | Player-games | Commands | Distinct abilities | On a TheCore key | Mouse (right-click) | No binding found | Unnamed by sc2reader |
 |---|---|---|---|---|---|---|---|
-| Terran | 167 | 173827 | 149 | 63.4% | 34.7% | 1.9% | 15 |
+| Terran | 167 | 173827 | 149 | 63.0% | 34.7% | 2.2% | 15 |
 | Protoss | 106 | 77137 | 115 | 54.1% | 44.0% | 1.9% | 16 |
-| Zerg | 101 | 88383 | 135 | 55.1% | 39.7% | 5.1% | 0 |
+| Zerg | 101 | 88383 | 135 | 55.1% | 39.7% | 5.2% | 0 |
 
 Right-clicking is the mouse and has no key in the file, so it is its own column. What is left over is ability names the file does not bind under any name the normalisation reaches: mostly upgrades at tech buildings, and a few sizeable gaps (`SpawnLarva`, the queen inject, is the largest). The biggest unmapped names per race are listed with each race below. The hotkey file also binds 17 co-op commanders whose units share ability names with the melee ones (37 command names carry more than one key); only Terran/Zerg/Protoss and global bindings are used here.
 
@@ -102,75 +102,75 @@ These 40 are 93.9% of all Terran commands.
 
 ### Camera
 
-1978.1 camera events per game, of which 409.7 are jumps over 20 map units (30.01 per minute).
+1978.1 camera events per game, of which 409.6 are jumps over 20 map units (30.0 per minute).
 
 ### Sequences
 
-456808 consecutive pairs within 1s, 2735.4 per game.
+473846 consecutive pairs within 1s, 2837.4 per game.
 
 Top 30 bigrams:
 
 | # | Pair | Count | Per game |
 |---|---|---|---|
-| 1 | CG4 > CG1 | 21432 | 128.34 |
-| 2 | CG1 > CG4 | 19905 | 119.19 |
-| 3 | CG3 > CG4 | 17898 | 107.17 |
-| 4 | RightClick > Attack | 13446 | 80.51 |
-| 5 | CG1 > CG3 | 13230 | 79.22 |
-| 6 | CG4 > CG3 | 13229 | 79.22 |
-| 7 | Attack > RightClick | 10746 | 64.35 |
-| 8 | CG3 > CG1 | 10724 | 64.22 |
-| 9 | CG1 > RightClick | 9218 | 55.2 |
-| 10 | CG1 > Attack | 9217 | 55.19 |
-| 11 | CG1 > CG5 | 6851 | 41.02 |
-| 12 | CG4 > CG2 | 6699 | 40.11 |
-| 13 | CG2 > CG3 | 6666 | 39.92 |
-| 14 | CG2 > CG4 | 6519 | 39.04 |
-| 15 | Attack > CG4 | 6368 | 38.13 |
-| 16 | CG4 > CG5 | 6278 | 37.59 |
-| 17 | CG1 > CG2 | 5967 | 35.73 |
-| 18 | CG5 > CG1 | 5869 | 35.14 |
-| 19 | RightClick > CG1 | 5738 | 34.36 |
-| 20 | CG3 > CG5 | 5714 | 34.22 |
-| 21 | CG5 > CG6 | 5498 | 32.92 |
-| 22 | RightClick > CG3 | 5308 | 31.78 |
-| 23 | CG5 > CG3 | 5290 | 31.68 |
-| 24 | CG2 > RightClick | 5289 | 31.67 |
-| 25 | CG4 > RightClick | 5271 | 31.56 |
-| 26 | CG3 > CG2 | 5157 | 30.88 |
-| 27 | RightClick > CG4 | 4772 | 28.57 |
-| 28 | Attack > CG3 | 4683 | 28.04 |
-| 29 | CG2 > CG1 | 4572 | 27.38 |
-| 30 | CG5 > CG4 | 4327 | 25.91 |
+| 1 | CG4 > CG1 | 22872 | 136.96 |
+| 2 | CG1 > CG4 | 20421 | 122.28 |
+| 3 | CG3 > CG4 | 18062 | 108.16 |
+| 4 | RightClick > Attack | 14347 | 85.91 |
+| 5 | CG4 > CG3 | 13525 | 80.99 |
+| 6 | CG1 > CG3 | 13321 | 79.77 |
+| 7 | Attack > RightClick | 11244 | 67.33 |
+| 8 | CG3 > CG1 | 10976 | 65.72 |
+| 9 | CG1 > Attack | 9849 | 58.98 |
+| 10 | CG1 > RightClick | 9769 | 58.5 |
+| 11 | CG4 > CG2 | 6993 | 41.87 |
+| 12 | CG1 > CG5 | 6986 | 41.83 |
+| 13 | CG2 > CG3 | 6739 | 40.35 |
+| 14 | CG2 > CG4 | 6671 | 39.95 |
+| 15 | Attack > CG4 | 6636 | 39.74 |
+| 16 | CG4 > CG5 | 6603 | 39.54 |
+| 17 | RightClick > CG1 | 6107 | 36.57 |
+| 18 | CG1 > CG2 | 6089 | 36.46 |
+| 19 | CG5 > CG1 | 6012 | 36.0 |
+| 20 | CG3 > CG5 | 5829 | 34.9 |
+| 21 | RightClick > CG3 | 5798 | 34.72 |
+| 22 | CG5 > CG3 | 5725 | 34.28 |
+| 23 | CG2 > RightClick | 5567 | 33.34 |
+| 24 | CG5 > CG6 | 5482 | 32.83 |
+| 25 | CG3 > CG2 | 5330 | 31.92 |
+| 26 | CG4 > RightClick | 5323 | 31.87 |
+| 27 | RightClick > CG4 | 5118 | 30.65 |
+| 28 | CG5 > CG4 | 5011 | 30.01 |
+| 29 | Attack > CG3 | 4819 | 28.86 |
+| 30 | CG2 > CG1 | 4779 | 28.62 |
 
 Top 20 trigrams:
 
 | # | Triple | Count | Per game |
 |---|---|---|---|
-| 1 | CG1 > CG4 > CG1 | 13091 | 78.39 |
-| 2 | CG4 > CG1 > CG4 | 12262 | 73.43 |
-| 3 | CG4 > CG3 > CG4 | 10228 | 61.25 |
-| 4 | CG3 > CG4 > CG3 | 10080 | 60.36 |
-| 5 | CG1 > CG3 > CG1 | 6722 | 40.25 |
-| 6 | RightClick > Attack > RightClick | 6602 | 39.53 |
-| 7 | Attack > RightClick > Attack | 6488 | 38.85 |
-| 8 | CG3 > CG1 > CG3 | 6191 | 37.07 |
-| 9 | CG2 > CG4 > CG2 | 4304 | 25.77 |
-| 10 | CG4 > CG2 > CG4 | 3906 | 23.39 |
-| 11 | CG5 > CG1 > CG5 | 3673 | 21.99 |
-| 12 | CG1 > CG5 > CG1 | 3657 | 21.9 |
-| 13 | CG3 > CG5 > CG3 | 3246 | 19.44 |
-| 14 | CG5 > CG3 > CG5 | 3219 | 19.28 |
-| 15 | CG3 > CG2 > CG3 | 3031 | 18.15 |
-| 16 | CG2 > CG3 > CG2 | 2828 | 16.93 |
-| 17 | CG4 > CG5 > CG4 | 2491 | 14.92 |
-| 18 | CG5 > CG4 > CG5 | 2474 | 14.81 |
-| 19 | CG3 > CG4 > CG1 | 2238 | 13.4 |
-| 20 | CG1 > CG3 > CG4 | 2146 | 12.85 |
+| 1 | CG1 > CG4 > CG1 | 14793 | 88.58 |
+| 2 | CG4 > CG1 > CG4 | 13714 | 82.12 |
+| 3 | CG4 > CG3 > CG4 | 10500 | 62.87 |
+| 4 | CG3 > CG4 > CG3 | 10427 | 62.44 |
+| 5 | RightClick > Attack > RightClick | 7076 | 42.37 |
+| 6 | CG1 > CG3 > CG1 | 6860 | 41.08 |
+| 7 | Attack > RightClick > Attack | 6855 | 41.05 |
+| 8 | CG3 > CG1 > CG3 | 6339 | 37.96 |
+| 9 | CG2 > CG4 > CG2 | 4691 | 28.09 |
+| 10 | CG4 > CG2 > CG4 | 4246 | 25.43 |
+| 11 | CG1 > CG5 > CG1 | 3813 | 22.83 |
+| 12 | CG5 > CG1 > CG5 | 3783 | 22.65 |
+| 13 | CG3 > CG5 > CG3 | 3707 | 22.2 |
+| 14 | CG5 > CG3 > CG5 | 3618 | 21.66 |
+| 15 | CG5 > CG4 > CG5 | 3291 | 19.71 |
+| 16 | CG4 > CG5 > CG4 | 3256 | 19.5 |
+| 17 | CG3 > CG2 > CG3 | 3119 | 18.68 |
+| 18 | CG2 > CG3 > CG2 | 2927 | 17.53 |
+| 19 | CG6 > CG4 > CG6 | 2587 | 15.49 |
+| 20 | CG3 > CG4 > CG1 | 2293 | 13.73 |
 
 ### TheCore 5.0 projection
 
-87.1% of the 493755 sequence events (commands plus control-group recalls) map to a key. Share of those events per finger:
+87.0% of the 493755 sequence events (commands plus control-group recalls) map to a key. Share of those events per finger:
 
 | Finger | Share of mapped events | Events |
 |---|---|---|
@@ -178,31 +178,31 @@ Top 20 trigrams:
 | ring | 27.9% | 119994 |
 | index | 24.9% | 106970 |
 | pinky | 5.0% | 21619 |
-| other | 0.2% | 1047 |
+| other | 0.1% | 513 |
 
-**Same-finger repetition: 28.0%** of the 350126 within-1s pairs where both events map to a key land on the same finger.
+**Same-finger repetition: 26.9%** of the 359112 within-1s pairs where both events map to a key land on the same finger. That splits into 4.9% the same key twice (a repeat no layout can move apart, mostly a control group recalled again) and **22.1% the same finger on a different key**, which is the part a layout controls.
 
-Worst pairs:
+Worst pairs (same finger, different key):
 
 | # | Pair (finger) | Count | Per game |
 |---|---|---|---|
-| 1 | CG1 > CG3 (middle) | 13230 | 79.22 |
-| 2 | CG3 > CG1 (middle) | 10724 | 64.22 |
-| 3 | CG1 > CG5 (middle) | 6851 | 41.02 |
-| 4 | CG4 > CG2 (ring) | 6699 | 40.11 |
-| 5 | CG2 > CG4 (ring) | 6519 | 39.04 |
-| 6 | CG5 > CG1 (middle) | 5869 | 35.14 |
-| 7 | CG3 > CG5 (middle) | 5714 | 34.22 |
-| 8 | CG5 > CG3 (middle) | 5290 | 31.68 |
-| 9 | CG3 > CG3 (middle) | 4164 | 24.93 |
-| 10 | CG4 > CG4 (ring) | 4087 | 24.47 |
-| 11 | CG1 > CG1 (middle) | 3193 | 19.12 |
-| 12 | UseStimpack > Attack (index) | 1852 | 11.09 |
-| 13 | CG6 > TrainSCV (index) | 1712 | 10.25 |
-| 14 | CG2 > CG2 (ring) | 1663 | 9.96 |
-| 15 | CG5 > CG5 (middle) | 1412 | 8.46 |
+| 1 | CG1 > CG3 (middle) | 13321 | 79.77 |
+| 2 | CG3 > CG1 (middle) | 10976 | 65.72 |
+| 3 | CG4 > CG2 (ring) | 6993 | 41.87 |
+| 4 | CG1 > CG5 (middle) | 6986 | 41.83 |
+| 5 | CG2 > CG4 (ring) | 6671 | 39.95 |
+| 6 | CG5 > CG1 (middle) | 6012 | 36.0 |
+| 7 | CG3 > CG5 (middle) | 5829 | 34.9 |
+| 8 | CG5 > CG3 (middle) | 5725 | 34.28 |
+| 9 | CG6 > TrainSCV (index) | 1751 | 10.49 |
+| 10 | Attack > CG6 (index) | 1265 | 7.57 |
+| 11 | CG0 > CG1 (middle) | 1167 | 6.99 |
+| 12 | CG3 > CG0 (middle) | 732 | 4.38 |
+| 13 | CG0 > CG3 (middle) | 676 | 4.05 |
+| 14 | CG1 > CG0 (middle) | 485 | 2.9 |
+| 15 | CG6 > ScannerSweep (index) | 421 | 2.52 |
 
-Largest unmapped names: `RightClick` (60385), `UnloadTargetMedivac` (1993), `UpgradeTerranInfantryArmor2` (114), `UpgradeTerranInfantryWeapons2` (108), `CloakGhost` (104), `CancelTerranBuilding` (84), `ResearchInterferenceMatrix` (68), `UpgradeTerranInfantryWeapons3` (65), `DecloakGhost` (61), `UpgradeTerranInfantryArmor3` (60).
+Largest unmapped names: `RightClick` (60385), `UnloadTargetMedivac` (1993), `BuildBarracksTechLab` (303), `BuildFactoryTechLab` (154), `UpgradeTerranInfantryArmor2` (114), `UpgradeTerranInfantryWeapons2` (108), `CloakGhost` (104), `CancelTerranBuilding` (84), `BuildStarportTechLab` (77), `ResearchInterferenceMatrix` (68).
 
 ## Protoss
 
@@ -273,71 +273,71 @@ These 40 are 95.8% of all Protoss commands.
 
 ### Camera
 
-1616.7 camera events per game, of which 435.7 are jumps over 20 map units (35.54 per minute).
+1616.7 camera events per game, of which 435.7 are jumps over 20 map units (35.53 per minute).
 
 ### Sequences
 
-188138 consecutive pairs within 1s, 1774.9 per game.
+199722 consecutive pairs within 1s, 1884.2 per game.
 
 Top 30 bigrams:
 
 | # | Pair | Count | Per game |
 |---|---|---|---|
-| 1 | CG1 > RightClick | 5272 | 49.74 |
-| 2 | CG3 > CG4 | 5150 | 48.58 |
-| 3 | CG1 > CG2 | 5089 | 48.01 |
-| 4 | RightClick > CG1 | 4646 | 43.83 |
-| 5 | CG2 > CG1 | 4173 | 39.37 |
-| 6 | CG1 > Attack | 4077 | 38.46 |
-| 7 | RightClick > Attack | 3683 | 34.75 |
-| 8 | CG5 > CG1 | 3557 | 33.56 |
-| 9 | CG2 > RightClick | 3464 | 32.68 |
-| 10 | CG5 > CG6 | 3400 | 32.08 |
-| 11 | CG3 > CG5 | 3361 | 31.71 |
-| 12 | CG4 > CG5 | 3250 | 30.66 |
-| 13 | CG1 > CG5 | 3170 | 29.91 |
-| 14 | Attack > RightClick | 2940 | 27.74 |
-| 15 | CG4 > CG1 | 2886 | 27.23 |
-| 16 | CG5 > CG3 | 2824 | 26.64 |
-| 17 | CG1 > CG4 | 2680 | 25.28 |
-| 18 | RightClick > CG2 | 2498 | 23.57 |
-| 19 | CG1 > CG3 | 2399 | 22.63 |
-| 20 | RightClick > CG4 | 2302 | 21.72 |
-| 21 | CG5 > CG5 | 2135 | 20.14 |
-| 22 | RightClick > CG5 | 2055 | 19.39 |
-| 23 | CG2 > CG5 | 1937 | 18.27 |
-| 24 | CG4 > CG3 | 1914 | 18.06 |
-| 25 | CG5 > CG2 | 1853 | 17.48 |
-| 26 | CG3 > CG1 | 1831 | 17.27 |
-| 27 | CG2 > CG3 | 1806 | 17.04 |
-| 28 | CG2 > CG4 | 1789 | 16.88 |
-| 29 | RightClick > RightClick | 1764 | 16.64 |
-| 30 | RightClick > CG3 | 1763 | 16.63 |
+| 1 | CG1 > RightClick | 5528 | 52.15 |
+| 2 | CG3 > CG4 | 5199 | 49.05 |
+| 3 | CG1 > CG2 | 5188 | 48.94 |
+| 4 | RightClick > CG1 | 5078 | 47.91 |
+| 5 | CG1 > Attack | 4381 | 41.33 |
+| 6 | CG2 > CG1 | 4308 | 40.64 |
+| 7 | RightClick > Attack | 4249 | 40.08 |
+| 8 | CG3 > CG5 | 3817 | 36.01 |
+| 9 | CG5 > CG1 | 3703 | 34.93 |
+| 10 | CG2 > RightClick | 3644 | 34.38 |
+| 11 | CG5 > CG6 | 3458 | 32.62 |
+| 12 | CG5 > CG3 | 3439 | 32.44 |
+| 13 | CG4 > CG5 | 3305 | 31.18 |
+| 14 | Attack > RightClick | 3293 | 31.07 |
+| 15 | CG1 > CG5 | 3289 | 31.03 |
+| 16 | CG4 > CG1 | 3011 | 28.41 |
+| 17 | CG1 > CG4 | 2817 | 26.58 |
+| 18 | RightClick > CG2 | 2648 | 24.98 |
+| 19 | RightClick > CG4 | 2513 | 23.71 |
+| 20 | CG1 > CG3 | 2465 | 23.25 |
+| 21 | RightClick > CG5 | 2272 | 21.43 |
+| 22 | CG4 > CG3 | 2042 | 19.26 |
+| 23 | CG2 > CG5 | 2039 | 19.24 |
+| 24 | RightClick > RightClick | 2025 | 19.1 |
+| 25 | CG5 > CG2 | 1986 | 18.74 |
+| 26 | CG3 > CG1 | 1947 | 18.37 |
+| 27 | RightClick > CG3 | 1879 | 17.73 |
+| 28 | CG2 > CG4 | 1862 | 17.57 |
+| 29 | CG2 > CG3 | 1841 | 17.37 |
+| 30 | CG4 > RightClick | 1726 | 16.28 |
 
 Top 20 trigrams:
 
 | # | Triple | Count | Per game |
 |---|---|---|---|
-| 1 | CG2 > CG1 > CG2 | 2575 | 24.29 |
-| 2 | CG1 > CG2 > CG1 | 2418 | 22.81 |
-| 3 | CG1 > CG5 > CG1 | 1933 | 18.24 |
-| 4 | CG5 > CG1 > CG5 | 1839 | 17.35 |
-| 5 | CG5 > CG3 > CG5 | 1722 | 16.25 |
-| 6 | CG3 > CG5 > CG3 | 1586 | 14.96 |
-| 7 | CG1 > CG4 > CG1 | 1489 | 14.05 |
-| 8 | CG4 > CG3 > CG4 | 1482 | 13.98 |
-| 9 | CG3 > CG4 > CG3 | 1359 | 12.82 |
-| 10 | CG4 > CG5 > CG6 | 1299 | 12.25 |
-| 11 | CG4 > CG1 > CG4 | 1257 | 11.86 |
-| 12 | CG2 > CG5 > CG2 | 1069 | 10.08 |
-| 13 | CG3 > CG4 > CG5 | 1039 | 9.8 |
-| 14 | RightClick > CG1 > Attack | 1003 | 9.46 |
-| 15 | RightClick > Attack > RightClick | 945 | 8.92 |
-| 16 | CG1 > RightClick > Attack | 944 | 8.91 |
-| 17 | CG1 > CG3 > CG4 | 924 | 8.72 |
-| 18 | CG4 > CG5 > CG4 | 883 | 8.33 |
-| 19 | CG5 > CG4 > CG5 | 869 | 8.2 |
-| 20 | CG5 > CG2 > CG5 | 861 | 8.12 |
+| 1 | CG5 > CG3 > CG5 | 2691 | 25.39 |
+| 2 | CG2 > CG1 > CG2 | 2659 | 25.08 |
+| 3 | CG1 > CG2 > CG1 | 2509 | 23.67 |
+| 4 | CG3 > CG5 > CG3 | 2481 | 23.41 |
+| 5 | CG1 > CG5 > CG1 | 2068 | 19.51 |
+| 6 | CG5 > CG1 > CG5 | 1965 | 18.54 |
+| 7 | CG4 > CG3 > CG4 | 1582 | 14.92 |
+| 8 | CG1 > CG4 > CG1 | 1578 | 14.89 |
+| 9 | CG3 > CG4 > CG3 | 1418 | 13.38 |
+| 10 | CG4 > CG1 > CG4 | 1365 | 12.88 |
+| 11 | CG4 > CG5 > CG6 | 1298 | 12.25 |
+| 12 | CG2 > CG5 > CG2 | 1294 | 12.21 |
+| 13 | RightClick > Attack > RightClick | 1235 | 11.65 |
+| 14 | RightClick > CG1 > Attack | 1193 | 11.25 |
+| 15 | Attack > RightClick > Attack | 1126 | 10.62 |
+| 16 | CG1 > RightClick > Attack | 1104 | 10.42 |
+| 17 | CG5 > CG2 > CG5 | 1071 | 10.1 |
+| 18 | CG3 > CG4 > CG5 | 1066 | 10.06 |
+| 19 | CG4 > CG5 > CG4 | 958 | 9.04 |
+| 20 | CG5 > CG4 > CG5 | 935 | 8.82 |
 
 ### TheCore 5.0 projection
 
@@ -346,32 +346,32 @@ Top 20 trigrams:
 | Finger | Share of mapped events | Events |
 |---|---|---|
 | middle | 42.9% | 77082 |
-| index | 24.7% | 44352 |
+| index | 24.8% | 44516 |
 | ring | 24.6% | 44244 |
 | pinky | 7.8% | 13963 |
-| other | 0.1% | 219 |
+| other | 0.0% | 55 |
 
-**Same-finger repetition: 28.8%** of the 132617 within-1s pairs where both events map to a key land on the same finger.
+**Same-finger repetition: 28.4%** of the 139244 within-1s pairs where both events map to a key land on the same finger. That splits into 6.0% the same key twice (a repeat no layout can move apart, mostly a control group recalled again) and **22.4% the same finger on a different key**, which is the part a layout controls.
 
-Worst pairs:
+Worst pairs (same finger, different key):
 
 | # | Pair (finger) | Count | Per game |
 |---|---|---|---|
-| 1 | CG5 > CG1 (middle) | 3557 | 33.56 |
-| 2 | CG3 > CG5 (middle) | 3361 | 31.71 |
-| 3 | CG1 > CG5 (middle) | 3170 | 29.91 |
-| 4 | CG5 > CG3 (middle) | 2824 | 26.64 |
-| 5 | CG1 > CG3 (middle) | 2399 | 22.63 |
-| 6 | CG5 > CG5 (middle) | 2135 | 20.14 |
-| 7 | CG3 > CG1 (middle) | 1831 | 17.27 |
-| 8 | CG2 > CG4 (ring) | 1789 | 16.88 |
-| 9 | CG0 > CG1 (middle) | 1367 | 12.9 |
-| 10 | CG1 > CG1 (middle) | 1349 | 12.73 |
-| 11 | CG4 > CG2 (ring) | 1219 | 11.5 |
-| 12 | CG6 > CG6 (index) | 999 | 9.42 |
-| 13 | CG0 > CG0 (middle) | 980 | 9.25 |
-| 14 | Attack > CG6 (index) | 787 | 7.42 |
-| 15 | CG3 > CG3 (middle) | 760 | 7.17 |
+| 1 | CG3 > CG5 (middle) | 3817 | 36.01 |
+| 2 | CG5 > CG1 (middle) | 3703 | 34.93 |
+| 3 | CG5 > CG3 (middle) | 3439 | 32.44 |
+| 4 | CG1 > CG5 (middle) | 3289 | 31.03 |
+| 5 | CG1 > CG3 (middle) | 2465 | 23.25 |
+| 6 | CG3 > CG1 (middle) | 1947 | 18.37 |
+| 7 | CG2 > CG4 (ring) | 1862 | 17.57 |
+| 8 | CG0 > CG1 (middle) | 1383 | 13.05 |
+| 9 | CG4 > CG2 (ring) | 1306 | 12.32 |
+| 10 | Attack > CG6 (index) | 839 | 7.92 |
+| 11 | CG6 > TrainProbe (index) | 765 | 7.22 |
+| 12 | CG0 > CG3 (middle) | 514 | 4.85 |
+| 13 | CG0 > CG5 (middle) | 395 | 3.73 |
+| 14 | CG6 > WarpInStalker (index) | 395 | 3.73 |
+| 15 | CG5 > CG0 (middle) | 380 | 3.58 |
 
 Largest unmapped names: `RightClick` (33943), `UnloadTargetWarpPrism` (467), `ArchonWarpSelection` (176), `BatteryOvercharge` (129), `AdeptShadePhaseShiftCancel` (105), `ObserverSiegeMorphtoObserver` (103), `AdeptPhaseShiftCancel` (103), `LoadTarget` (78), `UpgradeGroundWeapons2` (63), `HallucinatePhoenix` (61).
 
@@ -444,75 +444,75 @@ These 40 are 95.9% of all Zerg commands.
 
 ### Camera
 
-2363.2 camera events per game, of which 600.9 are jumps over 20 map units (43.22 per minute).
+2363.2 camera events per game, of which 600.8 are jumps over 20 map units (43.22 per minute).
 
 ### Sequences
 
-299726 consecutive pairs within 1s, 2967.6 per game.
+311247 consecutive pairs within 1s, 3081.7 per game.
 
 Top 30 bigrams:
 
 | # | Pair | Count | Per game |
 |---|---|---|---|
-| 1 | CG5 > CG1 | 14609 | 144.64 |
-| 2 | CG1 > CG5 | 13524 | 133.9 |
-| 3 | CG1 > CG2 | 11796 | 116.79 |
-| 4 | CG1 > CG3 | 8390 | 83.07 |
-| 5 | CG2 > CG1 | 7998 | 79.19 |
-| 6 | CG5 > CG2 | 7983 | 79.04 |
-| 7 | CG2 > CG5 | 7221 | 71.5 |
-| 8 | CG3 > CG1 | 6783 | 67.16 |
-| 9 | CG3 > CG4 | 6650 | 65.84 |
-| 10 | CG1 > RightClick | 6400 | 63.37 |
-| 11 | CG2 > CG3 | 6225 | 61.63 |
-| 12 | CG2 > RightClick | 5764 | 57.07 |
-| 13 | RightClick > CG1 | 5467 | 54.13 |
-| 14 | CG2 > CG4 | 4977 | 49.28 |
-| 15 | CG4 > CG5 | 4907 | 48.58 |
-| 16 | CG3 > CG5 | 4902 | 48.53 |
-| 17 | CG4 > CG1 | 4205 | 41.63 |
-| 18 | RightClick > CG5 | 3955 | 39.16 |
-| 19 | CG4 > CG3 | 3878 | 38.4 |
-| 20 | CG5 > CG3 | 3841 | 38.03 |
-| 21 | CG5 > CG5 | 3739 | 37.02 |
-| 22 | CG1 > CG4 | 3582 | 35.47 |
-| 23 | CG1 > Attack | 3444 | 34.1 |
-| 24 | CG3 > CG2 | 3438 | 34.04 |
-| 25 | CG4 > CG2 | 3203 | 31.71 |
-| 26 | CG4 > RightClick | 3167 | 31.36 |
-| 27 | RightClick > CG2 | 3080 | 30.5 |
-| 28 | RightClick > Attack | 3066 | 30.36 |
-| 29 | CG5 > CG0 | 3037 | 30.07 |
-| 30 | RightClick > CG4 | 2924 | 28.95 |
+| 1 | CG5 > CG1 | 15533 | 153.79 |
+| 2 | CG1 > CG5 | 13399 | 132.66 |
+| 3 | CG1 > CG2 | 11898 | 117.8 |
+| 4 | CG5 > CG2 | 9117 | 90.27 |
+| 5 | CG1 > CG3 | 8547 | 84.62 |
+| 6 | CG2 > CG1 | 8213 | 81.32 |
+| 7 | CG2 > CG5 | 7580 | 75.05 |
+| 8 | CG3 > CG1 | 7125 | 70.54 |
+| 9 | CG1 > RightClick | 7042 | 69.72 |
+| 10 | CG3 > CG4 | 6738 | 66.71 |
+| 11 | CG2 > CG3 | 6323 | 62.6 |
+| 12 | CG2 > RightClick | 6070 | 60.1 |
+| 13 | RightClick > CG1 | 5567 | 55.12 |
+| 14 | CG3 > CG5 | 5149 | 50.98 |
+| 15 | CG2 > CG4 | 5122 | 50.71 |
+| 16 | CG4 > CG5 | 4960 | 49.11 |
+| 17 | CG4 > CG1 | 4719 | 46.72 |
+| 18 | RightClick > CG5 | 4391 | 43.48 |
+| 19 | CG5 > CG3 | 4159 | 41.18 |
+| 20 | CG4 > CG3 | 4139 | 40.98 |
+| 21 | CG1 > Attack | 3761 | 37.24 |
+| 22 | CG1 > CG4 | 3745 | 37.08 |
+| 23 | CG3 > CG2 | 3645 | 36.09 |
+| 24 | CG4 > CG2 | 3393 | 33.59 |
+| 25 | RightClick > Attack | 3353 | 33.2 |
+| 26 | CG5 > CG0 | 3290 | 32.57 |
+| 27 | RightClick > CG2 | 3189 | 31.57 |
+| 28 | RightClick > CG4 | 3188 | 31.56 |
+| 29 | CG4 > RightClick | 3145 | 31.14 |
+| 30 | CG2 > Attack | 3142 | 31.11 |
 
 Top 20 trigrams:
 
 | # | Triple | Count | Per game |
 |---|---|---|---|
-| 1 | CG5 > CG1 > CG5 | 10877 | 107.69 |
-| 2 | CG1 > CG5 > CG1 | 8327 | 82.45 |
-| 3 | CG2 > CG5 > CG2 | 5152 | 51.01 |
-| 4 | CG2 > CG1 > CG2 | 4878 | 48.3 |
-| 5 | CG5 > CG2 > CG5 | 4783 | 47.36 |
-| 6 | CG1 > CG2 > CG1 | 4659 | 46.13 |
-| 7 | CG3 > CG1 > CG3 | 4502 | 44.57 |
-| 8 | CG1 > CG3 > CG1 | 3997 | 39.57 |
-| 9 | CG4 > CG3 > CG4 | 2655 | 26.29 |
-| 10 | CG5 > CG3 > CG5 | 2629 | 26.03 |
-| 11 | CG3 > CG5 > CG3 | 2475 | 24.5 |
-| 12 | CG3 > CG4 > CG3 | 2351 | 23.28 |
-| 13 | CG3 > CG2 > CG3 | 2290 | 22.67 |
-| 14 | CG2 > CG3 > CG2 | 2270 | 22.48 |
-| 15 | CG1 > CG2 > CG3 | 2032 | 20.12 |
-| 16 | CG1 > CG2 > CG4 | 1968 | 19.49 |
-| 17 | CG1 > CG4 > CG1 | 1877 | 18.58 |
-| 18 | CG1 > CG3 > CG4 | 1846 | 18.28 |
-| 19 | CG4 > CG1 > CG4 | 1738 | 17.21 |
-| 20 | CG0 > CG1 > CG2 | 1672 | 16.55 |
+| 1 | CG5 > CG1 > CG5 | 11505 | 113.91 |
+| 2 | CG1 > CG5 > CG1 | 8940 | 88.51 |
+| 3 | CG2 > CG5 > CG2 | 6498 | 64.34 |
+| 4 | CG5 > CG2 > CG5 | 6128 | 60.67 |
+| 5 | CG2 > CG1 > CG2 | 5064 | 50.14 |
+| 6 | CG3 > CG1 > CG3 | 4852 | 48.04 |
+| 7 | CG1 > CG2 > CG1 | 4832 | 47.84 |
+| 8 | CG1 > CG3 > CG1 | 4350 | 43.07 |
+| 9 | CG5 > CG3 > CG5 | 3127 | 30.96 |
+| 10 | CG3 > CG5 > CG3 | 2947 | 29.18 |
+| 11 | CG4 > CG3 > CG4 | 2861 | 28.33 |
+| 12 | CG3 > CG4 > CG3 | 2597 | 25.71 |
+| 13 | CG3 > CG2 > CG3 | 2440 | 24.16 |
+| 14 | CG2 > CG3 > CG2 | 2425 | 24.01 |
+| 15 | CG1 > CG4 > CG1 | 2386 | 23.62 |
+| 16 | CG4 > CG1 > CG4 | 2201 | 21.79 |
+| 17 | CG5 > CG0 > CG5 | 2099 | 20.78 |
+| 18 | CG1 > CG2 > CG3 | 2063 | 20.43 |
+| 19 | CG1 > CG2 > CG4 | 2007 | 19.87 |
+| 20 | CG0 > CG5 > CG0 | 1951 | 19.32 |
 
 ### TheCore 5.0 projection
 
-87.8% of the 323765 sequence events (commands plus control-group recalls) map to a key. Share of those events per finger:
+87.7% of the 323765 sequence events (commands plus control-group recalls) map to a key. Share of those events per finger:
 
 | Finger | Share of mapped events | Events |
 |---|---|---|
@@ -520,29 +520,29 @@ Top 20 trigrams:
 | ring | 27.4% | 77754 |
 | index | 16.2% | 46110 |
 | pinky | 2.8% | 7823 |
-| other | 0.1% | 351 |
+| other | 0.1% | 316 |
 
-**Same-finger repetition: 37.3%** of the 232478 within-1s pairs where both events map to a key land on the same finger.
+**Same-finger repetition: 35.9%** of the 239552 within-1s pairs where both events map to a key land on the same finger. That splits into 4.1% the same key twice (a repeat no layout can move apart, mostly a control group recalled again) and **31.8% the same finger on a different key**, which is the part a layout controls.
 
-Worst pairs:
+Worst pairs (same finger, different key):
 
 | # | Pair (finger) | Count | Per game |
 |---|---|---|---|
-| 1 | CG5 > CG1 (middle) | 14609 | 144.64 |
-| 2 | CG1 > CG5 (middle) | 13524 | 133.9 |
-| 3 | CG1 > CG3 (middle) | 8390 | 83.07 |
-| 4 | CG3 > CG1 (middle) | 6783 | 67.16 |
-| 5 | CG2 > CG4 (ring) | 4977 | 49.28 |
-| 6 | CG3 > CG5 (middle) | 4902 | 48.53 |
-| 7 | CG5 > CG3 (middle) | 3841 | 38.03 |
-| 8 | CG5 > CG5 (middle) | 3739 | 37.02 |
-| 9 | CG4 > CG2 (ring) | 3203 | 31.71 |
-| 10 | CG5 > CG0 (middle) | 3037 | 30.07 |
-| 11 | CG0 > CG1 (middle) | 2770 | 27.43 |
-| 12 | CG0 > CG5 (middle) | 2399 | 23.75 |
-| 13 | CG4 > CG4 (ring) | 2389 | 23.65 |
-| 14 | CG1 > CG1 (middle) | 2148 | 21.27 |
-| 15 | CG2 > CG2 (ring) | 2045 | 20.25 |
+| 1 | CG5 > CG1 (middle) | 15533 | 153.79 |
+| 2 | CG1 > CG5 (middle) | 13399 | 132.66 |
+| 3 | CG1 > CG3 (middle) | 8547 | 84.62 |
+| 4 | CG3 > CG1 (middle) | 7125 | 70.54 |
+| 5 | CG3 > CG5 (middle) | 5149 | 50.98 |
+| 6 | CG2 > CG4 (ring) | 5122 | 50.71 |
+| 7 | CG5 > CG3 (middle) | 4159 | 41.18 |
+| 8 | CG4 > CG2 (ring) | 3393 | 33.59 |
+| 9 | CG5 > CG0 (middle) | 3290 | 32.57 |
+| 10 | CG0 > CG1 (middle) | 2780 | 27.52 |
+| 11 | CG0 > CG5 (middle) | 2568 | 25.43 |
+| 12 | CG1 > CG0 (middle) | 778 | 7.7 |
+| 13 | CG3 > CG0 (middle) | 586 | 5.8 |
+| 14 | CG4 > CG9 (ring) | 350 | 3.47 |
+| 15 | CG9 > CG4 (ring) | 274 | 2.71 |
 
 Largest unmapped names: `RightClick` (35103), `SpawnLarva` (3576), `BuildNydusCanal` (142), `Abduct` (115), `UnloadTargetOverlord` (89), `OverseerSiegeModeMorphtoOverseer` (67), `ResearchZergMissileWeaponsLevel2` (52), `ResearchZergGroundArmorsLevel2` (50), `ResearchZergMeleeWeaponsLevel2` (50), `EvolveCentrifugalHooks` (45).
 
