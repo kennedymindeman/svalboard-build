@@ -1,87 +1,132 @@
 #!/usr/bin/env python3
-"""Build thecore/svalboard-keymap.html: TheCore's bindings on a Svalboard.
+"""Compute a Svalboard mapping for TheCore, one left hand, and draw it.
 
-Usage: python3 tools/thecore_svalboard.py
+Usage: python3 tools/thecore_svalboard.py [--markdown]
 
-Takes the same parse and faction classification as tools/thecore_keymap.py and
-transplants every binding onto the Svalboard key it would be pressed with,
-using the fixed key mapping in SVALBOARD (derived in
-wiki/thecore-method-on-a-svalboard.md section 4d).  Keys with no Svalboard home
-are listed separately; their names are printed to stderr per file.
+The premise (wiki/thecore-method-on-a-svalboard.md section 4c, the user's
+decision): the LEFT hand is on the Svalboard and the RIGHT hand is on an
+ordinary mouse, so mouse clicks cost no keys and the only room beyond the 20
+left finger keys is a held layer under the thumb Nail.  That is 40 slots.
+
+Nothing here is hand-picked.  The mapping is computed from three inputs:
+
+1. The two shipped hotkey files (`thecore/*.SC2Hotkeys`), parsed as
+   `tools/thecore_keys.py` does.  The unit of assignment is one TheCore
+   physical key with every modifier variant it carries, exactly as TheCore
+   keeps them together.
+2. Replay load from `thecore/sequences-summary.json` (see
+   `wiki/sc2-command-sequences.md`): events per minute per TheCore key, summed
+   over Terran, Zerg and Protoss, and the top bigrams per race.
+3. The Svalboard rules in section 4a (speed zones) and 4c (finger roles).
+
+Placement rule, applied in this order:
+
+* Slot difficulty = (zone - 1) + (1 if the slot needs the Nail layer held),
+  i.e. a held layer costs about one zone step.  Sorting the 40 slots by
+  difficulty, base before layer, gives the order base zone 1, base zone 2,
+  layer zone 1, base zone 3, layer zone 2, layer zone 3.  Inside a zone,
+  centre before south and inward before north (section 4a's ordering), pinky
+  north forced last as "the worst key on the board" (S:283944), then index,
+  middle, ring, pinky.
+* Role is a hard constraint (section 4c): `Command n` keys only on index and
+  pinky, control-group / camera / idle-worker keys only on middle and ring.
+  Classes are derived per file from that file's own bindings (see `classify`),
+  so 6.0's merged keys land where 6.0 puts them.
+* Greedy: TheCore keys in descending replay load (ties: more bindings first,
+  then key name) each take the best free slot their role allows.
+* Then a hill climb: swap the two placed keys whose exchange lowers the cost
+  most, as long as each one's role still allows its new finger, until no swap
+  helps. Cost is
+
+      cost = sum over bigrams of rate * [same finger, different key]
+                                      * (1.0 same plane, 0.5 across the layer)
+           + sum over keys of load * slot difficulty
+
+  Both terms are events per minute, so no weighting constant is needed.
+  Same-key repeats are not a cost; the summary counts those separately.
+
+Some same-finger work is forced, not a failure of the search: 4c allows
+control groups only on middle and ring, so five hot control groups share two
+fingers.  The climb spends the cheap escape it does have, the half-price
+cross-plane transition, on the heaviest pairs.
+
+Everything the tool decides is printed: the load table, the slot order, the
+placement, the swap count, the final cost, the unplaced list and the markdown
+table for section 4d.  `EXPECTED_UNPLACED` guards each file against a silent
+change.
 """
+import collections
 import json
 import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from thecore_keymap import (  # noqa: E402
-    COMMANDERS, FACTIONS, GLOBAL, MELEE, UNCLASSIFIED, factions_for, own_factions,
-    parse_entries,
+    COMMANDERS, FACTIONS, MELEE, factions_for, parse_entries,
 )
+from sc2_sequences import build_map, load_hotkeys  # noqa: E402
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FILES = [
     ("TheCore 5.0 Right Plus", "thecore/TheCore_5.0_Right_Plus.SC2Hotkeys"),
     ("TheCore 6.0 Right", "thecore/TheCore6g_right_US_qwerty.SC2Hotkeys"),
 ]
+SUMMARY = "thecore/sequences-summary.json"
 OUT = "thecore/svalboard-keymap.html"
-
-# TheCore key name (as parsed) -> (hand, finger, position).
-SVALBOARD = {
-    # Left hand: TheCore's one-hand core, per wiki/thecore-method-on-a-svalboard.md section 4d
-    "P": ("L", "index", "centre"), "SemiColon": ("L", "index", "south"), "Minus": ("L", "index", "inward"),
-    "BracketOpen": ("L", "index", "north"), "Apostrophe": ("L", "index", "outward"),
-    "O": ("L", "middle", "centre"), "L": ("L", "middle", "south"), "9": ("L", "middle", "inward"),
-    "0": ("L", "middle", "north"), "Period": ("L", "middle", "outward"),
-    "I": ("L", "ring", "centre"), "K": ("L", "ring", "south"), "7": ("L", "ring", "inward"),
-    "8": ("L", "ring", "north"), "U": ("L", "ring", "outward"),
-    "J": ("L", "pinky", "centre"), "H": ("L", "pinky", "south"), "M": ("L", "pinky", "inward"),
-    "N": ("L", "pinky", "outward"), "G": ("L", "pinky", "north"),
-    "Control": ("L", "thumb", "pad"), "Shift": ("L", "thumb", "down"), "Alt": ("L", "thumb", "knuckle"),
-    # Right hand: overflow and TheCore's off-hand keys, placed by load then zone
-    "LeftMouseButton": ("R", "index", "centre"), "Equals": ("R", "index", "south"),
-    "BracketClose": ("R", "index", "inward"), "D": ("R", "index", "north"), "W": ("R", "index", "outward"),
-    "RightMouseButton": ("R", "middle", "centre"), "Slash": ("R", "middle", "south"),
-    "X": ("R", "middle", "inward"), "R": ("R", "middle", "north"), "Backspace": ("R", "middle", "outward"),
-    "Comma": ("R", "ring", "centre"), "E": ("R", "ring", "south"), "Z": ("R", "ring", "inward"),
-    "F": ("R", "ring", "north"), "6": ("R", "ring", "outward"),
-    "B": ("R", "pinky", "centre"), "Y": ("R", "pinky", "south"), "C": ("R", "pinky", "inward"),
-    "A": ("R", "pinky", "outward"), "Q": ("R", "pinky", "north"),
-    "ForwardMouseButton": ("R", "thumb", "pad"), "BackMouseButton": ("R", "thumb", "nail"),
-    "Enter": ("R", "thumb", "down"), "Escape": ("R", "thumb", "knuckle"), "Tab": ("R", "thumb", "up"),
-}
-
-# Every key that must be unplaced in the 5.0 file, as a guard on the mapping.
-EXPECTED_UNPLACED_50 = {"F10", "V", "F8", "3", "4", "CapsLock"}
 
 FINGERS = ["index", "middle", "ring", "pinky"]
 POSITIONS = ["centre", "south", "inward", "north", "outward"]
-THUMB_POSITIONS = ["pad", "nail", "down", "knuckle", "up"]
+PLANES = ["base", "layer"]
 
-ROLES = {
-    ("L", "index"): {"centre": "Command 2", "south": "Command 3", "inward": "Command 4",
-                     "north": "Command 5", "outward": "Command 7"},
-    ("L", "middle"): {"centre": "CG 1", "south": "CG 3", "inward": "CG 4",
-                      "north": "CG 5", "outward": "CG 10"},
-    ("L", "ring"): {"centre": "CG 2", "south": "CG 6", "inward": "Idle Worker",
-                    "north": "CG 7", "outward": "CG 8"},
-    ("L", "pinky"): {"centre": "Command 1", "south": "Command 6", "inward": "Command 8",
-                     "outward": "Command 9", "north": "Command 12"},
-    ("L", "thumb"): {"pad": "Ctrl", "down": "Shift", "knuckle": "Alt",
-                     "nail": "Fn layer (reserved)", "up": "Game layer lock (reserved)"},
-    ("R", "index"): {"centre": "Left click", "south": "Command 10", "inward": "Command 11",
-                     "north": "spare (D)", "outward": "spare (W)"},
-    ("R", "middle"): {"centre": "Right click", "south": "Special Command 1", "inward": "spare (X)",
-                      "north": "spare (R)", "outward": "Camera turn"},
-    ("R", "ring"): {"centre": "CG 9", "south": "spare (E)", "inward": "Rally",
-                    "north": "Rally SCV", "outward": "Town camera"},
-    ("R", "pinky"): {"centre": "Command 13", "south": "Larva / Patrol", "inward": "spare (C)",
-                     "outward": "Move", "north": "spare (Q)"},
-    ("R", "thumb"): {"pad": "Subgroup next", "nail": "Subgroup prev", "down": "Chat",
-                     "knuckle": "Escape / menu", "up": "Chat recipient"},
+# Section 4c's finger roles, as the fingers each role class may use.
+ROLE_FINGERS = {
+    "command": ("index", "pinky"),
+    "group": ("middle", "ring"),
+    "free": tuple(FINGERS),
 }
+ROLE_NAMES = {
+    "command": "Command n (index/pinky)",
+    "group": "control group, camera, idle worker (middle/ring)",
+    "free": "unconstrained",
+}
+# A key is a group key if it carries one of these slots; a key with 5 or more
+# ordinary command-card bindings is a Command n key whatever else it carries
+# (6.0 stacks ControlGroupRecall1 on J's 196 command bindings).
+GROUP_PREFIXES = ("ControlGroup", "CameraView", "CameraSave")
+GROUP_EXACT = {"IdleWorker", "TownCamera"}
+COMMAND_MIN = 5
+BANISHED = "Alt+Control+Shift"
+MODIFIER_KEYS = {"Control", "Shift", "Alt"}
+MOUSE_KEYS = {"LeftMouseButton", "RightMouseButton",
+              "ForwardMouseButton", "BackMouseButton"}
 
-THUMB_ZONES = {"pad": 1, "nail": 2, "down": 2, "up": 3, "knuckle": 3}
+# Named global commands worth showing in a key's label, in display order.
+NOTABLE = [
+    "IdleWorker", "TownCamera", "Attack", "Move", "MovePatrol",
+    "MoveHoldPosition", "HoldPosition", "Stop", "StopGenerateCreep", "Rally",
+    "RallySCV", "RallyEgg", "Land", "Lift", "Cancel", "SelectBuilder",
+    "Larva", "ArmySelect", "SubgroupNext", "SubgroupPrev", "BurrowUp",
+    "BurrowDown", "CameraTurnLeft", "CameraTurnRight", "CameraFollow",
+    "ChatDefault", "ChatAllies", "MenuGame", "Spray",
+]
+
+KEY_LABELS = {
+    "Minus": "-", "Equals": "=", "BracketOpen": "[", "BracketClose": "]",
+    "BackSlash": "\\", "SemiColon": ";", "Apostrophe": "'", "Comma": ",",
+    "Period": ".", "Slash": "/", "Grave": "`",
+    "LeftMouseButton": "Left mouse", "RightMouseButton": "Right mouse",
+    "ForwardMouseButton": "Forward mouse", "BackMouseButton": "Back mouse",
+}
+# TheCore key name -> the QMK/Vial keycode the firmware must emit for it
+# (section 4e: the hotkey file stays TheCore's, only the firmware changes).
+KEYCODES = {
+    "Minus": "KC_MINS", "Equals": "KC_EQL", "BracketOpen": "KC_LBRC",
+    "BracketClose": "KC_RBRC", "BackSlash": "KC_BSLS", "SemiColon": "KC_SCLN",
+    "Apostrophe": "KC_QUOT", "Comma": "KC_COMM", "Period": "KC_DOT",
+    "Slash": "KC_SLSH", "Grave": "KC_GRV", "Backspace": "KC_BSPC",
+    "Enter": "KC_ENT", "Escape": "KC_ESC", "Tab": "KC_TAB", "Space": "KC_SPC",
+    "CapsLock": "KC_CAPS",
+}
 
 # Modifier combo as parse_entries reports it -> filter label.
 COMBOS = [
@@ -92,22 +137,48 @@ COMBOS = [
     ("Control+Shift", "Ctrl+Shift (Pad+Down)"),
     ("Alt+Control", "Ctrl+Alt (Pad+Knuckle)"),
     ("Alt+Shift", "Shift+Alt (Down+Knuckle)"),
-    ("Alt+Control+Shift", "Ctrl+Shift+Alt (Pad+Down+Knuckle, banished)"),
+    (BANISHED, "Ctrl+Shift+Alt (Pad+Down+Knuckle, banished)"),
 ]
 
-KEY_LABELS = {
-    "Minus": "-", "Equals": "=", "Backspace": "Backspace", "BracketOpen": "[",
-    "BracketClose": "]", "BackSlash": "\\", "SemiColon": ";", "Apostrophe": "'",
-    "Comma": ",", "Period": ".", "Slash": "/", "Grave": "`",
-    "LeftMouseButton": "Left mouse", "RightMouseButton": "Right mouse",
-    "ForwardMouseButton": "Forward mouse", "BackMouseButton": "Back mouse",
+THUMB = [
+    ("pad", "Ctrl"), ("nail", "Nail: hold for the layer"), ("down", "Shift"),
+    ("knuckle", "Alt"), ("up", "gaming-layer lock"),
+]
+
+# Keys that must come out unplaced, as a guard on the computation.
+EXPECTED_UNPLACED = {
+    "TheCore 5.0 Right Plus": {
+        "3", "4", "6", "7", "Alt", "BackMouseButton", "CapsLock", "Control",
+        "F8", "ForwardMouseButton", "LeftMouseButton", "RightMouseButton", "V",
+    },
+    "TheCore 6.0 Right": {
+        "3", "4", "6", "Alt", "BackMouseButton", "CapsLock", "Escape", "F10",
+        "F3", "F8", "ForwardMouseButton", "Grave", "LeftMouseButton",
+        "RightMouseButton", "T", "Tab", "V",
+    },
 }
 
 
+def label(key):
+    return KEY_LABELS.get(key, key)
+
+
+def keycode(key):
+    if key in KEYCODES:
+        return KEYCODES[key]
+    if len(key) == 1 and (key.isalpha() or key.isdigit()):
+        return "KC_" + key.upper()
+    if key.startswith("F") and key[1:].isdigit():
+        return "KC_" + key.upper()
+    return "?"
+
+
+def is_group_command(cmd):
+    return cmd.startswith(GROUP_PREFIXES) or cmd in GROUP_EXACT
+
+
 def zone_of(finger, pos):
-    """Speed zone of a Svalboard position: 1 easiest, 3 hardest."""
-    if finger == "thumb":
-        return THUMB_ZONES[pos]
+    """Speed zone of a Svalboard position (section 4a): 1 easiest, 3 hardest."""
     if pos in ("centre", "south"):
         return 1
     if pos == "outward":
@@ -117,82 +188,407 @@ def zone_of(finger, pos):
     return 2
 
 
-def build_layout():
-    """The 50 Svalboard slots, in draw order, with role, zone and TheCore key."""
-    keyof = {(h, f, p): k for k, (h, f, p) in SVALBOARD.items()}
-    hands = []
-    for hand in ("L", "R"):
-        fingers = FINGERS[::-1] if hand == "L" else FINGERS
-        clusters = []
-        for finger in list(fingers) + ["thumb"]:
-            positions = THUMB_POSITIONS if finger == "thumb" else POSITIONS
-            slots = []
-            for pos in positions:
+def build_slots():
+    """The 40 slots, easiest first, with zone, plane and difficulty."""
+    slots = []
+    for plane in PLANES:
+        for finger in FINGERS:
+            for pos in POSITIONS:
+                zone = zone_of(finger, pos)
+                # Inside a zone the wiki's order is centre, south, inward,
+                # north, outward; pinky north is named the worst key on the
+                # board (S:283944), so it sorts after every outward key.
+                rank = POSITIONS.index(pos)
+                if finger == "pinky" and pos == "north":
+                    rank = len(POSITIONS)
                 slots.append({
-                    "id": "%s-%s-%s" % (hand, finger, pos),
-                    "pos": pos,
-                    "role": ROLES[(hand, finger)][pos],
-                    "zone": zone_of(finger, pos),
-                    "key": keyof.get((hand, finger, pos)),
+                    "plane": plane, "finger": finger, "pos": pos, "zone": zone,
+                    "difficulty": (zone - 1) + PLANES.index(plane),
+                    "sort": (zone, rank, FINGERS.index(finger)),
                 })
-            clusters.append({"finger": finger, "slots": slots})
-        hands.append({"hand": hand, "clusters": clusters})
-    return hands
+    slots.sort(key=lambda s: (s["difficulty"], PLANES.index(s["plane"]),
+                              s["sort"]))
+    for i, s in enumerate(slots):
+        s["order"] = i
+        s["id"] = "%s-%s-%s" % (s["plane"], s["finger"], s["pos"])
+    return slots
 
 
-def build_file(path):
+def read_file(path):
+    """{key: {'bindings': [(combo, cmd, raw)], 'class': .., 'label': ..}}."""
+    keys = collections.OrderedDict()
+    for cmd, key, combo, raw in parse_entries(path):
+        keys.setdefault(key, []).append((combo, cmd, raw))
+    out = collections.OrderedDict()
+    for key, binds in keys.items():
+        out[key] = {"bindings": binds, "class": classify(binds),
+                    "label": key_label(binds), "n": len(binds)}
+    return out
+
+
+def classify(binds):
+    """Role class of a key, from its own bindings (section 4c)."""
+    ordinary = sum(1 for combo, cmd, _ in binds
+                   if combo != BANISHED and not is_group_command(cmd))
+    if ordinary >= COMMAND_MIN:
+        return "command"
+    if any(is_group_command(cmd) for _, cmd, _ in binds):
+        return "group"
+    return "free"
+
+
+def key_label(binds):
+    """A human label for a key, derived from that file's own bindings."""
+    cmds = [cmd for _, cmd, _ in binds]
+    groups, cams = set(), set()
+    for cmd in cmds:
+        if cmd.startswith("ControlGroup"):
+            groups.add(cmd[-1])
+        elif cmd.startswith(("CameraView", "CameraSave")):
+            cams.add(cmd[-1])
+    bits = []
+    if groups:
+        bits.append("CG " + "/".join(sorted(groups)))
+    if cams:
+        bits.append("Cam " + "/".join(sorted(cams)))
+    for name in NOTABLE:
+        if name in cmds:
+            bits.append(words(name))
+    card = sum(1 for combo, cmd, _ in binds
+               if combo == "plain" and not is_group_command(cmd))
+    if card >= COMMAND_MIN:
+        bits.append("command card (%d)" % card)
+    return ", ".join(bits[:3]) or "misc"
+
+
+def words(name):
+    out = []
+    for i, ch in enumerate(name):
+        if i and ch.isupper() and not name[i - 1].isupper():
+            out.append(" ")
+        out.append(ch)
+    return "".join(out)
+
+
+def replay_load(summary, path):
+    """(load per key, bigram rate per key pair, notes) for one hotkey file.
+
+    Per-key load is events per minute over all three races: every top-ability
+    row in the summary mapped through this file's own bindings (the summary
+    ships only the 5.0 projection, so 6.0 is recomputed the same way with
+    sc2_sequences.load_hotkeys / build_map), plus every control-group set, add,
+    steal, delete and recall on the key that file gives the group.  Right
+    clicks are the mouse and are dropped.  Camera jumps are in the summary but
+    replays never say which key moved the camera, so camera keys get no load.
+    """
+    races = summary["races"]
+    minutes = sum(races[r]["minutes"] for r in races)
+    index, _ = load_hotkeys(os.path.join(HERE, path))
+    abilities = sorted({row[0] for r in races for row in races[r]["top_abilities"]})
+    amap = build_map(abilities, index)
+    cg = {}
+    for cmd, key, _combo, _raw in parse_entries(os.path.join(HERE, path)):
+        if cmd.startswith("ControlGroupRecall"):
+            cg[cmd[len("ControlGroupRecall"):]] = key
+    load = collections.Counter()
+    unmapped = collections.Counter()
+    for race in races:
+        for name, count, _pm, _s, _cs in races[race]["top_abilities"]:
+            if name == "RightClick":
+                continue
+            if name in amap:
+                load[amap[name][0]] += count
+            else:
+                unmapped[name] += count
+        for row, (count, _pg) in races[race]["control_groups"].items():
+            group = row.split("/")[1]
+            if group in cg:
+                load[cg[group]] += count
+
+    def token_key(tok):
+        if tok.startswith("CG") and tok[2:] in cg:
+            return cg[tok[2:]]
+        if tok == "RightClick":
+            return None
+        return amap[tok][0] if tok in amap else None
+
+    pairs = collections.Counter()
+    for race in races:
+        for pair, count, _pg in races[race]["top_bigrams"]:
+            a, b = pair.split(" > ")
+            ka, kb = token_key(a), token_key(b)
+            if ka and kb and ka != kb:
+                pairs[(ka, kb)] += count
+    return ({k: c / minutes for k, c in load.items()},
+            {p: c / minutes for p, c in pairs.items()},
+            {"minutes": minutes, "unmapped": unmapped.most_common(8)})
+
+
+def cost(place, slots, load, pairs):
+    """Events per minute of same-finger work plus load-weighted slot difficulty."""
+    finger, plane = {}, {}
+    for key, i in place.items():
+        finger[key] = slots[i]["finger"]
+        plane[key] = slots[i]["plane"]
+    same = 0.0
+    for (a, b), rate in pairs.items():
+        if a in finger and b in finger and finger[a] == finger[b]:
+            same += rate * (1.0 if plane[a] == plane[b] else 0.5)
+    zones = sum(load.get(k, 0.0) * slots[i]["difficulty"]
+                for k, i in place.items())
+    return same, zones
+
+
+def assign(keys, load, pairs, slots, log):
+    """Greedy by load, then a legal-swap hill climb. Returns the placement."""
+    order = sorted(keys, key=lambda k: (-load.get(k, 0.0), -keys[k]["n"], k))
+    place, taken = {}, set()
+    unplaced = []
+    for key in order:
+        allowed = ROLE_FINGERS[keys[key]["class"]]
+        for slot in slots:
+            if slot["order"] not in taken and slot["finger"] in allowed:
+                place[key] = slot["order"]
+                taken.add(slot["order"])
+                break
+        else:
+            unplaced.append(key)
+    log.append("greedy placed %d keys, %d unplaced" % (len(place), len(unplaced)))
+    same, zones = cost(place, slots, load, pairs)
+    log.append("cost after greedy: %.2f same-finger + %.2f zone = %.2f"
+               % (same, zones, same + zones))
+    swaps = 0
+    while True:
+        base = sum(cost(place, slots, load, pairs))
+        best, best_pair = base, None
+        items = sorted(place)
+        for i, a in enumerate(items):
+            for b in items[i + 1:]:
+                if (slots[place[b]]["finger"] not in ROLE_FINGERS[keys[a]["class"]]
+                        or slots[place[a]]["finger"]
+                        not in ROLE_FINGERS[keys[b]["class"]]):
+                    continue
+                place[a], place[b] = place[b], place[a]
+                trial = sum(cost(place, slots, load, pairs))
+                place[a], place[b] = place[b], place[a]
+                if trial < best - 1e-9:
+                    best, best_pair = trial, (a, b)
+        if best_pair is None:
+            break
+        a, b = best_pair
+        place[a], place[b] = place[b], place[a]
+        swaps += 1
+    same, zones = cost(place, slots, load, pairs)
+    log.append("hill climb: %d swaps accepted" % swaps)
+    log.append("final cost: %.2f same-finger + %.2f zone = %.2f"
+               % (same, zones, same + zones))
+    return place, unplaced, order, swaps, (same, zones)
+
+
+def exclude(keys):
+    """Drop keys the left hand on a mouse-partnered board cannot or need not own.
+
+    Reasons, all printed: the three modifier names are the thumb keys
+    themselves (finding 6 - a modifier-only binding such as
+    `CameraCenter=Control` is a chord, not a key of its own, so it is never
+    drawn on Pad/Down/Knuckle); the four mouse buttons stay on the mouse; a key
+    whose every binding is Ctrl+Shift+Alt is banished by TheCore and stays
+    banished, reachable as Pad+Down+Knuckle on whatever key it shares.
+    """
+    reasons = {}
+    for key in list(keys):
+        if key in MODIFIER_KEYS:
+            reasons[key] = "modifier itself: this is a thumb key (4b)"
+        elif key in MOUSE_KEYS:
+            reasons[key] = "stays on the mouse"
+        elif all(combo == BANISHED for combo, _, _ in keys[key]["bindings"]):
+            reasons[key] = "banished: every binding is Ctrl+Shift+Alt"
+        else:
+            continue
+        del keys[key]
+    return reasons
+
+
+def bigram_check(summary, place, slots, amap):
+    """Top 10 bigrams per race and whether the pair lands on different fingers."""
+    rows = []
+    for race in sorted(summary["races"]):
+        for pair, count, per_game in summary["races"][race]["top_bigrams"][:10]:
+            a, b = pair.split(" > ")
+            ka, kb = amap(a), amap(b)
+            if ka is None or kb is None:
+                verdict = "off the board (mouse or unmapped)"
+            elif ka == kb:
+                verdict = "same key (repeat, not a cost)"
+            else:
+                fa = slots[place[ka]]["finger"] if ka in place else None
+                fb = slots[place[kb]]["finger"] if kb in place else None
+                if fa is None or fb is None:
+                    verdict = "unplaced key"
+                elif fa == fb:
+                    verdict = "SAME FINGER (%s)" % fa
+                else:
+                    verdict = "different fingers (%s / %s)" % (fa, fb)
+            rows.append((race, pair, count, per_game, ka or "none", kb or "none", verdict))
+    return rows
+
+
+def markdown_table(name, slots, place, keys, load):
+    """The section 4d table for one file, as markdown."""
+    at = {i: k for k, i in place.items()}
+    out = ["| Svalboard key | Zone | TheCore key | Vial keycode | Carries | Load /min |",
+           "| --- | --- | --- | --- | --- | --- |"]
+    for plane in PLANES:
+        out.append("| **%s** | | | | | |"
+                   % ("Base" if plane == "base" else "Nail layer held"))
+        for slot in sorted([s for s in slots if s["plane"] == plane],
+                           key=lambda s: (FINGERS.index(s["finger"]),
+                                          POSITIONS.index(s["pos"]))):
+            key = at.get(slot["order"])
+            out.append("| %s %s | %d | %s | `%s` | %s | %.1f |" % (
+                slot["finger"], slot["pos"], slot["zone"],
+                label(key) if key else "—",
+                keycode(key) if key else "—",
+                keys[key]["label"] if key else "—",
+                load.get(key, 0.0) if key else 0.0))
+    return "\n".join(out)
+
+
+def build_entries(path):
+    """[[ability, unit, faction indices, key, combo, raw], ...] for the page."""
     idx = {f: i for i, f in enumerate(FACTIONS)}
-    entries, unplaced = [], {}
+    entries = []
     for cmd, key, combo, raw in parse_entries(path):
         ability, unit = (cmd.split("/", 1) + [None])[:2] if "/" in cmd else (cmd, None)
-        facs = factions_for(unit)
-        entries.append([ability, unit or "", [idx[f] for f in facs], key, combo, raw,
-                        [idx[f] for f in own_factions(unit)]])
-        if key not in SVALBOARD:
-            unplaced[key] = unplaced.get(key, 0) + 1
-    return entries, unplaced
+        entries.append([ability, unit or "", [idx[f] for f in factions_for(unit)],
+                        key, combo, raw])
+    return entries
 
 
 def main():
-    layout = build_layout()
-    data = {
-        "factions": FACTIONS, "melee": MELEE, "commanders": COMMANDERS,
-        "combos": COMBOS, "labels": KEY_LABELS, "layout": layout,
-        "sval": {k: list(v) for k, v in SVALBOARD.items()},
-        "files": {}, "order": [],
-    }
+    markdown = "--markdown" in sys.argv[1:]
+    with open(os.path.join(HERE, SUMMARY), encoding="utf-8") as f:
+        summary = json.load(f)
+    slots = build_slots()
+    print("Slot order (difficulty = (zone - 1) + 1 if the Nail layer is held):")
+    for slot in slots:
+        print("  %2d  %-6s %-6s %-7s zone %d  difficulty %d"
+              % (slot["order"], slot["plane"], slot["finger"], slot["pos"],
+                 slot["zone"], slot["difficulty"]))
+
+    data = {"factions": FACTIONS, "melee": MELEE, "commanders": COMMANDERS,
+            "combos": COMBOS, "labels": KEY_LABELS, "thumb": THUMB,
+            "slots": slots, "fingers": FINGERS, "positions": POSITIONS,
+            "files": {}, "order": []}
+    tables = []
     for name, rel in FILES:
-        entries, unplaced = build_file(os.path.join(HERE, rel))
-        names = sorted(unplaced)
-        data["files"][name] = {"source": os.path.basename(rel), "entries": entries,
-                               "unplaced": names}
-        data["order"].append(name)
-        print("%s: %d entries, %d unplaced keys: %s"
-              % (name, len(entries), len(names),
-                 ", ".join("%s (%d)" % (k, unplaced[k]) for k in names) or "none"),
-              file=sys.stderr)
-        if rel.endswith("TheCore_5.0_Right_Plus.SC2Hotkeys") and set(names) != EXPECTED_UNPLACED_50:
+        path = os.path.join(HERE, rel)
+        keys = read_file(path)
+        total = sum(k["n"] for k in keys.values())
+        nkeys = len(keys)
+        load, pairs, notes = replay_load(summary, rel)
+        print("\n=== %s: %d bindings on %d keys, %.0f replay minutes"
+              % (name, total, len(keys), notes["minutes"]))
+        reasons = exclude(keys)
+        counts = collections.Counter(k["class"] for k in keys.values())
+        print("role classes: %s"
+              % ", ".join("%s %d" % (c, counts[c])
+                          for c in ("command", "group", "free")))
+        print("replay load, events per minute, all three races:")
+        ranked = sorted(keys, key=lambda k: (-load.get(k, 0.0), -keys[k]["n"], k))
+        for key in ranked:
+            print("  %-16s %8.2f  %-9s %3d bindings  %s"
+                  % (label(key), load.get(key, 0.0), keys[key]["class"],
+                     keys[key]["n"], keys[key]["label"]))
+        log = []
+        place, unfitted, order, swaps, (same, zones) = assign(
+            keys, load, pairs, slots, log)
+        print("placement order (load, then binding count, then name): %s"
+              % ", ".join(label(k) for k in order))
+        for line in log:
+            print(line)
+        for key in unfitted:
+            reasons[key] = ("no free %s slot left" % ROLE_NAMES[keys[key]["class"]])
+        print("unplaced (%d):" % len(reasons))
+        for key in sorted(reasons):
+            print("  %-16s load %.2f/min  %s" % (label(key), load.get(key, 0.0),
+                                                 reasons[key]))
+        assert len(set(place.values())) == len(place), (
+            "two TheCore keys landed on one Svalboard slot")
+        hot = [k for k, v in load.items() if v > 0 and k not in place]
+        print("keys with replay load > 0 that are unplaced: %s"
+              % (", ".join(sorted(hot)) if hot else "none"))
+        if set(reasons) != EXPECTED_UNPLACED[name]:
             raise SystemExit(
-                "unplaced keys for 5.0 are %s, expected %s: the SVALBOARD mapping is stale"
-                % (sorted(names), sorted(EXPECTED_UNPLACED_50)))
+                "unplaced keys for %s are %s, expected %s: the inputs or the "
+                "rules changed, check the placement before updating the guard"
+                % (name, sorted(reasons), sorted(EXPECTED_UNPLACED[name])))
+
+        index, _ = load_hotkeys(path)
+        races = summary["races"]
+        abilities = sorted({row[0] for r in races
+                            for row in races[r]["top_abilities"]})
+        amap = build_map(abilities, index)
+        cg = {c[len("ControlGroupRecall"):]: k
+              for c, k, _co, _r in parse_entries(path)
+              if c.startswith("ControlGroupRecall")}
+
+        def token(tok, cg=cg, amap=amap):
+            if tok.startswith("CG") and tok[2:] in cg:
+                return cg[tok[2:]]
+            return amap[tok][0] if tok in amap else None
+
+        print("anti-repetition check, top 10 bigrams per race:")
+        for race, pair, count, per_game, ka, kb, verdict in bigram_check(
+                summary, place, slots, token):
+            print("  %-8s %-28s %6d  %-6s %-6s %s"
+                  % (race, pair, count, label(ka), label(kb), verdict))
+        tables.append((name, markdown_table(name, slots, place, keys, load)))
+
+        at = {i: k for k, i in place.items()}
+        drawn = []
+        for slot in slots:
+            key = at.get(slot["order"])
+            s = dict(slot)
+            s["key"] = key
+            s["klabel"] = label(key) if key else None
+            s["role"] = keys[key]["label"] if key else "free"
+            s["code"] = keycode(key) if key else None
+            drawn.append(s)
+        data["files"][name] = {
+            "source": os.path.basename(rel),
+            "entries": build_entries(path),
+            "slots": drawn,
+            "unplaced": [{"key": k, "label": label(k), "reason": reasons[k],
+                          "load": round(load.get(k, 0.0), 2)}
+                         for k in sorted(reasons)],
+            "stats": {"bindings": total, "keys": nkeys, "swaps": swaps,
+                      "same": round(same, 2), "zone": round(zones, 2),
+                      "minutes": round(notes["minutes"], 1)},
+        }
+        data["order"].append(name)
+
     html = TEMPLATE.replace("__DATA__", json.dumps(data, separators=(",", ":")))
     out = os.path.join(HERE, OUT)
     with open(out, "w", encoding="utf-8") as f:
         f.write(html)
-    print("wrote %s (%.0f KB)" % (OUT, os.path.getsize(out) / 1024.0), file=sys.stderr)
+    print("\nwrote %s (%.0f KB)" % (OUT, os.path.getsize(out) / 1024.0))
+    if markdown:
+        for name, table in tables:
+            print("\n### %s\n\n%s" % (name, table))
 
 
 TEMPLATE = r"""<!DOCTYPE html>
 <html lang="en">
 <meta charset="utf-8">
-<title>TheCore on a Svalboard: first-attempt key map</title>
+<title>TheCore on one Svalboard hand</title>
 <style>
 :root { --pinky:#e8d5f0; --ring:#d6e4f7; --middle:#d9f0d9; --index:#fbe6cf; --thumb:#f7d7d7;
         --z1:#dcf0da; --z2:#fbeacd; --z3:#f8d9d9; }
 * { box-sizing: border-box; }
 body { margin: 0; padding: 16px 20px 40px; font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #1a1a1a; }
 h1 { font-size: 20px; margin: 0 0 4px; }
-p.lede { margin: 0 0 14px; color: #555; max-width: 90ch; }
+p.lede { margin: 0 0 14px; color: #555; max-width: 92ch; }
 .bar { border: 1px solid #ddd; border-radius: 6px; padding: 10px 12px; margin-bottom: 14px; background: #fafafa; }
 .row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 8px; }
 .row:last-child { margin-bottom: 0; }
@@ -205,12 +601,11 @@ select { font: inherit; padding: 3px; }
 .legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; color: #555; margin: 0 0 10px 0; align-items: center; }
 .legend span { padding: 2px 8px; border-radius: 3px; border: 1px solid #0002; }
 .z1 { background: var(--z1); } .z2 { background: var(--z2); } .z3 { background: var(--z3); }
-.hands { display: flex; gap: 46px; flex-wrap: wrap; align-items: flex-start; }
-.hand { display: flex; flex-direction: column; gap: 10px; }
-.hand > .ttl { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: #666; }
+.planes { display: flex; gap: 46px; flex-wrap: wrap; align-items: flex-start; }
+.plane { display: flex; flex-direction: column; gap: 10px; }
+.plane > .ttl { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: #666; }
 .fingers { display: flex; gap: 10px; }
-.thumbrow { display: flex; }
-.thumbrow.right-end { justify-content: flex-end; }
+.thumbrow { display: flex; justify-content: flex-end; }
 .cluster { display: flex; flex-direction: column; gap: 3px; }
 .cluster > .cl { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; text-align: center;
                  border-radius: 3px; padding: 1px 0; }
@@ -237,6 +632,8 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: #
 table.map { border-collapse: collapse; font-size: 12px; }
 table.map th, table.map td { border: 1px solid #ddd; padding: 2px 8px; text-align: left; }
 table.map th { background: #f4f4f4; font-weight: 600; }
+table.map td.code { font-family: ui-monospace, Menlo, monospace; }
+ul.notes { max-width: 92ch; color: #444; font-size: 13px; padding-left: 18px; }
 #panel { position: fixed; top: 0; right: 0; width: 420px; height: 100%; background: #fff; border-left: 1px solid #ccc; box-shadow: -4px 0 14px #0001; padding: 14px 16px; overflow: auto; display: none; }
 #panel.open { display: block; }
 #panel h3 { margin: 0 0 2px; font-size: 17px; }
@@ -249,59 +646,58 @@ table.map th { background: #f4f4f4; font-weight: 600; }
 #close { float: right; }
 </style>
 <body>
-<h1>TheCore on a Svalboard: first-attempt key map</h1>
-<p class="lede">A derived mapping, not an official layout: each key of TheCore's one-hand core is assigned to a Svalboard
-key well by the reasoning in <a href="../wiki/thecore-method-on-a-svalboard.md">wiki/thecore-method-on-a-svalboard.md</a>
-section 4d, and every binding in the hotkey file is shown on the Svalboard key that would press it. Commander views
-include all melee units of the commander's race plus the commander's own units, as on
-<a href="keymap.html">keymap.html</a>; tick <em>commander-specific only</em> to drop the inherited ones. The drawing is schematic: real key wells are cupped clusters, not flat squares.
-Click a key for its full binding list.</p>
+<h1>TheCore on one Svalboard hand</h1>
+<p class="lede">The left hand is on the Svalboard, the right hand is on an ordinary mouse, so the whole of TheCore has
+to fit on 20 left finger keys plus a layer held under the thumb Nail. This mapping is computed, not hand-picked:
+<a href="../tools/thecore_svalboard.py">tools/thecore_svalboard.py</a> orders TheCore's keys by how often they fire in
+187 pro replays (<a href="../wiki/sc2-command-sequences.md">wiki/sc2-command-sequences.md</a>), places each one on the
+easiest free key well its finger role allows, then swaps pairs while that lowers same-finger work. Rules and citations
+are in <a href="../wiki/thecore-method-on-a-svalboard.md">wiki/thecore-method-on-a-svalboard.md</a> sections 4a-4d.
+The drawing is schematic: real key wells are cupped clusters, not flat squares. Click a key for its full binding list.</p>
 
 <div class="bar">
   <div class="row"><b>File</b><select id="file"></select><span id="src" style="color:#777;font-size:12px"></span></div>
+  <div class="row"><b>View</b><span id="views"></span></div>
   <div class="row"><b>Melee</b><span id="fac-melee"></span></div>
   <div class="row"><b>Co-op</b><span id="fac-coop"></span></div>
   <div class="row"><b>Other</b><span id="fac-other"></span></div>
-  <div class="row"><b>Commander</b><label id="ownlab"><input type="checkbox" id="own"> commander-specific only</label></div>
   <div class="row"><b>Modifier</b><span id="mods"></span></div>
   <div class="row"><b>Search</b><input type="text" id="q" placeholder="ability or unit name"><span id="stat" style="color:#555"></span></div>
 </div>
 <div class="legend" id="legend"></div>
-<div class="hands" id="hands"></div>
-<h2 id="unplacedh">Unplaced TheCore keys</h2>
+<div class="planes" id="planes"></div>
+<h2>Left thumb cluster</h2>
+<div class="planes" id="thumb"></div>
+<h2 id="unplacedh">TheCore keys with no Svalboard slot</h2>
 <div id="unplaced"></div>
-<h2>Mapping reference</h2>
+<h2>Vial keycodes</h2>
+<p class="lede">The hotkey file stays TheCore's own; only the firmware changes. Every slot below should emit the
+keycode in the last column, the Nail-layer slots from layer 1 of the same well.</p>
 <table class="map" id="maptable"></table>
+<h2>Notes</h2>
+<ul class="notes" id="notes"></ul>
 <div id="panel"><button class="t" id="close">close</button><div id="pbody"></div></div>
 
 <script>
 var DATA = __DATA__;
 var FAC = DATA.factions, GI = FAC.indexOf("Global"), UI = FAC.indexOf("Unclassified");
-var HAND_NAME = { L: "Left hand", R: "Right hand" };
 var ZONE_NAME = { 1: "zone 1 (easiest)", 2: "zone 2", 3: "zone 3 (hardest)" };
+var PLANE_NAME = { base: "Base", layer: "Nail layer held" };
+var VIEWS = [["both", "both"], ["base", "base only"], ["layer", "layer only"]];
 
-var state = { file: DATA.order[0], faction: "Terran", mod: "any", q: "", own: false };
+var state = { file: DATA.order[0], faction: "Terran", mod: "any", q: "", view: "both" };
 
 function words(s) {
   return s.replace(/_/g, " ").replace(/([a-z0-9])([A-Z])/g, "$1 $2")
           .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2").trim();
 }
 function label(k) { return DATA.labels[k] || k; }
-function plural(n, word) { return n + " " + word + (n === 1 ? "" : "s"); }
-function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
-function modLabel(c) {
-  for (var i = 0; i < DATA.combos.length; i++) if (DATA.combos[i][0] === c) return DATA.combos[i][1];
-  return c;
-}
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 
 function visible(e) {
   var fi = FAC.indexOf(state.faction), f = e[2];
   if (state.faction === "Global") { if (f.indexOf(GI) < 0) return false; }
   else if (state.faction === "Unclassified") { if (f.indexOf(UI) < 0) return false; }
-  else if (state.own && DATA.commanders[state.faction]) {
-    // commander-specific only: the unit must be filed under this commander itself.
-    if (e[6].indexOf(fi) < 0 && e[6].indexOf(GI) < 0) return false;
-  }
   else if (f.indexOf(fi) < 0 && f.indexOf(GI) < 0) return false;
   if (state.q) {
     var q = state.q.toLowerCase();
@@ -325,19 +721,18 @@ function sortEntries(list) {
   return list.slice().sort(function (a, b) { return a[0] < b[0] ? -1 : (a[0] > b[0] ? 1 : 0); });
 }
 
-function keyCell(slot, list, extra) {
+function keyCell(slot, list, title) {
   var n = list ? list.length : 0, k = slot.key;
   if (!k) {
     return '<div class="slot"><div class="key none z' + slot.zone + '">' +
-           '<div class="kn"><span>' + esc(slot.pos) + "</span></div>" +
-           '<div class="role">' + esc(slot.role) + "</div>" +
-           '<div class="src">unmapped</div></div></div>';
+           '<div class="kn"><span>' + esc(title || slot.pos) + "</span></div>" +
+           '<div class="role">free</div><div class="src">no TheCore key</div></div></div>';
   }
   var h = '<div class="slot"><div class="key z' + slot.zone + (n ? "" : " dim") + '" data-k="' + esc(k) +
-          '" title="' + esc(k + " · " + slot.id + " · " + ZONE_NAME[slot.zone]) + '">';
-  h += '<div class="kn"><span>' + esc(extra || slot.pos) + '</span><span class="c">' + n + "</span></div>";
+          '" title="' + esc(label(k) + " · " + (slot.id || "") + " · " + ZONE_NAME[slot.zone]) + '">';
+  h += '<div class="kn"><span>' + esc(title || slot.pos) + '</span><span class="c">' + n + "</span></div>";
   h += '<div class="role">' + esc(slot.role) + "</div>";
-  h += '<div class="src">← ' + esc(label(k)) + "</div>";
+  h += '<div class="src">← ' + esc(label(k)) + (slot.code ? " / " + esc(slot.code) : "") + "</div>";
   var sorted = sortEntries(list || []);
   sorted.slice(0, 5).forEach(function (e) {
     h += '<div class="e" title="' + esc(e[5]) + '">' + esc(words(e[0])) +
@@ -347,77 +742,106 @@ function keyCell(slot, list, extra) {
   return h + "</div></div>";
 }
 
-// Grid order for a cluster, as a plus: north on top, then the side row, then south.
-function clusterCells(hand, finger, slots) {
-  var by = {};
-  slots.forEach(function (s) { by[s.pos] = s; });
-  if (finger === "thumb") {
-    var mid = hand === "L" ? ["nail", "down", "pad"] : ["pad", "down", "nail"];
-    return [null, by.up, null, by[mid[0]], by[mid[1]], by[mid[2]], null, by.knuckle, null];
-  }
-  var side = hand === "L" ? ["outward", "inward"] : ["inward", "outward"];
-  return [null, by.north, null, by[side[0]], by.centre, by[side[1]], null, by.south, null];
+// A left-hand cluster is drawn as a plus: north on top, outward-centre-inward,
+// then south. The left hand's outward side is to the left of centre.
+function clusterCells(by) {
+  return [null, by.north, null, by.outward, by.centre, by.inward, null, by.south, null];
 }
 
-function renderHands(m) {
+function renderPlanes(m) {
   var html = "";
-  DATA.layout.forEach(function (hd) {
-    html += '<div class="hand"><div class="ttl">' + HAND_NAME[hd.hand] + "</div>";
-    var thumb = null, fingers = "";
-    hd.clusters.forEach(function (cl) {
-      var cells = clusterCells(hd.hand, cl.finger, cl.slots);
-      var g = '<div class="cluster"><div class="cl cl-' + cl.finger + '">' + cl.finger + "</div>";
-      g += '<div class="grid">';
-      cells.forEach(function (s) {
-        g += s ? keyCell(s, s.key ? m[s.key] : null) : '<div class="slot blank"></div>';
+  ["base", "layer"].forEach(function (plane) {
+    if (state.view !== "both" && state.view !== plane) return;
+    html += '<div class="plane"><div class="ttl">' + PLANE_NAME[plane] + " · left hand</div>";
+    var fingers = "";
+    DATA.fingers.slice().reverse().forEach(function (finger) {
+      var by = {};
+      DATA.files[state.file].slots.forEach(function (s) {
+        if (s.plane === plane && s.finger === finger) by[s.pos] = s;
       });
-      g += "</div></div>";
-      if (cl.finger === "thumb") thumb = g; else fingers += g;
+      fingers += '<div class="cluster"><div class="cl cl-' + finger + '">' + finger + "</div><div class=\"grid\">";
+      clusterCells(by).forEach(function (s) {
+        fingers += s ? keyCell(s, s.key ? m[s.key] : null) : '<div class="slot blank"></div>';
+      });
+      fingers += "</div></div>";
     });
-    html += '<div class="fingers">' + fingers + "</div>";
-    html += '<div class="thumbrow' + (hd.hand === "L" ? " right-end" : "") + '">' + thumb + "</div>";
-    html += "</div>";
+    html += '<div class="fingers">' + fingers + "</div></div>";
   });
   return html;
 }
 
+// The thumb keys are the modifiers themselves (section 4b), so they never
+// carry bindings of their own: a binding written `CameraCenter=Control` is a
+// chord on some other key, not a command on the Pad.
+function renderThumb() {
+  var by = {};
+  DATA.thumb.forEach(function (t) { by[t[0]] = t[1]; });
+  var order = [null, "up", null, "nail", "down", "pad", null, "knuckle", null];
+  var h = '<div class="plane"><div class="thumbrow"><div class="cluster"><div class="cl cl-thumb">thumb</div>' +
+          '<div class="grid">';
+  order.forEach(function (p) {
+    if (!p) { h += '<div class="slot blank"></div>'; return; }
+    h += '<div class="slot"><div class="key none z1"><div class="kn"><span>' + esc(p) + "</span></div>" +
+         '<div class="role">' + esc(by[p]) + "</div>" +
+         '<div class="src">modifier, no bindings</div></div></div>';
+  });
+  return h + "</div></div></div></div>";
+}
+
 function render() {
-  var m = byKey(true), all = DATA.files[state.file].entries;
-  var shown = 0;
+  var m = byKey(true), f = DATA.files[state.file], shown = 0;
   Object.keys(m).forEach(function (k) { shown += m[k].length; });
-  document.getElementById("stat").textContent = shown + " of " + plural(all.length, "binding");
-  document.getElementById("src").textContent = DATA.files[state.file].source;
-  document.getElementById("hands").innerHTML = renderHands(m);
-  var up = DATA.files[state.file].unplaced, uh = "";
-  up.forEach(function (k) {
-    uh += keyCell({ id: k, pos: label(k), role: "no Svalboard key", zone: 3, key: k }, m[k], label(k));
+  document.getElementById("stat").textContent =
+    shown + " of " + f.entries.length + " bindings";
+  document.getElementById("src").textContent =
+    f.source + " · " + f.stats.bindings + " bindings on " + f.stats.keys +
+    " keys · " + f.stats.swaps + " swaps · cost " +
+    (f.stats.same + f.stats.zone).toFixed(2);
+  document.getElementById("planes").innerHTML = renderPlanes(m);
+  document.getElementById("thumb").innerHTML = renderThumb();
+  var uh = "";
+  f.unplaced.forEach(function (u) {
+    uh += keyCell({ id: u.key, pos: u.label, role: u.reason, zone: 3, key: u.key },
+                  m[u.key], u.label);
   });
   document.getElementById("unplaced").innerHTML = uh || "<p>None.</p>";
-  document.getElementById("unplacedh").style.display = up.length ? "" : "none";
   Array.prototype.forEach.call(document.querySelectorAll(".key"), function (el) {
     var k = el.getAttribute("data-k");
     if (k) el.onclick = function () { openKey(k); };
   });
+  var rows = "<tr><th>Plane</th><th>Finger</th><th>Position</th><th>Zone</th>" +
+             "<th>TheCore key</th><th>Carries</th><th>Vial keycode</th></tr>";
+  f.slots.forEach(function (s) {
+    rows += "<tr><td>" + esc(PLANE_NAME[s.plane]) + "</td><td>" + esc(s.finger) + "</td><td>" +
+            esc(s.pos) + "</td><td>" + s.zone + "</td><td>" +
+            (s.key ? esc(label(s.key)) : "&mdash;") + "</td><td>" + esc(s.role) +
+            '</td><td class="code">' + (s.code ? esc(s.code) : "&mdash;") + "</td></tr>";
+  });
+  document.getElementById("maptable").innerHTML = rows;
   Array.prototype.forEach.call(document.querySelectorAll("button.t[data-f]"), function (b) {
     b.className = "t" + (b.getAttribute("data-f") === state.faction ? " on" : "");
   });
   Array.prototype.forEach.call(document.querySelectorAll("button.t[data-m]"), function (b) {
     b.className = "t" + (b.getAttribute("data-m") === state.mod ? " on" : "");
   });
-  var isCmd = !!DATA.commanders[state.faction];
-  document.getElementById("own").disabled = !isCmd;
-  document.getElementById("ownlab").style.opacity = isCmd ? "1" : "0.45";
+  Array.prototype.forEach.call(document.querySelectorAll("button.t[data-v]"), function (b) {
+    b.className = "t" + (b.getAttribute("data-v") === state.view ? " on" : "");
+  });
 }
 
 function where(k) {
-  var s = DATA.sval[k];
-  return s ? HAND_NAME[s[0]] + " · " + s[1] + " · " + s[2] : "unplaced";
+  var s = null;
+  DATA.files[state.file].slots.forEach(function (x) { if (x.key === k) s = x; });
+  if (s) return PLANE_NAME[s.plane] + " · " + s.finger + " " + s.pos + " · " + ZONE_NAME[s.zone];
+  var r = "not on the board";
+  DATA.files[state.file].unplaced.forEach(function (u) { if (u.key === k) r = u.reason; });
+  return r;
 }
 
 function openKey(k) {
-  var m = byKey(true)[k] || [];
+  var m = byKey(false)[k] || [];
   var h = "<h3>" + esc(label(k)) + "</h3><p class=\"sub\">" + esc(where(k)) + " · " +
-          plural(m.length, "binding") + " · " + esc(state.faction) + "</p>";
+          m.length + " bindings · " + esc(state.faction) + "</p>";
   DATA.combos.forEach(function (c) {
     var list = m.filter(function (e) { return e[4] === c[0]; });
     if (!list.length) return;
@@ -445,6 +869,9 @@ function init() {
   DATA.order.forEach(function (n) {
     DATA.files[n].entries.forEach(function (e) { e[2].forEach(function (i) { counts[i] = 1; }); });
   });
+  document.getElementById("views").innerHTML = VIEWS.map(function (v) {
+    return '<button class="t" data-v="' + v[0] + '">' + v[1] + "</button>";
+  }).join(" ");
   document.getElementById("fac-melee").innerHTML = DATA.melee.map(facButton).join(" ");
   document.getElementById("fac-coop").innerHTML = Object.keys(DATA.commanders).map(facButton).join(" ");
   var other = ["Global"];
@@ -459,23 +886,32 @@ function init() {
   Array.prototype.forEach.call(document.querySelectorAll("button.t[data-m]"), function (b) {
     b.onclick = function () { state.mod = b.getAttribute("data-m"); render(); };
   });
-  var own = document.getElementById("own");
-  own.checked = false;
-  own.onchange = function () { state.own = !!own.checked; render(); };
+  Array.prototype.forEach.call(document.querySelectorAll("button.t[data-v]"), function (b) {
+    b.onclick = function () { state.view = b.getAttribute("data-v"); render(); };
+  });
   document.getElementById("q").oninput = function (ev) { state.q = ev.target.value; render(); };
   document.getElementById("legend").innerHTML =
     "<span class=\"z1\">zone 1 &mdash; easiest</span><span class=\"z2\">zone 2</span>" +
     "<span class=\"z3\">zone 3 &mdash; hardest</span>";
-  var rows = "<tr><th>Svalboard key</th><th>Role</th><th>TheCore key</th></tr>";
-  DATA.layout.forEach(function (hd) {
-    hd.clusters.forEach(function (cl) {
-      cl.slots.forEach(function (s) {
-        rows += "<tr><td>" + esc(HAND_NAME[hd.hand] + " " + cl.finger + " " + s.pos) + "</td><td>" +
-                esc(s.role) + "</td><td>" + (s.key ? esc(label(s.key)) : "&mdash;") + "</td></tr>";
-      });
-    });
-  });
-  document.getElementById("maptable").innerHTML = rows;
+  document.getElementById("notes").innerHTML = [
+    "<b>Banished commands stay banished.</b> TheCore parks the commands it never wants pressed by accident on " +
+    "Ctrl+Shift+Alt, which this board can only make as Pad+Down+Knuckle. Nothing here changes that.",
+    "<b>A firmware escape hatch exists, and is not taken in this pass.</b> SC2 accepts F13, F14 and up as hotkeys " +
+    "and no ordinary board can send them, which is why TheCore's own community used them as a dumping ground " +
+    "(wiki/thecore/hotkey-file-editing.md, Edennil 191702, 384532) and macroed Fn+key to unused F-keys to get a " +
+    "one-press inject (wiki/thecore/keyboards-and-hardware.md, H:256033, H:157574, H:130369). The firmware could " +
+    "emit F13-F24 from layer slots and free a banished command from the three-thumb-key contortion. Not done here.",
+    "<b>Camera keys carry no replay load.</b> Replays record where the camera went, never which key moved it, so " +
+    "camera view, camera save, Idle Worker and Town Camera all score zero and sort to the tail of the order. " +
+    "They are placed on whatever middle and ring wells are left, and the two or three that do not fit are listed " +
+    "above; that is a limit of the evidence, not a judgement that they are unused.",
+    "<b>Some same-finger work is forced.</b> Section 4c allows control groups only on middle and ring, and " +
+    "five control groups carry most of the load, so pairs such as CG1 &gt; CG3 land on one finger whatever the " +
+    "search does. The layer is the escape the mapping does have: a transition that crosses into the Nail layer " +
+    "is counted at half cost, and the climb spends that on the heaviest pairs.",
+    "<b>The right hand is on a mouse.</b> Left click, right click and the two side buttons are not on the board " +
+    "at all, and the thumb keys are the modifiers themselves, so they carry no commands of their own."
+  ].map(function (s) { return "<li>" + s + "</li>"; }).join("");
   render();
 }
 init();

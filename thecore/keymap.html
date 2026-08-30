@@ -125,6 +125,11 @@ function keyCell(k, list) {
 }
 
 function render() {
+  // The commander-only filter is meaningless for a melee race, so clear it
+  // instead of leaving the box ticked but disabled.
+  var isCmd = !!DATA.commanders[state.faction];
+  if (!isCmd && state.own) { state.own = false; }
+  document.getElementById("own").checked = state.own;
   var m = byKey(true), all = DATA.files[state.file].entries;
   var shown = 0;
   Object.keys(m).forEach(function (k) { shown += m[k].length; });
@@ -153,7 +158,6 @@ function render() {
   Array.prototype.forEach.call(document.querySelectorAll("button.t[data-m]"), function (b) {
     b.className = "t" + (b.getAttribute("data-m") === state.mod ? " on" : "");
   });
-  var isCmd = !!DATA.commanders[state.faction];
   document.getElementById("own").disabled = !isCmd;
   document.getElementById("ownlab").style.opacity = isCmd ? "1" : "0.45";
 }

@@ -1,7 +1,7 @@
 ---
 type: Reference
 title: TheCore's method on a Svalboard
-description: TheCore's own rules for ranking keys and commands, what its shipped files actually measure, what the Svalboard wiki knows about key ease, and a derived recipe that applies the method to a five-key-per-finger cluster board.
+description: TheCore's own rules for ranking keys and commands, what its shipped files actually measure, what the Svalboard wiki knows about key ease, a derived recipe that applies the method to a five-key-per-finger cluster board, and a computed assignment for one left hand plus a held layer.
 tags: [svalboard, thecore, starcraft, gaming, layout]
 source: "TheCore Google Drive: TheCore Handbook - The logic behind the layout.docx, TheCore 5.0 Spreadsheet, TheCore 6.0 Spreadsheet, Customization Ideas - Tweak TheCore to fit you!.docx, F.A.Q_.docx, TheCore_5.0_Right_Plus.SC2Hotkeys, TheCore6g_right_US_qwerty.SC2Hotkeys; Svalboard wiki pages ergonomics-and-fit, faq, firmware-and-config, gaming, open-questions, pointing-devices, suppliers-and-parts"
 ---
@@ -46,7 +46,7 @@ This page is about TheCore's *method*, not its layout. For the layout itself and
 
 ## 2. What the shipped files measure
 
-Measured with `tools/thecore_keys.py`. `TheCore_5.0_Right_Plus.SC2Hotkeys` holds 1,432 bindings on 51 keys; `TheCore6g_right_US_qwerty.SC2Hotkeys` holds 1,313 on 56. Per finger, 5.0 Right Plus uses 10 index keys, 4 middle, 4 ring, 9 pinky and 0 thumb (the modifiers are never bound bare), with the remaining 24 keys outside the finger chart. 6.0 Right uses 11 index, 4 middle, 4 ring and 9 pinky.
+Measured with `tools/thecore_keys.py`. `TheCore_5.0_Right_Plus.SC2Hotkeys` holds 1,434 bindings on 53 keys; `TheCore6g_right_US_qwerty.SC2Hotkeys` holds 1,314 on 57. Per finger, 5.0 Right Plus uses 10 index keys, 4 middle, 4 ring, 9 pinky and 0 thumb (the modifiers are never bound bare), with the remaining 26 keys outside the finger chart. 6.0 Right uses 11 index, 4 middle, 4 ring and 9 pinky.
 
 The counts split the fingers into two jobs. Index and pinky keys carry hundreds of plain bindings each, because each one is a `Command n` slot that every unit's command card reuses: `J` 300 bindings (297 plain), `;` 257, `-` 188, `[` 107, `P` 102, `M` 85, `H` 75, `N` 68. Middle and ring keys carry 5 to 10 bindings each, roughly one per modifier combination, because they are control-group and camera slots: `O`, `L` and `9` (middle) and `I` (ring) each carry 7, one for plain, Shift, Ctrl, Ctrl+Shift, Alt+Shift, Alt and Alt+Ctrl; `K` carries 10, four of them plain; `8`, `,` and `.` carry 5.
 
@@ -126,60 +126,120 @@ Three ways out:
 - **A layer.** TheCore's own answer on small boards, `F` and `Fn+F` in place of `Alt+F` ([Svalboard and TheCore](/svalboard-and-thecore.md), C:917360).
 - **Dropping the tail.** Commands 10 to 13 and CG 9 to 10 are the lowest-priority slots by TheCore's own numbering.
 
-Recommended: use both hands, with the layer held in reserve for anything that still will not fit. Reason: it is the only option that keeps every high-priority slot inside zone 1 or zone 2 without a mode change, and a mode change is the thing a locking gaming layer makes awkward under time pressure. Two hands also gives more fingers to alternate across, which is what TheCore's anti-repetition rule wants.
+Recommended: **the layer**, held under the thumb Nail, on one hand. This is the user's decision about their own setup, not a finding from either Discord: they play with the left hand on the Svalboard and the right hand on an ordinary mouse, not on the board's trackball. That settles the choice before the ergonomics do. The other hand is simply not available, so the board offers 20 finger keys plus the thumb cluster, and the only extra room is a held layer, which is TheCore's own answer on small boards ([Svalboard and TheCore](/svalboard-and-thecore.md), C:917360). Two consequences worth stating: mouse clicks cost no keys at all, which is what breaks in the two-hand version (S:056916); and a held layer is not the locking gaming layer of 4b, so it costs no mode change under time pressure, only a thumb that is already down. Dropping the tail is not needed: 40 slots hold everything the two shipped files bind except the modifier keys themselves, the mouse buttons, the banished commands, and two or three camera and idle-worker keys that overflow the middle and ring fingers (see 4d).
 
-### 4d. A worked candidate assignment
+### 4d. The computed assignment
 
-Tie-break rules used, all derived and applied in this order:
+The table below is generated, not hand-written: `tools/thecore_svalboard.py` prints it with `--markdown`, so it and
+[`thecore/svalboard-keymap.html`](../thecore/svalboard-keymap.html) can never drift apart. Re-run the tool after any
+change to a hotkey file or to the rules above.
 
-1. Finger role is a hard constraint: `Command n` slots only on index and pinky, control groups and Idle Worker only on middle and ring. This comes from the no-repetition rule, so it outranks key ease.
-2. Within the fingers a role allows, lower slot number goes to the lower zone, and within zone 1, centre before south.
-3. Where the wiki ties two directions (inward and north), the more frequent slot takes inward, since north is the position with the standing complaint.
-4. The worst key a finger has takes that finger's lowest-priority slot: pinky north takes Command 13's neighbour position, ring outward takes the last control group on that finger.
-5. Overflow goes to the same finger on the other hand, so a two-step sequence still alternates.
+Three inputs, all cited elsewhere on this page or in the repo:
 
-Left hand is the command hand, right thumb is on the trackball. Modifier columns follow 5.0 Plus semantics from section 2.
+1. The shipped files, parsed as in section 2. The unit of assignment is one TheCore physical key with every modifier
+   variant it carries, because TheCore keeps them together: `E` is Command 2 plain, Command 2 queued on Shift, and its
+   Ctrl and Alt bindings, all on one key well.
+2. Replay evidence for the ordering: events per minute per TheCore key, summed over Terran, Zerg and Protoss across
+   187 IEM Katowice 2024 games, from [`../thecore/sequences-summary.json`](../thecore/sequences-summary.json) as
+   described in [SC2 command sequences](/sc2-command-sequences.md). The summary ships a key map for 5.0 only, so both
+   files are scored the same way instead: each summary ability row is matched to the key that file binds it to, and
+   each control-group set, add, steal, delete and recall is counted on that file's own recall key. Right clicks are
+   dropped, because they are on the mouse.
+3. The zones of 4a and the finger roles of 4c.
 
-| Key | Zone | Plain | Shift | Ctrl | Alt |
-|---|---|---|---|---|---|
-| L index centre | 1 | Command 2 | Command 2 (queue) | Top Bar Power 1 | Jump to Cam 2 |
-| L index south | 1 | Command 3 | Command 3 | Top Bar Power 2 | Jump to Cam 5 |
-| L index inward | 2 | Command 4 | Command 4 | Top Bar Power 3 | |
-| L index north | 2 | Command 5 | Command 5 | Top Bar Power 4 | |
-| L index outward | 3 | Command 7 | Command 7 | | |
-| L middle centre | 1 | CG 1 | Create CG 1 | Add/Steal CG 1 | Jump to Cam 3 |
-| L middle south | 1 | CG 3 | Create CG 3 | Add/Steal CG 3 | Jump to Cam 6 |
-| L middle inward | 2 | CG 4 | Create CG 4 | Add/Steal CG 4 | Jump to Cam 8 |
-| L middle north | 2 | CG 5 | Create CG 5 | Add/Steal CG 5 | |
-| L middle outward | 3 | CG 10 (trash) | Create CG 10 | Add/Steal CG 10 | |
-| L ring centre | 1 | CG 2 | Create CG 2 | Add/Steal CG 2 | Jump to Cam 4 |
-| L ring south | 1 | CG 6 | Create CG 6 | Add/Steal CG 6 | Jump to Cam 7 |
-| L ring inward | 2 | Idle Worker | | | |
-| L ring north | 2 | CG 7 | Create CG 7 | Add/Steal CG 7 | |
-| L ring outward | 3 | CG 8 | Create CG 8 | Add/Steal CG 8 | |
-| L pinky centre | 1 | Command 1 | Command 1 | Add/Steal CG 5 | Jump to Cam 1 |
-| L pinky south | 1 | Command 6 | Command 6 | Base Camera | |
-| L pinky inward | 2 | Command 8 | Command 8 | | |
-| L pinky outward | 3 | Command 9 | Command 9 | | |
-| L pinky north | 3 | Command 12 | Command 12 | | |
-| R index centre | 1 | left click | | | |
-| R index south | 1 | Command 10 | Command 10 | | |
-| R index inward | 2 | Command 11 | Command 11 | | |
-| R middle centre | 1 | right click | | | |
-| R middle south | 1 | Special Command 1 | | | |
-| R ring centre | 1 | CG 9 | Create CG 9 | Add/Steal CG 9 | |
-| R pinky centre | 1 | Command 13 | Command 13 | | |
+Slots: 20 base keys and 20 with the Nail layer held. A slot's difficulty is `(zone - 1) + 1 if the layer is held`,
+which treats a held layer as costing about one zone step and *derives* the ordering base zone 1, base zone 2, layer
+zone 1, base zone 3, layer zone 2, layer zone 3. Inside a zone the order is 4a's: centre, south, inward, north,
+outward, with pinky north forced last as "the worst key" (S:283944).
 
-The Alt column is the camera jump, and Ctrl+Alt on the same key saves that camera, which is the 5.0 Plus arrangement from section 2. Auto-Cast is not in the table: it rides Ctrl+Shift on the Command 4 key and, by the Handbook's collision rule, may only sit on ability 4 or higher. Banished commands, Select All Army among them, stay on Ctrl+Shift+Alt, which is the Pad + Down + Knuckle contortion, so no key row is needed for them. Note the deliberate waste: Command 13 and Special Command 1 sit on zone-1 keys of the right hand while zone-3 keys of the left hand carry higher-priority slots. That is rule 1 beating rule 2, and it is the same trade TheCore makes when it puts Command 13 on `B`. The right hand is left mostly empty on purpose: 13 of its 20 finger keys are free for build menus, subgroup keys or a second copy of anything that needs an alternate to break finger repetition. [`thecore/svalboard-keymap.html`](../thecore/svalboard-keymap.html) (built by `tools/thecore_svalboard.py`) draws this table on two Svalboard hands with the shipped 5.0 and 6.0 bindings transplanted onto it, and fills the free right-hand keys with the TheCore keys the table leaves out.
+Assignment, deterministic and printed by the tool:
+
+1. Order TheCore's keys by replay load, most first; ties broken by binding count, then by name. TheCore's own slot
+   numbers are not in the hotkey files, so binding count stands in for them.
+2. Greedy: each key takes the easiest free slot its role allows.
+3. Then a hill climb: repeatedly make the one swap of two placed keys that lowers the cost most, as long as each key's
+   role still allows its new finger. Cost, in events per minute, is the rate of same-finger different-key transitions
+   over the summary's bigrams (a transition that crosses into the layer counts half, since the layer hand is already
+   loaded differently) plus each key's load times its slot difficulty. Same-key repeats such as `CG3 > CG3` are not a
+   cost; the summary counts them separately.
+
+For 5.0 Right Plus that is 85.12 after the greedy pass and 69.29 after 5 swaps; for 6.0 Right, 45.79 and then 41.13
+after 11 swaps.
+
+Some same-finger work is forced rather than a failure of the search. Rule 1 of 4c allows control groups only on middle
+and ring, and five control groups carry most of the replay load, so heavy pairs such as `CG1 > CG3` share a finger
+whichever way they are arranged; the tool spends the half-price cross-plane transition on the heaviest of them. Camera
+and idle-worker keys score zero, because a replay records where the camera went and never which key moved it, so they
+sort to the tail and two of them (5.0 `6` and `7`, Town Camera and Idle Worker) overflow the ten middle and ring
+slots. That is a limit of the evidence, not a judgement that they are unused.
+
+Banished commands stay banished: this board can only make Ctrl+Shift+Alt as Pad + Down + Knuckle, and the keys whose
+every binding is that chord get no slot of their own. There is a way out that this pass does not take: SC2 accepts
+`F13`, `F14` and up as hotkeys and no ordinary board can send them, which is why TheCore's own community used them as
+a dumping ground and macroed Fn+key to an unused F-key for a one-press inject
+([hotkey file editing](/thecore/hotkey-file-editing.md), 191702, 384532; [keyboards and
+hardware](/thecore/keyboards-and-hardware.md), H:256033, H:157574, H:130369). Firmware could emit F13-F24 from layer
+slots and free a banished command from the contortion.
+
+TheCore 5.0 Right Plus, generated; the 6.0 Right table is on
+[`thecore/svalboard-keymap.html`](../thecore/svalboard-keymap.html), which draws both files with every binding on the
+key that would press it. "Load /min" is the replay evidence of input 2, and "Vial keycode" is what the firmware must
+emit for that well (section 4e).
+
+| Svalboard key | Zone | TheCore key | Vial keycode | Carries | Load /min |
+| --- | --- | --- | --- | --- | --- |
+| **Base** | | | | | |
+| index centre | 1 | - | `KC_MINS` | Larva, command card (187) | 5.6 |
+| index south | 1 | J | `KC_J` | Cam 3, Larva, command card (297) | 4.7 |
+| index inward | 2 | [ | `KC_LBRC` | Burrow Down, command card (106) | 2.1 |
+| index north | 2 | H | `KC_H` | Larva, Burrow Up, command card (74) | 0.9 |
+| index outward | 3 | M | `KC_M` | Stop Generate Creep, Larva, command card (84) | 0.4 |
+| middle centre | 1 | O | `KC_O` | CG 1, Cam 1 | 35.8 |
+| middle south | 1 | L | `KC_L` | CG 3, Cam 5 | 24.1 |
+| middle inward | 2 | Z | `KC_Z` | Rally | 0.0 |
+| middle north | 2 | U | `KC_U` | CG 8 | 1.8 |
+| middle outward | 3 | A | `KC_A` | Move | 0.0 |
+| ring centre | 1 | K | `KC_K` | CG 4, Cam 6 | 26.8 |
+| ring south | 1 | I | `KC_I` | CG 2, Cam 2 | 23.1 |
+| ring inward | 2 | F | `KC_F` | Rally SCV | 0.1 |
+| ring north | 2 | 8 | `KC_8` | CG 7 | 1.9 |
+| ring outward | 3 | Enter | `KC_ENT` | Chat Default, Chat Allies | 0.0 |
+| pinky centre | 1 | P | `KC_P` | Cam 0/3, Attack, Larva | 19.2 |
+| pinky south | 1 | ; | `KC_SCLN` | Cam 4, command card (254) | 3.3 |
+| pinky inward | 2 | G | `KC_G` | Stop, command card (13) | 0.4 |
+| pinky north | 3 | = | `KC_EQL` | Larva, command card (30) | 0.0 |
+| pinky outward | 3 | Y | `KC_Y` | Move Patrol, Larva, Army Select | 0.2 |
+| **Nail layer held** | | | | | |
+| index centre | 1 | ] | `KC_RBRC` | Move Hold Position, command card (11) | 0.6 |
+| index south | 1 | / | `KC_SLSH` | Cancel, command card (12) | 0.4 |
+| index inward | 2 | D | `KC_D` | Rally Egg, command card (6) | 0.0 |
+| index north | 2 | C | `KC_C` | Select Builder, command card (5) | 0.0 |
+| index outward | 3 | F10 | `KC_F10` | Menu Game | 0.0 |
+| middle centre | 1 | . | `KC_DOT` | CG 0 | 5.6 |
+| middle south | 1 | 0 | `KC_0` | CG 6 | 7.0 |
+| middle inward | 2 | E | `KC_E` | misc | 0.0 |
+| middle north | 2 | Backspace | `KC_BSPC` | Camera Turn Left, Camera Turn Right | 0.0 |
+| middle outward | 3 | R | `KC_R` | misc | 0.0 |
+| ring centre | 1 | , | `KC_COMM` | CG 9 | 1.4 |
+| ring south | 1 | 9 | `KC_9` | CG 5, Cam 7 | 21.8 |
+| ring inward | 2 | Q | `KC_Q` | misc | 0.0 |
+| ring north | 2 | Escape | `KC_ESC` | Menu Game | 0.0 |
+| ring outward | 3 | Tab | `KC_TAB` | misc | 0.0 |
+| pinky centre | 1 | N | `KC_N` | Land, Lift, Larva | 0.6 |
+| pinky south | 1 | ' | `KC_QUOT` | Larva, command card (52) | 1.6 |
+| pinky inward | 2 | W | `KC_W` | command card (5) | 0.0 |
+| pinky north | 3 | B | `KC_B` | misc | 0.0 |
+| pinky outward | 3 | X | `KC_X` | misc | 0.0 |
 
 ### 4e. Vial versus the hotkey file
 
-Do all modifier work in the firmware and all per-command work in the text file. The reasons, the mouse-button tokens, the alternate tricks and the one case that must be firmware rather than file are set out in [Svalboard and TheCore](/svalboard-and-thecore.md); the thumb assignment in 4b and the layer key in 4c are Vial changes, and the table in 4d is a `.SC2Hotkeys` edit once the thumb emits real Ctrl, Shift and Alt.
+Do all modifier work in the firmware and all per-command work in the text file. The reasons, the mouse-button tokens, the alternate tricks and the one case that must be firmware rather than file are set out in [Svalboard and TheCore](/svalboard-and-thecore.md); the thumb assignment in 4b and the layer key in 4c are Vial changes, and so is the table in 4d: every slot in it emits an ordinary TheCore keycode, so the `.SC2Hotkeys` file ships unedited once the thumb emits real Ctrl, Shift and Alt.
 
 ## 5. Open questions
 
 - **The per-position timing gap.** TheCore's only speed number is a borrowed "2-5 times faster" for home keys (Handbook), and the Svalboard wiki has no timing per direction at all. So zone 1 versus zone 2 on this board is an ordering with no magnitude, and nothing says whether a Svalboard centre key beats a south key by 5% or by 100%.
 - **Can one cluster take TheCore's press rate?** `J` carries 297 plain bindings in 5.0 Right Plus and is the busiest key in the file, and the wiki both warns against collapsing a movement cluster onto one finger (S:369527) and says the switches are not optimised for rapid repeats (S:958616). Nobody has measured a cluster under RTS load.
-- **Where do next and previous subgroup go?** They are not in the 5.0 important-keys table at all, and this page's table leaves them unplaced.
-- **Does the two-hand assignment in 4c and 4d actually beat one hand plus a layer?** Untested. It costs two centre keys to mouse clicks (S:056916) and it breaks TheCore's one-hand premise, which every one of the Handbook's finger-role rules assumes.
+- **Where do next and previous subgroup go?** They are not in the 5.0 important-keys table at all. With the right hand on a mouse they are natural mouse-button binds, which is what 4d assumes by leaving the mouse tokens off the board.
+- **What does a held layer really cost?** 4d prices it at one zone step, which is a guess with nothing behind it: the wiki has no timing for holding the Nail while a finger moves, and TheCore's community never measured its own Fn layer either. Change that number and the layer half of the table reshuffles.
+- **Should the camera keys be scored some other way?** Replays never say which key moved the camera, so every camera and idle-worker key scores zero in 4d and sorts to the tail behind keys that are genuinely idle. Camera jumps per minute are in the summary as a total; splitting them across camera slots would need something replays do not record.
 - **Is thumb Up spare?** It carries the gaming-layer lock in 4b, but it has no ease rank anywhere on the wiki, and the only note on it, that forming it is harder than a north key, is in the raw export rather than in the distilled pages (S:126898).

@@ -13,4 +13,4 @@ The drive also holds 12 other keyboard layouts for each version, the 1.0–4.0 a
 
 `tools/thecore_keymap.py` (no arguments) regenerates [`thecore/keymap.html`](keymap.html), a self-contained page showing every binding on the key that presses it, toggled by melee race and co-op commander.
 
-`tools/thecore_svalboard.py` (no arguments) regenerates [`thecore/svalboard-keymap.html`](svalboard-keymap.html), the same bindings drawn on two Svalboard hands under the key mapping derived in [thecore-method-on-a-svalboard](../wiki/thecore-method-on-a-svalboard.md) section 4d.
+`tools/thecore_svalboard.py` (no arguments) regenerates [`thecore/svalboard-keymap.html`](svalboard-keymap.html), the same bindings drawn on one left Svalboard hand, base and Nail layer, under the mapping the tool computes from replay load and the zone and finger rules in [thecore-method-on-a-svalboard](../wiki/thecore-method-on-a-svalboard.md) sections 4a-4d. `--markdown` prints section 4d's table instead of writing the page.
