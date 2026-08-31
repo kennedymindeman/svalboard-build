@@ -507,7 +507,8 @@ def main():
     with open(os.path.join(HERE, SUMMARY), encoding="utf-8") as f:
         summary = json.load(f)
     slots = build_slots()
-    print("Slot order (difficulty = (zone - 1) + 1 if the Nail layer is held):")
+    print("Slot order (difficulty = (zone - 1) + finger weight"
+          " + 1 if the Nail layer is held):")
     for slot in slots:
         print("  %2d  %-6s %-6s %-7s zone %d  difficulty %.1f"
               % (slot["order"], slot["plane"], slot["finger"], slot["pos"],
@@ -573,7 +574,8 @@ def main():
         def token(tok, cg=cg, amap=amap):
             if tok.startswith("CG") and tok[2:] in cg:
                 return cg[tok[2:]]
-            return amap[tok][0] if tok in amap else None
+            key = amap[tok][0] if tok in amap else None
+            return None if key in MOUSE_KEYS else key
 
         print("anti-repetition check, top 10 bigrams per race:")
         for race, pair, count, per_game, ka, kb, verdict in bigram_check(
