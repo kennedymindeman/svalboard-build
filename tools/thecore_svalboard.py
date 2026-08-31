@@ -579,7 +579,17 @@ def build_entries(path):
 def main():
     argv = sys.argv[1:]
     markdown = "--markdown" in argv
-    weight = float(argv[argv.index("--coop-blend") + 1]) if "--coop-blend" in argv else 0.0
+    weight = 0.0
+    if "--coop-blend" in argv:
+        i = argv.index("--coop-blend") + 1
+        try:
+            weight = float(argv[i])
+        except (IndexError, ValueError):
+            raise SystemExit("--coop-blend wants a weight in [0, 1],"
+                             " e.g. --coop-blend 0.5")
+        if not 0.0 <= weight <= 1.0:
+            raise SystemExit("--coop-blend weight %g is outside [0, 1]"
+                             % weight)
     normalize = "--coop-normalize" in argv
     with open(os.path.join(HERE, SUMMARY), encoding="utf-8") as f:
         summary = json.load(f)
@@ -706,8 +716,8 @@ def main():
     if weight:
         marker = ('187 pro replays (<a href="../wiki/sc2-command-sequences.md">'
                   'wiki/sc2-command-sequences.md</a>), places')
-        assert marker in html
-        html = html.replace(marker, marker[:-7] + (
+        assert marker in html and marker.endswith(" places")
+        html = html.replace(marker, marker.removesuffix(" places") + (
             ' blended %.0f/%.0f with per-minute rates averaged equally across '
             'the 18 co-op commanders of\n<a href="coop-summary.json">'
             'coop-summary.json</a>%s (<code>--coop-blend %g%s</code>), places'
