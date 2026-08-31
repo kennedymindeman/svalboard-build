@@ -9,6 +9,10 @@ here, and no committed artifact is regenerated on this branch.
 * Layouts come from the same three input sets as
   `thecore/coop-blend-report.md`: 1v1-only, raw 50/50 co-op blend,
   and normalized 50/50 (`--coop-normalize`, the committed layout).
+  All three appear in Part A. Part B re-optimizes only the
+  1v1-only and the normalized 50/50 inputs, the two the issue #27
+  decision is actually choosing between; the raw blend is a
+  diagnostic waypoint and is not re-run with tiers.
 * Collisions are always measured on **1v1 bigram rates**, whatever
   data built the layout, so the three layouts are comparable. A
   collision is a bigram whose two TheCore keys are different and
@@ -34,8 +38,9 @@ here, and no committed artifact is regenerated on this branch.
 ## What it found
 
 * The flat optimizer already puts most collision mass on the
-  easiest class. In every layout centre-edge carries 21-24 of the
-  ~30-32 per minute, and opposite-edges under 1/min.
+  easiest class. In every layout centre-edge carries 20.9-24.2 of
+  the ~30-32 per minute. Opposite-edges is under 1/min in four of
+  the six layouts, but 1.88/min in both raw 50/50 layouts.
 * On the **1v1-only** inputs tiering still helps, and cheaply. Both
   files: 7-9 keys move, adjacent-edges drops 8.11 -> 6.27/min,
   opposite-edges 0.82 -> 0.69 (5.0) and 0.88 -> 0.69 (6.0), and
@@ -45,14 +50,24 @@ here, and no committed artifact is regenerated on this branch.
   0.5/1.0/1.5 and 0.7/1.0/1.3.
 * On the **normalized 50/50** inputs tiering changes nothing at
   all: 0 keys move at every tier setting, for both files. That
-  layout is already tier-optimal; its higher 1v1 same-finger rate
+  layout is already a fixed point of the pairwise-swap hill climb
+  under the tiered cost - a local optimum, not a proven global
+  one, since the search only ever tries single swaps. Its higher
+  1v1 same-finger rate
   (32.2 vs 29.8, issue #27) is not misplaced direction pairs, it
   is extra centre-edge mass (23.96 vs 20.85/min on 5.0).
-* The extreme setting 0.3/1.0/2.0 is a trap: it swaps the two
-  heaviest keys between middle and ring to buy centre-edge slots,
-  which raises the total collision rate to 35.8/min and costs
-  +4.1 under the flat objective. It buys nothing the milder tiers
-  do not already buy.
+* The extreme setting 0.3/1.0/2.0 is a trap, and the reason is
+  its scale, not its steepness. Multipliers only touch the
+  same-finger term, and centre-edge carries ~70% of the collision
+  mass, so EASY=0.3 discounts the whole same-finger term to an
+  effective 0.54 against an untouched zone term: the optimizer
+  then swaps the two heaviest keys between middle and ring to buy
+  cheaper slots, paying about 6/min of extra collisions (35.76/min
+  on 5.0, 36.15 on 6.0) for 1.7-1.8 of zone difficulty, +4.1 under
+  the flat objective. Scale the same 0.3 : 1.0 : 2.0 ratio up to
+  0.6/2.0/4.0 or 1.5/5.0/10.0 and the trap vanishes: those
+  reproduce the mild-tier layout exactly on both files. See the
+  scale check under each file's Part B.
 
 # TheCore 5.0 Right Plus
 
@@ -190,6 +205,34 @@ Placements identical across all three tier settings: 38 of 40 keys.
 | --- | --- | --- | --- |
 | O | ring centre, base | ring centre, base | middle centre, base |
 | I | middle centre, base | middle centre, base | ring centre, base |
+
+#### Is 0.3/1.0/2.0 bad because it is steep, or because it is small?
+
+Because it is small. The tier multipliers only touch
+the same-finger term; the zone-difficulty term is
+untouched. What rescales one against the other is the
+rate-weighted mean multiplier over the collisions the
+layout actually has (the *effective* column below).
+Centre-edge carries about 70% of the mass, so that
+number follows EASY, not the plain mean: 0.3/1.0/2.0
+has a plain mean of 1.10 but an effective 0.54, i.e.
+same-finger work at nearly half price, and the
+optimizer starts buying collisions to save slot
+difficulty. The last four rows share the ratio
+0.3 : 1.0 : 2.0 and differ only in scale, which is the
+test: scale the same steep ratio up and the trap
+disappears, so the hazard is the scale, not the
+spread. All figures are flat-objective, so they are
+comparable:
+
+| tiers | effective x on the flat layout | keys moved vs flat | flat same-finger | flat zone | flat total | same layout as 0.5/1.0/1.5? |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0.5/1.0/1.5 | 0.66 | 7 | 29.10 | 70.11 | 99.21 | yes |
+| 0.7/1.0/1.3 | 0.80 | 7 | 29.10 | 70.11 | 99.21 | yes |
+| 0.3/1.0/2.0 | 0.54 | 8 | 35.70 | 67.56 | 103.25 | no |
+| 0.6/2.0/4.0 | 1.07 | 7 | 29.10 | 70.11 | 99.21 | yes |
+| 1.5/5.0/10.0 | 2.68 | 7 | 29.10 | 70.11 | 99.21 | yes |
+| 3.0/10.0/20.0 | 5.36 | 9 | 29.05 | 70.24 | 99.29 | no |
 
 ### normalized 50/50 inputs
 
@@ -367,6 +410,34 @@ Placements identical across all three tier settings: 38 of 40 keys.
 | J | ring centre, base | ring centre, base | middle centre, base |
 | I | middle centre, base | middle centre, base | ring centre, base |
 
+#### Is 0.3/1.0/2.0 bad because it is steep, or because it is small?
+
+Because it is small. The tier multipliers only touch
+the same-finger term; the zone-difficulty term is
+untouched. What rescales one against the other is the
+rate-weighted mean multiplier over the collisions the
+layout actually has (the *effective* column below).
+Centre-edge carries about 70% of the mass, so that
+number follows EASY, not the plain mean: 0.3/1.0/2.0
+has a plain mean of 1.10 but an effective 0.54, i.e.
+same-finger work at nearly half price, and the
+optimizer starts buying collisions to save slot
+difficulty. The last four rows share the ratio
+0.3 : 1.0 : 2.0 and differ only in scale, which is the
+test: scale the same steep ratio up and the trap
+disappears, so the hazard is the scale, not the
+spread. All figures are flat-objective, so they are
+comparable:
+
+| tiers | effective x on the flat layout | keys moved vs flat | flat same-finger | flat zone | flat total | same layout as 0.5/1.0/1.5? |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0.5/1.0/1.5 | 0.66 | 9 | 29.47 | 68.80 | 98.26 | yes |
+| 0.7/1.0/1.3 | 0.80 | 9 | 29.47 | 68.80 | 98.26 | yes |
+| 0.3/1.0/2.0 | 0.54 | 10 | 36.06 | 66.22 | 102.28 | no |
+| 0.6/2.0/4.0 | 1.07 | 9 | 29.47 | 68.80 | 98.26 | yes |
+| 1.5/5.0/10.0 | 2.69 | 9 | 29.47 | 68.80 | 98.26 | yes |
+| 3.0/10.0/20.0 | 5.37 | 9 | 29.47 | 68.80 | 98.26 | yes |
+
 ### normalized 50/50 inputs
 
 Flat-cost layout, flat objective: 25.01 same-finger + 57.57 zone = 82.58.
@@ -408,26 +479,41 @@ was already close. On both hotkey files the tiered 1v1-only layout takes the
 same seven-to-nine-key rearrangement at 0.5/1.0/1.5 and at 0.7/1.0/1.3: the
 two heaviest ring keys trade centre and south, the ring inward key goes to
 north, and a middle/ring pair of north and outward keys swap fingers. That
-converts 1.84/min of adjacent-edge work into centre-edge work and shaves
-0.13-0.19/min off the opposite-edge work. It is not a trade: the total
-collision rate falls as well, and the price under the original flat objective
-is +0.10 on a total near 99, about 0.1%.
+takes 1.84/min off adjacent edges and 0.13/min (5.0) or 0.19/min (6.0) off
+opposite edges. Only part of it lands on centre-edge, which rises 1.23 (5.0)
+and 1.35 (6.0); the remaining ~0.5-0.6/min stops being a same-finger
+transition at all, which is the better outcome of the two. So it is not a
+trade: the total collision rate falls as well, and the price under the
+original flat objective is +0.10 on a total near 99, about 0.1%.
 
 On the normalized 50/50 inputs - the layout committed on `agent/issue-27` -
-tiering is a no-op at all three tier settings and both files. Nothing moves.
+tiering is a no-op at all three tier settings and both files. Nothing moves:
+that layout is already a fixed point of the hill climb under the tiered cost.
+(A fixed point of single swaps, not a proven optimum; a search that could move
+three keys at once might still find something.)
 So the #27 finding that normalizing raises the 1v1 same-finger rate from
 29.8 to 32.2/min cannot be answered by better direction placement: the extra
 2.4/min is already sitting on centre-edge rolls, the cheapest class there is.
 If that regression matters, it has to be paid for somewhere other than the
 direction tiers.
 
-The tier weights matter little as long as they stay mild. 0.5/1.0/1.5 and
-0.7/1.0/1.3 give byte-identical placements; 38 of 40 keys are also common to
-0.3/1.0/2.0, which only differs by swapping the two heaviest keys (5.0: O and
-I; 6.0: J and I) between the middle and ring centre slots. That one flip is
-what makes the extreme setting worse on every measure that is not its own
-objective, so the sensible reading is that the tier idea is robust and the
-extreme weighting is not.
+The tier weights matter little, but the hazard is not where it first looks.
+0.5/1.0/1.5 and 0.7/1.0/1.3 give byte-identical placements; 38 of 40 keys are
+also common to 0.3/1.0/2.0, which differs only by swapping the two heaviest
+keys (5.0: O and I; 6.0: J and I) between the middle and ring centre slots,
+and that one flip is what makes 0.3/1.0/2.0 worse on every measure but its
+own objective. The cause is scale, not spread. The tiers multiply the
+same-finger term and nothing else, so a tier set whose rate-weighted effective
+multiplier sits well under 1.0 quietly marks same-finger work down against an
+untouched zone-difficulty term, and the optimizer sells collisions for slot
+difficulty: at 0.3/1.0/2.0 the effective multiplier is 0.54 and it buys 1.7
+(5.0) to 1.8 (6.0) of zone difficulty for about 6/min of extra collisions.
+Hold the ratio and raise the scale - 0.6/2.0/4.0, 1.5/5.0/10.0 - and the
+identical steep ratio reproduces the mild-tier layout exactly on both files.
+So a steep spread is fine; a set that discounts the classes carrying the mass
+is not. Since centre-edge carries about 70% of the collisions, EASY is what
+sets that effective multiplier, and keeping it near 1.0 (or raising MED and
+HARD to compensate) is the practical rule.
 
 One caveat the numbers cannot cover: the tier ordering itself
 (centre-edge easy, adjacent-edges medium, opposite-edges hard) is an
@@ -458,6 +544,11 @@ of issue #28 goes looking for evidence for it in the Discord distillations.
 * **Script agrees with the CLI.** The tiered objective this report computes
   for the 0.5/1.0/1.5 1v1-only layouts (88.49 and 87.36) is the `final cost`
   line the tool itself prints under the same flag.
+* **Known debt.** A page generated with `--direction-tiers` records nothing
+  about the flag in its lede, unlike `--coop-blend`, which stamps the blend
+  into the page. Harmless today because no tiered page is committed anywhere,
+  but a tiered page would be indistinguishable from a flat one; stamp the
+  lede before committing any tiered artifact.
 * **Placed counts unchanged.** 40 keys placed per file in every layout and
   every tier setting, and the tiered runs pass the tool's `EXPECTED_UNPLACED`
   guard unchanged.

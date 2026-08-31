@@ -67,7 +67,9 @@ Placement rule, applied in this order:
                                       * (1.0 same plane, 0.5 across the layer)
            + sum over keys of load * slot difficulty
 
-  Both terms are events per minute, so no weighting constant is needed.
+  Both terms are events per minute, so no weighting constant is needed
+  (with `--direction-tiers` the tier values are exactly such a constant;
+  see below).
   Same-key repeats are not a cost; the summary counts those separately.
 
 `--direction-tiers EASY,MED,HARD` (issue #28, default off) replaces the flat
@@ -77,6 +79,15 @@ opposite) MED, opposite-edges (north/south or inward/outward) HARD.  Two keys
 on the same direction in different planes count as centre-edge (EASY: no
 direction change at all).  The 0.5 cross-plane factor still multiplies on top.
 With the flag off the multiplier is 1.0 everywhere, exactly as before.
+
+Keep the tier values near 1.0, or at least keep the ones on the classes that
+carry the traffic near 1.0.  The tiers scale the same-finger term and leave
+the zone-difficulty term alone, so a set whose rate-weighted effective
+multiplier lands well under 1.0 marks same-finger work down against slot
+difficulty and the climb starts trading collisions for easier slots.  Since
+centre-edge carries roughly 70% of the collision mass, EASY dominates that
+effective multiplier: 0.3/1.0/2.0 has a plain mean of 1.10 but an effective
+0.54, and it costs about 6 collisions/min (thecore/collision-report.md).
 
 Some same-finger work is forced, not a failure of the search: the control
 group floor puts all ten groups on middle and ring, so five hot control groups
@@ -639,9 +650,10 @@ def main():
             tiers = [float(x) for x in argv[i].split(",")]
         except (IndexError, ValueError):
             tiers = None
-        if not tiers or len(tiers) != 3:
-            raise SystemExit("--direction-tiers wants EASY,MED,HARD, three"
-                             " numbers, e.g. --direction-tiers 1,1.3,1.6")
+        if tiers is None or len(tiers) != 3:
+            raise SystemExit("--direction-tiers wants EASY,MED,HARD,"
+                             " three numbers, e.g. --direction-tiers"
+                             " 0.5,1.0,1.5")
     with open(os.path.join(HERE, SUMMARY), encoding="utf-8") as f:
         summary = json.load(f)
     coop = None

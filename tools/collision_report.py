@@ -20,7 +20,18 @@ import thecore_svalboard as ts  # noqa: E402
 W = 0.5
 CLASSES = ["centre-edge", "adjacent-edges", "opposite-edges", "same-direction"]
 TIER_SETS = [(0.5, 1.0, 1.5), (0.7, 1.0, 1.3), (0.3, 1.0, 2.0)]
+# Same ratios as 0.3/1.0/2.0 but scaled up, so the tier mean is no longer well
+# below 1.0 (issue #28 review): this separates a steep spread from a shrunken
+# same-finger term weighed against the untouched zone term.
+SCALE_SETS = [(0.5, 1.0, 1.5), (0.7, 1.0, 1.3),
+              (0.3, 1.0, 2.0), (0.6, 2.0, 4.0), (1.5, 5.0, 10.0),
+              (3.0, 10.0, 20.0)]
 TOP = 15
+
+
+def sep(n):
+    """A markdown header separator row of n columns."""
+    return "|%s|" % ("|".join([" --- "] * n))
 
 
 def slot_name(slots, i):
@@ -44,6 +55,22 @@ def collisions(place, slots, pairs):
                      sa["plane"] != sb["plane"], a, b))
     rows.sort(key=lambda r: (-r[0], r[3], r[4]))
     return rows
+
+
+def effective_multiplier(place, slots, pairs, tiers):
+    """Rate-weighted mean tier multiplier over one layout's collisions.
+
+    The scalar that actually rescales the same-finger term: a tier set is
+    only "neutral" against the untouched zone term if this lands near 1.0,
+    and it is dominated by the EASY value because centre-edge carries about
+    70% of the collision mass.
+    """
+    num = den = 0.0
+    for rate, cls, _cross, _a, _b in collisions(place, slots, pairs):
+        num += rate * tiers[{"same-direction": 0, "centre-edge": 0,
+                             "adjacent-edges": 1, "opposite-edges": 2}[cls]]
+        den += rate
+    return num / den
 
 
 def class_totals(rows):
@@ -103,6 +130,10 @@ def main():
     print("* Layouts come from the same three input sets as")
     print("  `thecore/coop-blend-report.md`: 1v1-only, raw 50/50 co-op blend,")
     print("  and normalized 50/50 (`--coop-normalize`, the committed layout).")
+    print("  All three appear in Part A. Part B re-optimizes only the")
+    print("  1v1-only and the normalized 50/50 inputs, the two the issue #27")
+    print("  decision is actually choosing between; the raw blend is a")
+    print("  diagnostic waypoint and is not re-run with tiers.")
     print("* Collisions are always measured on **1v1 bigram rates**, whatever")
     print("  data built the layout, so the three layouts are comparable. A")
     print("  collision is a bigram whose two TheCore keys are different and")
@@ -126,8 +157,9 @@ def main():
     print("  With the flag off the tool is byte-identical (sanity checks).\n")
     print("## What it found\n")
     print("* The flat optimizer already puts most collision mass on the")
-    print("  easiest class. In every layout centre-edge carries 21-24 of the")
-    print("  ~30-32 per minute, and opposite-edges under 1/min.")
+    print("  easiest class. In every layout centre-edge carries 20.9-24.2 of")
+    print("  the ~30-32 per minute. Opposite-edges is under 1/min in four of")
+    print("  the six layouts, but 1.88/min in both raw 50/50 layouts.")
     print("* On the **1v1-only** inputs tiering still helps, and cheaply. Both")
     print("  files: 7-9 keys move, adjacent-edges drops 8.11 -> 6.27/min,")
     print("  opposite-edges 0.82 -> 0.69 (5.0) and 0.88 -> 0.69 (6.0), and")
@@ -137,14 +169,24 @@ def main():
     print("  0.5/1.0/1.5 and 0.7/1.0/1.3.")
     print("* On the **normalized 50/50** inputs tiering changes nothing at")
     print("  all: 0 keys move at every tier setting, for both files. That")
-    print("  layout is already tier-optimal; its higher 1v1 same-finger rate")
+    print("  layout is already a fixed point of the pairwise-swap hill climb")
+    print("  under the tiered cost - a local optimum, not a proven global")
+    print("  one, since the search only ever tries single swaps. Its higher")
+    print("  1v1 same-finger rate")
     print("  (32.2 vs 29.8, issue #27) is not misplaced direction pairs, it")
     print("  is extra centre-edge mass (23.96 vs 20.85/min on 5.0).")
-    print("* The extreme setting 0.3/1.0/2.0 is a trap: it swaps the two")
-    print("  heaviest keys between middle and ring to buy centre-edge slots,")
-    print("  which raises the total collision rate to 35.8/min and costs")
-    print("  +4.1 under the flat objective. It buys nothing the milder tiers")
-    print("  do not already buy.\n")
+    print("* The extreme setting 0.3/1.0/2.0 is a trap, and the reason is")
+    print("  its scale, not its steepness. Multipliers only touch the")
+    print("  same-finger term, and centre-edge carries ~70% of the collision")
+    print("  mass, so EASY=0.3 discounts the whole same-finger term to an")
+    print("  effective 0.54 against an untouched zone term: the optimizer")
+    print("  then swaps the two heaviest keys between middle and ring to buy")
+    print("  cheaper slots, paying about 6/min of extra collisions (35.76/min")
+    print("  on 5.0, 36.15 on 6.0) for 1.7-1.8 of zone difficulty, +4.1 under")
+    print("  the flat objective. Scale the same 0.3 : 1.0 : 2.0 ratio up to")
+    print("  0.6/2.0/4.0 or 1.5/5.0/10.0 and the trap vanishes: those")
+    print("  reproduce the mild-tier layout exactly on both files. See the")
+    print("  scale check under each file's Part B.\n")
 
     stable = {}
     for name, rel in ts.FILES:
@@ -170,7 +212,7 @@ def main():
         print("### Class totals, rate /min (%s)\n" % name)
         print("| layout | %s | any-cross-plane | all |"
               % " | ".join(CLASSES))
-        print("| --- | --- | --- | --- | --- | --- | --- |")
+        print(sep(len(CLASSES) + 3))
         for n, _lo, _po in inputs:
             print(totals_row(n, collisions(flat[n], slots, p1)))
         print()
@@ -203,7 +245,7 @@ def main():
             print("Collision classes under 1v1 data, rate /min:\n")
             print("| layout | %s | any-cross-plane | all |"
                   % " | ".join(CLASSES))
-            print("| --- | --- | --- | --- | --- | --- | --- |")
+            print(sep(len(CLASSES) + 3))
             print(totals_row("flat", collisions(base, slots, p1)))
             for t in TIER_SETS:
                 print(totals_row("tiers %.1f/%.1f/%.1f" % t,
@@ -222,12 +264,47 @@ def main():
                 print("| key that differs between tier settings | %s |"
                       % " | ".join("tiers %.1f/%.1f/%.1f" % t
                                    for t in TIER_SETS))
-                print("| --- | --- | --- | --- |")
+                print(sep(len(TIER_SETS) + 1))
                 for k in flips:
                     print("| %s | %s |"
                           % (ts.label(k),
                              " | ".join(slot_name(slots, places[t][k])
                                         for t in TIER_SETS)))
+                print()
+            if lname == "1v1-only":
+                print("#### Is 0.3/1.0/2.0 bad because it is steep, or"
+                      " because it is small?\n")
+                print("Because it is small. The tier multipliers only touch")
+                print("the same-finger term; the zone-difficulty term is")
+                print("untouched. What rescales one against the other is the")
+                print("rate-weighted mean multiplier over the collisions the")
+                print("layout actually has (the *effective* column below).")
+                print("Centre-edge carries about 70% of the mass, so that")
+                print("number follows EASY, not the plain mean: 0.3/1.0/2.0")
+                print("has a plain mean of 1.10 but an effective 0.54, i.e.")
+                print("same-finger work at nearly half price, and the")
+                print("optimizer starts buying collisions to save slot")
+                print("difficulty. The last four rows share the ratio")
+                print("0.3 : 1.0 : 2.0 and differ only in scale, which is the")
+                print("test: scale the same steep ratio up and the trap")
+                print("disappears, so the hazard is the scale, not the")
+                print("spread. All figures are flat-objective, so they are")
+                print("comparable:\n")
+                print("| tiers | effective x on the flat layout |"
+                      " keys moved vs flat | flat same-finger"
+                      " | flat zone | flat total | same layout as"
+                      " 0.5/1.0/1.5? |")
+                print(sep(7))
+                mild = places[TIER_SETS[0]]
+                for t in SCALE_SETS:
+                    pl = ts.assign(dict(keys), lo, po, slots, [], list(t))[0]
+                    fs, fz = ts.cost(pl, slots, lo, po)
+                    print("| %s | %.2f | %d | %.2f | %.2f | %.2f | %s |"
+                          % ("/".join("%.1f" % v for v in t),
+                             effective_multiplier(base, slots, po, t),
+                             sum(1 for k in base if base[k] != pl[k]),
+                             fs, fz, fs + fz,
+                             "yes" if pl == mild else "no"))
                 print()
             stable[(name, lname)] = (len(common), len(base), flips)
 
@@ -239,26 +316,41 @@ was already close. On both hotkey files the tiered 1v1-only layout takes the
 same seven-to-nine-key rearrangement at 0.5/1.0/1.5 and at 0.7/1.0/1.3: the
 two heaviest ring keys trade centre and south, the ring inward key goes to
 north, and a middle/ring pair of north and outward keys swap fingers. That
-converts 1.84/min of adjacent-edge work into centre-edge work and shaves
-0.13-0.19/min off the opposite-edge work. It is not a trade: the total
-collision rate falls as well, and the price under the original flat objective
-is +0.10 on a total near 99, about 0.1%.
+takes 1.84/min off adjacent edges and 0.13/min (5.0) or 0.19/min (6.0) off
+opposite edges. Only part of it lands on centre-edge, which rises 1.23 (5.0)
+and 1.35 (6.0); the remaining ~0.5-0.6/min stops being a same-finger
+transition at all, which is the better outcome of the two. So it is not a
+trade: the total collision rate falls as well, and the price under the
+original flat objective is +0.10 on a total near 99, about 0.1%.
 
 On the normalized 50/50 inputs - the layout committed on `agent/issue-27` -
-tiering is a no-op at all three tier settings and both files. Nothing moves.
+tiering is a no-op at all three tier settings and both files. Nothing moves:
+that layout is already a fixed point of the hill climb under the tiered cost.
+(A fixed point of single swaps, not a proven optimum; a search that could move
+three keys at once might still find something.)
 So the #27 finding that normalizing raises the 1v1 same-finger rate from
 29.8 to 32.2/min cannot be answered by better direction placement: the extra
 2.4/min is already sitting on centre-edge rolls, the cheapest class there is.
 If that regression matters, it has to be paid for somewhere other than the
 direction tiers.
 
-The tier weights matter little as long as they stay mild. 0.5/1.0/1.5 and
-0.7/1.0/1.3 give byte-identical placements; 38 of 40 keys are also common to
-0.3/1.0/2.0, which only differs by swapping the two heaviest keys (5.0: O and
-I; 6.0: J and I) between the middle and ring centre slots. That one flip is
-what makes the extreme setting worse on every measure that is not its own
-objective, so the sensible reading is that the tier idea is robust and the
-extreme weighting is not.
+The tier weights matter little, but the hazard is not where it first looks.
+0.5/1.0/1.5 and 0.7/1.0/1.3 give byte-identical placements; 38 of 40 keys are
+also common to 0.3/1.0/2.0, which differs only by swapping the two heaviest
+keys (5.0: O and I; 6.0: J and I) between the middle and ring centre slots,
+and that one flip is what makes 0.3/1.0/2.0 worse on every measure but its
+own objective. The cause is scale, not spread. The tiers multiply the
+same-finger term and nothing else, so a tier set whose rate-weighted effective
+multiplier sits well under 1.0 quietly marks same-finger work down against an
+untouched zone-difficulty term, and the optimizer sells collisions for slot
+difficulty: at 0.3/1.0/2.0 the effective multiplier is 0.54 and it buys 1.7
+(5.0) to 1.8 (6.0) of zone difficulty for about 6/min of extra collisions.
+Hold the ratio and raise the scale - 0.6/2.0/4.0, 1.5/5.0/10.0 - and the
+identical steep ratio reproduces the mild-tier layout exactly on both files.
+So a steep spread is fine; a set that discounts the classes carrying the mass
+is not. Since centre-edge carries about 70% of the collisions, EASY is what
+sets that effective multiplier, and keeping it near 1.0 (or raising MED and
+HARD to compensate) is the practical rule.
 
 One caveat the numbers cannot cover: the tier ordering itself
 (centre-edge easy, adjacent-edges medium, opposite-edges hard) is an
@@ -289,6 +381,11 @@ of issue #28 goes looking for evidence for it in the Discord distillations.
 * **Script agrees with the CLI.** The tiered objective this report computes
   for the 0.5/1.0/1.5 1v1-only layouts (88.49 and 87.36) is the `final cost`
   line the tool itself prints under the same flag.
+* **Known debt.** A page generated with `--direction-tiers` records nothing
+  about the flag in its lede, unlike `--coop-blend`, which stamps the blend
+  into the page. Harmless today because no tiered page is committed anywhere,
+  but a tiered page would be indistinguishable from a flat one; stamp the
+  lede before committing any tiered artifact.
 * **Placed counts unchanged.** 40 keys placed per file in every layout and
   every tier setting, and the tiered runs pass the tool's `EXPECTED_UNPLACED`
   guard unchanged.
