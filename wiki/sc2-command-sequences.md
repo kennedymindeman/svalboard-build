@@ -10,6 +10,8 @@ source: "IEM Katowice 2024 main event; measured with tools/sc2_sequences.py"
 
 Every number on this page is measured from replays, not estimated. The set is **IEM Katowice 2024 main event**: 187 games, patch 5.0.12.91115, parsed with sc2reader at `load_level=4`.
 
+Co-op Commanders are measured separately, one set of numbers per commander, in [SC2 co-op command sequences, measured](sc2-coop-sequences.md).
+
 `tools/sc2_sequences.py` produced both this page and `thecore/sequences-summary.json`, which holds the same aggregates; the page can be rebuilt from that file alone, without the replays. `replays/README.md` says how to fetch the set again.
 
 ## What is counted

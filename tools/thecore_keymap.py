@@ -25,7 +25,8 @@ OUT = "thecore/keymap.html"
 
 MELEE = ["Terran", "Zerg", "Protoss"]
 # Co-op commanders present in these files, with the melee race whose units they
-# also field.  Mengsk has no units in either file, so he is not listed.
+# also field.  Mengsk has no units of his own in either file, but is listed so
+# that he still picks up his race's melee bindings.
 COMMANDERS = {
     "Raynor": "Terran",
     "Kerrigan": "Zerg",
@@ -44,6 +45,7 @@ COMMANDERS = {
     "Tychus": "Terran",
     "Zeratul": "Protoss",
     "Stetmann": "Zerg",
+    "Mengsk": "Terran",
 }
 GLOBAL = "Global"
 UNCLASSIFIED = "Unclassified"
