@@ -124,8 +124,12 @@ Where an answer changed over the three years, the entry leads with the current o
   which pole is which**, use a phone compass or gaussmeter app — claussen uses keuwlsoft's on Android —
   and hold the magnet very close, since it is "very near field"; or skip measuring and let an
   already-installed magnet be the reference, attracting the next one to find which face goes out
-  (874277, 305444, 268557, 728037, 710016). Order replacement parts and **you get N-up keys and S-up
-  clusters** (315570). See
+  (874277, 305444, 268557, 728037, 710016). Factory and replacement parts follow the build guide's
+  convention: **S pole out on keys, N pole out on clusters** — the guide's wording as quoted by two
+  builders, with claussen confirming "I ship the described polarity only" (112458, 911771, 446664,
+  876723). A 2023 claussen message said the inverse, "N-up keys and S-up clusters" (315570); the
+  discrepancy was never flagged in-channel, and "up" there may describe the assembly jig rather than
+  the finished part's exposed face. See
   [suppliers-and-parts](/suppliers-and-parts.md).
 - **V1 vs V2 printed parts — do I reprint?** (762481, 905628, 284424, 898728) → Print 2.0: V2
   keys/clusters aren't cross-compatible with V1 plastics, but PCBAs and hardware are unchanged (957603,
