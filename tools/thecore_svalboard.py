@@ -3,6 +3,7 @@
 
 Usage: python3 tools/thecore_svalboard.py [--markdown] [--coop-blend W]
                                          [--coop-normalize]
+                                         [--direction-tiers EASY,MED,HARD]
 
 `--coop-blend W` (issue #27, default off) mixes co-op load into the ranking:
 each key's load becomes (1-W) x its 1v1 per-minute rate + W x its co-op rate,
@@ -68,6 +69,14 @@ Placement rule, applied in this order:
 
   Both terms are events per minute, so no weighting constant is needed.
   Same-key repeats are not a cost; the summary counts those separately.
+
+`--direction-tiers EASY,MED,HARD` (issue #28, default off) replaces the flat
+1.0 same-plane multiplier with one per direction-pair class: centre-edge (one
+key on the centre) EASY, adjacent-edges (two different edges that are not
+opposite) MED, opposite-edges (north/south or inward/outward) HARD.  Two keys
+on the same direction in different planes count as centre-edge (EASY: no
+direction change at all).  The 0.5 cross-plane factor still multiplies on top.
+With the flag off the multiplier is 1.0 everywhere, exactly as before.
 
 Some same-finger work is forced, not a failure of the search: the control
 group floor puts all ten groups on middle and ring, so five hot control groups
@@ -430,16 +439,39 @@ def mix(a, b, w):
             for k in sorted(set(a) | set(b))}
 
 
-def cost(place, slots, load, pairs):
+OPPOSITE = {frozenset(("north", "south")), frozenset(("inward", "outward"))}
+
+
+def direction_class(pa, pb):
+    """Class of a same-finger direction pair: what the finger has to do."""
+    if pa == pb:
+        return "same-direction"
+    if "centre" in (pa, pb):
+        return "centre-edge"
+    return "opposite-edges" if frozenset((pa, pb)) in OPPOSITE else "adjacent-edges"
+
+
+def tier_multiplier(pa, pb, tiers):
+    """Same-plane multiplier for a direction pair; 1.0 flat when tiers is None."""
+    if tiers is None:
+        return 1.0
+    cls = direction_class(pa, pb)
+    return tiers[{"same-direction": 0, "centre-edge": 0,
+                  "adjacent-edges": 1, "opposite-edges": 2}[cls]]
+
+
+def cost(place, slots, load, pairs, tiers=None):
     """Events per minute of same-finger work plus load-weighted slot difficulty."""
-    finger, plane = {}, {}
+    finger, plane, pos = {}, {}, {}
     for key, i in place.items():
         finger[key] = slots[i]["finger"]
         plane[key] = slots[i]["plane"]
+        pos[key] = slots[i]["pos"]
     same = 0.0
     for (a, b), rate in pairs.items():
         if a in finger and b in finger and finger[a] == finger[b]:
-            same += rate * (1.0 if plane[a] == plane[b] else 0.5)
+            same += (rate * tier_multiplier(pos[a], pos[b], tiers)
+                     * (1.0 if plane[a] == plane[b] else 0.5))
     zones = sum(load.get(k, 0.0) * slots[i]["difficulty"]
                 for k, i in place.items())
     return same, zones
@@ -457,7 +489,7 @@ def legal(cls, slot):
     return not reserved and slot["finger"] in ROLE_FINGERS[cls]
 
 
-def assign(keys, load, pairs, slots, log):
+def assign(keys, load, pairs, slots, log, tiers=None):
     """Greedy by load, then a legal-swap hill climb. Returns the placement."""
     order = sorted(keys, key=lambda k: (-load.get(k, 0.0), -keys[k]["n"], k))
     place, taken = {}, set()
@@ -472,12 +504,12 @@ def assign(keys, load, pairs, slots, log):
         else:
             unplaced.append(key)
     log.append("greedy placed %d keys, %d unplaced" % (len(place), len(unplaced)))
-    same, zones = cost(place, slots, load, pairs)
+    same, zones = cost(place, slots, load, pairs, tiers)
     log.append("cost after greedy: %.2f same-finger + %.2f zone = %.2f"
                % (same, zones, same + zones))
     swaps = 0
     while True:
-        base = sum(cost(place, slots, load, pairs))
+        base = sum(cost(place, slots, load, pairs, tiers))
         best, best_pair = base, None
         items = sorted(place)
         for i, a in enumerate(items):
@@ -486,7 +518,7 @@ def assign(keys, load, pairs, slots, log):
                         or not legal(keys[b]["class"], slots[place[a]])):
                     continue
                 place[a], place[b] = place[b], place[a]
-                trial = sum(cost(place, slots, load, pairs))
+                trial = sum(cost(place, slots, load, pairs, tiers))
                 place[a], place[b] = place[b], place[a]
                 if trial < best - 1e-9:
                     best, best_pair = trial, (a, b)
@@ -495,7 +527,7 @@ def assign(keys, load, pairs, slots, log):
         a, b = best_pair
         place[a], place[b] = place[b], place[a]
         swaps += 1
-    same, zones = cost(place, slots, load, pairs)
+    same, zones = cost(place, slots, load, pairs, tiers)
     log.append("hill climb: %d swaps accepted" % swaps)
     log.append("final cost: %.2f same-finger + %.2f zone = %.2f"
                % (same, zones, same + zones))
@@ -600,6 +632,16 @@ def main():
     if normalize and not weight:
         raise SystemExit("--coop-normalize only means something with a co-op"
                          " blend: pass --coop-blend W with W > 0")
+    tiers = None
+    if "--direction-tiers" in argv:
+        i = argv.index("--direction-tiers") + 1
+        try:
+            tiers = [float(x) for x in argv[i].split(",")]
+        except (IndexError, ValueError):
+            tiers = None
+        if not tiers or len(tiers) != 3:
+            raise SystemExit("--direction-tiers wants EASY,MED,HARD, three"
+                             " numbers, e.g. --direction-tiers 1,1.3,1.6")
     with open(os.path.join(HERE, SUMMARY), encoding="utf-8") as f:
         summary = json.load(f)
     coop = None
@@ -607,6 +649,9 @@ def main():
         with open(os.path.join(HERE, COOP), encoding="utf-8") as f:
             coop = json.load(f)
     slots = build_slots()
+    if tiers is not None:
+        print("direction tiers on: centre-edge %.2f, adjacent-edges %.2f,"
+              " opposite-edges %.2f (cross-plane still x0.5)" % tuple(tiers))
     print("Slot order (difficulty = (zone - 1) + finger weight"
           " + 1 if the Nail layer is held):")
     for slot in slots:
@@ -650,7 +695,7 @@ def main():
                      keys[key]["n"], keys[key]["label"]))
         log = []
         place, unfitted, order, swaps, (same, zones) = assign(
-            keys, load, pairs, slots, log)
+            keys, load, pairs, slots, log, tiers)
         print("placement order (load, then binding count, then name): %s"
               % ", ".join(label(k) for k in order))
         for line in log:
