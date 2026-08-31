@@ -53,6 +53,7 @@ time a viewer sees; `extract` refuses replays that are not LotV/Faster.
 import argparse
 import collections
 import gzip
+import hashlib
 import json
 import math
 import os
@@ -153,12 +154,21 @@ def open_in(path):
         else open(path, "r", encoding="utf-8")
 
 
+def file_digest(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
 def replay_paths(inputs):
     out = []
     for item in inputs:
         if os.path.isdir(item):
             for root, _, files in os.walk(item):
-                out += [os.path.join(root, f) for f in files if f.endswith(".SC2Replay")]
+                out += [os.path.join(root, f) for f in files
+                        if f.lower().endswith(".sc2replay")]
         else:
             out.append(item)
     return sorted(out)
@@ -180,7 +190,10 @@ def solo_commanders(set_name, present):
     buries Raynor's real numbers under 700 idle games).  The directory names the
     commander of the run, so in a `... Solo` directory only that commander's
     players are kept; `-Co-Op` and anything unrecognised keep both humans.
-    Returns None when no filtering applies.
+    Returns None when no filtering applies, and an empty list for a Solo
+    directory none of whose players plays the commander it names (a misfiled
+    replay, which `extract` then skips rather than silently counting both
+    humans).
     """
     if not set_name:
         return None
@@ -188,8 +201,7 @@ def solo_commanders(set_name, present):
     if not n.endswith("solo"):
         return None
     n = n[: -len("solo")]
-    hits = [c for c in present if _norm(c) in n or n in _norm(c)]
-    return hits or None
+    return [c for c in present if _norm(c) in n or n in _norm(c)]
 
 
 def set_of(path, roots):
@@ -209,9 +221,14 @@ def set_of(path, roots):
 
 
 HEX_ABILITY = "ability:0x%04X"
+HEX_PREFIX = "ability:0x"
 
 CG_KINDS = {0: "cg_set", 1: "cg_add", 2: "cg_get", 3: "cg_del",
             4: "cg_steal", 5: "cg_steal"}
+
+
+class Misfiled(Exception):
+    """A Solo-directory replay none of whose players plays that commander."""
 
 
 def extract_replay(path, sc2reader, coop=False, set_name=None):
@@ -244,6 +261,10 @@ def extract_replay(path, sc2reader, coop=False, set_name=None):
         raise ValueError("%s: no player has a commander, so it is not a co-op "
                          "replay" % os.path.basename(path))
     solo = solo_commanders(set_name, set(races.values())) if coop else None
+    if solo == []:
+        raise Misfiled(
+            "%s: no player plays the commander its directory %r names, so it is "
+            "misfiled and cannot be attributed" % (os.path.basename(path), set_name))
     if solo:
         races = {pid: c for pid, c in races.items() if c in solo}
     kept = [p for p in replay.players if p.pid in races]
@@ -295,13 +316,28 @@ def cmd_extract(args):
 
     paths = replay_paths(args.inputs)
     roots = [os.path.abspath(i) for i in args.inputs if os.path.isdir(i)]
-    parsed = failed = events = 0
+    parsed = failed = events = duplicate = misfiled = 0
     errors = []
+    seen_digests = {}
     with open_out(args.out) as out:
         for i, path in enumerate(paths, 1):
+            # The archive saves some runs twice under different names; `paths`
+            # is sorted, so the first path of each byte-identical group wins and
+            # the rest are skipped in the same order every run.
+            digest = file_digest(path)
+            if digest in seen_digests:
+                duplicate += 1
+                print("DUP  %s == %s" % (path, seen_digests[digest]),
+                      file=sys.stderr)
+                continue
+            seen_digests[digest] = path
             try:
                 recs = list(extract_replay(path, sc2reader, coop=args.coop,
                                            set_name=set_of(path, roots)))
+            except Misfiled as exc:
+                misfiled += 1
+                print("SKIP %s" % exc, file=sys.stderr)
+                continue
             except Exception as exc:  # a replay sc2reader cannot read
                 failed += 1
                 errors.append("%s: %s: %s" % (os.path.basename(path),
@@ -315,8 +351,10 @@ def cmd_extract(args):
             if i % 25 == 0 or i == len(paths):
                 print("  %d/%d replays, %d events" % (i, len(paths), events),
                       file=sys.stderr)
-    print("parsed %d of %d replays (%d failed), %d events -> %s"
-          % (parsed, len(paths), failed, events, args.out), file=sys.stderr)
+    print("parsed %d of %d files (%d duplicate, %d misfiled, %d failed), "
+          "%d events -> %s"
+          % (parsed, len(paths), duplicate, misfiled, failed, events, args.out),
+          file=sys.stderr)
     for e in errors:
         print("  " + e, file=sys.stderr)
 
@@ -539,7 +577,7 @@ def aggregate(path):
                  "unnamed": 0, "abilities": collections.Counter(),
                  "cg": collections.Counter(), "camera": 0, "camera_jumps": 0,
                  "bigrams": collections.Counter(), "trigrams": collections.Counter(),
-                 "pairs": 0, "games": set()}
+                 "pairs": 0, "games": set(), "players": set()}
     races = collections.defaultdict(R)
     streams = collections.defaultdict(list)   # (game, pid) -> [(t, token)]
     seen = set()
@@ -563,6 +601,9 @@ def aggregate(path):
                 seen.add(key)
                 r["player_games"] += 1
                 r["seconds"] += games[rec["game"]]["seconds"]
+                for p in games[rec["game"]]["players"]:
+                    if p["pid"] == rec["player"]:
+                        r["players"].add(p["name"])
             if kind == "command":
                 r["commands"] += 1
                 ability = rec.get("ability")
@@ -679,6 +720,8 @@ def summarise(events_path, replay_set, parse_note, coop=False):
         cmd_mapped = sum(c for a, c in r["abilities"].items()
                          if a in mappings[race])
         cmd_mouse = sum(c for a, c in r["abilities"].items() if a in MOUSE)
+        cmd_hex = sum(c for a, c in r["abilities"].items()
+                      if a.startswith(HEX_PREFIX))
         by_finger = fingers[race]
         s_same, s_pairs, s_key = same[race]
         s_diff = s_same - s_key
@@ -686,6 +729,8 @@ def summarise(events_path, replay_set, parse_note, coop=False):
         out["races"][race] = {
             "player_games": pg,
             "games": len(r["games"]),
+            # A count only: the handles themselves stay out of the repo.
+            "distinct_players": len(r["players"]),
             "minutes": round(mins, 1),
             "commands": r["commands"],
             "commands_per_game": round(r["commands"] / pg, 1),
@@ -716,6 +761,8 @@ def summarise(events_path, replay_set, parse_note, coop=False):
             "mapped_command_share": round(100.0 * cmd_mapped / r["commands"], 1),
             "mouse_commands": cmd_mouse,
             "mouse_command_share": round(100.0 * cmd_mouse / r["commands"], 1),
+            "hex_commands": cmd_hex,
+            "hex_command_share": round(100.0 * cmd_hex / r["commands"], 1),
             "unmapped_command_share": round(
                 100.0 * (r["commands"] - cmd_mapped - cmd_mouse) / r["commands"], 1),
             "mapped_sequence_events": mapped[race][0],
@@ -955,13 +1002,6 @@ def render(s):
     return "\n".join(L)
 
 
-def hex_share(r):
-    """Share of a commander's commands that came through as a numeric id."""
-    hexed = sum(c for a, c, _pg, _pm, _sh in r["top_abilities"]
-                if a.startswith("ability:0x"))
-    return round(100.0 * hexed / r["commands"], 1) if r["commands"] else 0.0
-
-
 def render_coop(s):
     """The co-op page: same measurements, keyed by commander instead of race."""
     coms = s["races"]
@@ -987,7 +1027,7 @@ def render_coop(s):
              "stressed differently: every commander has its own calldowns and top-bar "
              "abilities on top of the melee kit."
              % (s["games"], sum(c["player_games"] for c in coms.values()),
-                len(coms), format(int(sum(c["minutes"] for c in coms.values())), ",")))
+                len(coms), format(round(sum(c["minutes"] for c in coms.values())), ",")))
     L.append("")
     L.append("## Where the replays come from")
     L.append("")
@@ -1025,7 +1065,7 @@ def render_coop(s):
              "sequences correctly, and only the label is missing. Because the archive "
              "spans %d builds, the same id can mean different abilities in different "
              "years \u2014 treat a hex token as a within-commander shape, not a name."
-             % (round(sum(hex_share(c) * c["commands"] for c in coms.values())
+             % (round(100.0 * sum(c["hex_commands"] for c in coms.values())
                       / max(1, sum(c["commands"] for c in coms.values())), 1),
                 len(builds)))
     L.append("- **Camera hotkeys are invisible.** A replay records where the camera "
@@ -1043,29 +1083,57 @@ def render_coop(s):
     rows = []
     for c in order:
         r = coms[c]
-        rows.append([c, r["games"], r["player_games"], round(r["minutes"]),
-                     r["commands"], r["commands_per_minute"],
+        rows.append([c, r["games"], r["player_games"], r["distinct_players"],
+                     round(r["minutes"]), r["commands"], r["commands_per_minute"],
                      r["control_group_events_per_minute"],
                      r["camera_jumps_per_minute"], r["distinct_abilities"],
-                     "%s%%" % hex_share(r), "%s%%" % r["mapped_command_share"]])
-    L += table(["Commander", "Replays", "Player-games", "Minutes", "Commands",
-                "Commands/min", "CG actions/min", "Camera jumps/min",
+                     "%s%%" % r["hex_command_share"],
+                     "%s%%" % r["mapped_command_share"]])
+    L += table(["Commander", "Replays", "Player-games", "Players", "Minutes",
+                "Commands", "Commands/min", "CG actions/min", "Camera jumps/min",
                 "Distinct abilities", "Hex-id share", "On a TheCore key"], rows)
     L.append("")
     by_cg = sorted(order, key=lambda c: -coms[c]["control_group_events_per_minute"])
     hi, lo = by_cg[0], by_cg[-1]
     L.append("Control-group load is the number that varies most, and not with "
              "command rate: %s runs %s control-group actions a minute (mostly "
-             "recalls, on %.0f minutes of play) against %s's %s. A layout tuned "
-             "for one commander is not tuned for another."
+             "recalls, on %.0f minutes of play) against %s's %s. That spread "
+             "may be the runner rather than the commander. The \"Players\" "
+             "column counts the distinct handles behind the player-games, and "
+             "the counts are small: %s's %d player-games come from %d players "
+             "and %s's %d from %d, with two or three runners holding a large "
+             "share of the rows in every commander. Per-player rates inside one "
+             "commander are about as spread out as the rates between "
+             "commanders, so each row describes a handful of record holders at "
+             "least as much as it describes the commander."
              % (hi, coms[hi]["control_group_events_per_minute"],
                 coms[hi]["minutes"], lo,
-                coms[lo]["control_group_events_per_minute"]))
+                coms[lo]["control_group_events_per_minute"],
+                hi, coms[hi]["player_games"], coms[hi]["distinct_players"],
+                lo, coms[lo]["player_games"], coms[lo]["distinct_players"]))
     L.append("")
     L.append("\"On a TheCore key\" uses only the bindings the hotkey file gives that "
              "commander (its own units, its race's melee units, and the global "
-             "commands), so it is a fair per-commander coverage figure. The hex-id "
-             "commands can never map, which is most of what the gap is.")
+             "commands), so it is a fair per-commander coverage figure. The rest "
+             "of each commander's commands are three things: right-clicks, which "
+             "are a mouse action and no layout's business (%s%% of all commands "
+             "here); hex-id commands, which have no name to look up (%s%%); and "
+             "named commands the hotkey file does not bind (%s%%). Right-clicks "
+             "are the largest of the three for %d of the %d commanders, so most "
+             "of the gap is the mouse, not the missing names."
+             % (round(100.0 * sum(c["mouse_commands"] for c in coms.values())
+                      / max(1, sum(c["commands"] for c in coms.values())), 1),
+                round(100.0 * sum(c["hex_commands"] for c in coms.values())
+                      / max(1, sum(c["commands"] for c in coms.values())), 1),
+                round(100.0 * sum(c["commands"] - c["mapped_commands"]
+                                  - c["mouse_commands"] - c["hex_commands"]
+                                  for c in coms.values())
+                      / max(1, sum(c["commands"] for c in coms.values())), 1),
+                sum(1 for c in coms.values()
+                    if c["mouse_command_share"] >= max(
+                        c["hex_command_share"],
+                        c["unmapped_command_share"] - c["hex_command_share"])),
+                len(coms)))
     L.append("")
     for c in order:
         r = coms[c]
@@ -1078,7 +1146,7 @@ def render_coop(s):
                  % (r["games"], r["player_games"], r["minutes"], r["commands"],
                     r["commands_per_minute"], r["commands_per_game"],
                     r["control_group_events_per_minute"],
-                    r["camera_jumps_per_minute"], hex_share(r)))
+                    r["camera_jumps_per_minute"], r["hex_command_share"]))
         L.append("")
         L.append("Top abilities, per minute:")
         L.append("")
@@ -1134,7 +1202,8 @@ def render_coop(s):
     L.append("    -o ~/scratch/thecore/coop/events.jsonl.gz")
     L.append("uv run --python 3.12 --with sc2reader python tools/sc2_sequences.py \\")
     L.append("    report ~/scratch/thecore/coop/events.jsonl.gz --coop \\")
-    L.append("    -o wiki/sc2-coop-sequences.md --summary thecore/coop-summary.json")
+    L.append("    -o wiki/sc2-coop-sequences.md --summary thecore/coop-summary.json \\")
+    L.append("    --replay-set ... --parse-note ...   # exact text: replays/README.md")
     L.append("# or rebuild this page from the committed summary alone:")
     L.append("python3 tools/sc2_sequences.py report thecore/coop-summary.json \\")
     L.append("    -o wiki/sc2-coop-sequences.md")

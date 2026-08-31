@@ -63,8 +63,10 @@ wiki page is rebuilt.
 `wiki/sc2-coop-sequences.md` and `thecore/coop-summary.json` are measured from a
 second, larger set: the community **co-op speedrun archive**.
 
-- **Pack**: 975 `.SC2Replay` files, one directory per commander (`Dehaka Solo`,
-  `Alarak Solo`, ..., plus `-Co-Op/` for two-human runs). 830 solo, 145 duo.
+- **Pack**: 977 `.SC2Replay` files (two of them spelled `.sc2replay`/`.SC2replay`),
+  one directory per commander (`Dehaka Solo`, `Alarak Solo`, ..., plus `-Co-Op/`
+  for two-human runs). 33 are byte-identical copies of another file, and one is
+  misfiled, so 943 distinct replays are measured.
 - **Source**: the record replays behind the clear-time leaderboards on
   [starcraft2coop.com](https://starcraft2coop.com/), in the public Google Drive
   folder
@@ -73,7 +75,10 @@ second, larger set: the community **co-op speedrun archive**.
   (106 MB), unzipped in place.
 - **Patch**: not one patch. The archive spans years; the summary JSON lists
   every build it saw.
-- **Parsing**: sc2reader 1.9.0 at `load_level=4`, the same as the 1v1 set.
+- **Parsing**: sc2reader 1.9.0 at `load_level=4`, the same as the 1v1 set. All
+  943 parsed; none failed. `extract` skips the duplicates by content hash
+  (keeping the first path alphabetically) and skips the one misfiled replay, a
+  Mengsk + Raynor run sitting in `Zagara Solo/`.
 
 ### Local path convention
 
@@ -94,7 +99,7 @@ out, and the events file is written outside the repo). Both sets live under
 mkdir -p ~/scratch/thecore/coop/replays
 # Drive folder -> "Download": one zip of the whole folder, saved as drive.zip
 unzip -q -o ~/scratch/thecore/coop/drive.zip -d ~/scratch/thecore/coop/replays
-find ~/scratch/thecore/coop/replays -name '*.SC2Replay' | wc -l   # 975
+find ~/scratch/thecore/coop/replays -iname '*.sc2replay' | wc -l   # 977
 
 uv run --python 3.12 --with sc2reader python tools/sc2_sequences.py \
     extract ~/scratch/thecore/coop/replays --coop \
@@ -103,11 +108,13 @@ uv run --python 3.12 --with sc2reader python tools/sc2_sequences.py \
     report ~/scratch/thecore/coop/events.jsonl.gz --coop \
     -o wiki/sc2-coop-sequences.md --summary thecore/coop-summary.json \
     --replay-set "starcraft2coop.com co-op speedrun archive" \
-    --parse-note "All 975 replays in the archive parsed; none failed."
+    --parse-note "The archive holds 977 replay files. 33 are byte-identical duplicates of another file (the same run saved under two names) and are skipped, keeping the first path alphabetically; 1 is misfiled (a Mengsk + Raynor run sitting in \`Zagara Solo/\`, which names no commander either player plays) and is skipped as unattributable. All 943 remaining replays parsed with sc2reader 1.9.0 at \`load_level=4\`; none failed."
 ```
 
 `--coop` changes two things in `extract`: players are grouped by commander
 instead of melee race, and only humans with a commander are kept, which is how
 Amon's computer players are dropped. A "Solo" run still has a second human slot
 holding an idle ally (usually a Raynor who never moves), so in a `... Solo`
-directory only the named commander's player is counted; `-Co-Op/` keeps both.
+directory only the named commander's player is counted; `-Co-Op/` keeps both. A
+Solo directory whose replay has no player on the commander it names is skipped
+instead, and byte-identical duplicate files are skipped by content hash.

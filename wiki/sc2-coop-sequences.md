@@ -1,283 +1,209 @@
 ---
 type: Reference
 title: SC2 co-op command sequences, measured
-description: Command frequencies, control-group use and event sequences measured from 975 StarCraft II Co-op speedrun replays, one set of numbers per commander.
+description: Command frequencies, control-group use and event sequences measured from 943 StarCraft II Co-op speedrun replays, one set of numbers per commander.
 tags: [starcraft, thecore, gaming, measurement, hotkeys, coop]
 source: "starcraft2coop.com co-op speedrun archive; measured with tools/sc2_sequences.py"
 ---
 
 # SC2 co-op command sequences, measured
 
-The companion to [SC2 command sequences, measured](sc2-command-sequences.md), which measures 1v1 pro play. This page measures **Co-op Commanders** instead: 975 replays, 1121 player-games, 18 commanders, 14,291 minutes played. Co-op is where a hotkey layout is stressed differently: every commander has its own calldowns and top-bar abilities on top of the melee kit.
+The companion to [SC2 command sequences, measured](sc2-command-sequences.md), which measures 1v1 pro play. This page measures **Co-op Commanders** instead: 943 replays, 1089 player-games, 18 commanders, 13,806 minutes played. Co-op is where a hotkey layout is stressed differently: every commander has its own calldowns and top-bar abilities on top of the melee kit.
 
 ## Where the replays come from
 
 The set is the community **co-op speedrun archive**: the replays behind the clear-time leaderboards on [starcraft2coop.com](https://starcraft2coop.com/), kept in the public Google Drive folder [0B0kAPEv3WqAeZlhmbzN5NWlDc1E](https://drive.google.com/drive/folders/0B0kAPEv3WqAeZlhmbzN5NWlDc1E), one directory per commander (`Dehaka Solo`, `Alarak-Co-Op`, ...). These are record attempts, not average games, so read every rate as the fast end of what a player does, not the median.
 
-The archive is old and wide: 58 distinct game builds, 3.13.0.52910 to 5.0.15.95841. `replays/README.md` says how to fetch it and where it lives locally.
+The archive is old and wide: 59 distinct game builds, 3.13.0.52910 to 5.0.15.95841. `replays/README.md` says how to fetch it and where it lives locally.
 
 ## What is counted
 
 Definitions (command, control-group action, camera jump, sequence pair, the TheCore projection) are the ones on the [1v1 page](sc2-command-sequences.md#what-is-counted), with three co-op-specific points:
 
 - **Who is a player.** A co-op replay has two player slots and a pile of Amon computer players. Human players are the ones with a commander; `replay.cooperative` is not used, because it is 0 on plenty of these replays. In a two-human run each player is counted under their own commander, so one replay can feed two commanders' numbers.
-- **Hex-id tokens.** sc2reader has no name for many commander-specific abilities, so about 30.0% of commands here arrive as a numeric ability id, written `ability:0x....`. They are kept verbatim rather than dropped: the id is stable inside a build, so it counts and sequences correctly, and only the label is missing. Because the archive spans 58 builds, the same id can mean different abilities in different years — treat a hex token as a within-commander shape, not a name.
+- **Hex-id tokens.** sc2reader has no name for many commander-specific abilities, so about 31.5% of commands here arrive as a numeric ability id, written `ability:0x....`. They are kept verbatim rather than dropped: the id is stable inside a build, so it counts and sequences correctly, and only the label is missing. Because the archive spans 59 builds, the same id can mean different abilities in different years — treat a hex token as a within-commander shape, not a name.
 - **Camera hotkeys are invisible.** A replay records where the camera went, never which key sent it there, and co-op players lean on camera hotkeys and the minimap hard. The camera-jump counts below are an upper bound on camera hotkey presses, and no camera key appears in the sequences at all, so the real same-finger load is higher than the numbers here.
 
 ## Commanders
 
-All 975 replays in the archive parsed with sc2reader 1.9.0 at load_level=4; none failed.
+The archive holds 977 replay files. 33 are byte-identical duplicates of another file (the same run saved under two names) and are skipped, keeping the first path alphabetically; 1 is misfiled (a Mengsk + Raynor run sitting in `Zagara Solo/`, which names no commander either player plays) and is skipped as unattributable. All 943 remaining replays parsed with sc2reader 1.9.0 at `load_level=4`; none failed.
 
-| Commander | Replays | Player-games | Minutes | Commands | Commands/min | CG actions/min | Camera jumps/min | Distinct abilities | Hex-id share | On a TheCore key |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Dehaka | 158 | 158 | 1738 | 69665 | 40.1 | 21.74 | 10.28 | 506 | 41.3% | 17.7% |
-| Abathur | 89 | 89 | 838 | 22258 | 26.6 | 29.39 | 10.9 | 171 | 20.8% | 35.4% |
-| Artanis | 77 | 77 | 1162 | 36269 | 31.2 | 13.39 | 9.85 | 131 | 14.2% | 47.5% |
-| Zagara | 72 | 72 | 1003 | 31891 | 31.8 | 22.89 | 8.85 | 196 | 24.3% | 38.2% |
-| Alarak | 68 | 68 | 869 | 36486 | 42.0 | 25.11 | 8.59 | 138 | 29.5% | 35.6% |
-| Nova | 63 | 63 | 860 | 31146 | 36.2 | 17.86 | 7.83 | 259 | 42.0% | 19.4% |
-| Tychus | 58 | 58 | 813 | 29626 | 36.4 | 15.67 | 9.46 | 216 | 31.7% | 34.2% |
-| Swann | 57 | 57 | 816 | 37812 | 46.3 | 25.09 | 11.69 | 192 | 18.2% | 37.2% |
-| Han & Horner | 55 | 55 | 731 | 23673 | 32.4 | 12.96 | 9.01 | 249 | 40.7% | 29.6% |
-| Zeratul | 54 | 54 | 551 | 22943 | 41.6 | 17.51 | 9.61 | 196 | 34.9% | 16.0% |
-| Fenix | 53 | 53 | 637 | 26734 | 41.9 | 21.63 | 9.52 | 190 | 18.5% | 45.2% |
-| Stetmann | 52 | 52 | 696 | 31211 | 44.9 | 23.07 | 6.82 | 204 | 44.4% | 18.8% |
-| Kerrigan | 51 | 51 | 629 | 24314 | 38.6 | 25.72 | 10.65 | 166 | 32.3% | 28.6% |
-| Mengsk | 49 | 49 | 598 | 26071 | 43.6 | 22.41 | 6.33 | 226 | 39.3% | 21.4% |
-| Vorazun | 48 | 48 | 679 | 20184 | 29.7 | 19.17 | 10.44 | 151 | 17.9% | 44.1% |
-| Karax | 45 | 45 | 691 | 25172 | 36.4 | 14.48 | 8.55 | 119 | 26.3% | 41.7% |
-| Stukov | 45 | 45 | 618 | 20926 | 33.9 | 18.68 | 8.08 | 164 | 33.5% | 23.6% |
-| Raynor | 27 | 27 | 364 | 15926 | 43.8 | 74.28 | 11.24 | 199 | 10.1% | 47.0% |
+| Commander | Replays | Player-games | Players | Minutes | Commands | Commands/min | CG actions/min | Camera jumps/min | Distinct abilities | Hex-id share | On a TheCore key |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Dehaka | 158 | 158 | 16 | 1727 | 69321 | 40.1 | 21.78 | 10.3 | 506 | 46.2% | 17.7% |
+| Abathur | 90 | 90 | 13 | 844 | 22446 | 26.6 | 29.64 | 10.91 | 171 | 21.1% | 35.3% |
+| Zagara | 72 | 72 | 19 | 1003 | 31891 | 31.8 | 22.89 | 8.85 | 196 | 24.9% | 38.2% |
+| Alarak | 68 | 68 | 11 | 869 | 36486 | 42.0 | 25.11 | 8.59 | 138 | 29.5% | 35.6% |
+| Artanis | 61 | 61 | 16 | 913 | 26957 | 29.5 | 14.08 | 10.05 | 131 | 14.6% | 47.5% |
+| Swann | 57 | 57 | 8 | 816 | 37812 | 46.3 | 25.09 | 11.69 | 192 | 18.7% | 37.2% |
+| Tychus | 57 | 57 | 5 | 797 | 28997 | 36.4 | 15.82 | 9.51 | 216 | 33.0% | 34.3% |
+| Han & Horner | 55 | 55 | 9 | 731 | 23673 | 32.4 | 12.96 | 9.01 | 249 | 42.5% | 29.6% |
+| Zeratul | 54 | 54 | 13 | 551 | 22943 | 41.6 | 17.51 | 9.61 | 196 | 35.7% | 16.0% |
+| Fenix | 53 | 53 | 10 | 637 | 26734 | 41.9 | 21.63 | 9.52 | 190 | 19.2% | 45.2% |
+| Nova | 52 | 52 | 12 | 723 | 25176 | 34.8 | 17.83 | 7.72 | 259 | 44.0% | 20.7% |
+| Stetmann | 52 | 52 | 3 | 696 | 31211 | 44.9 | 23.07 | 6.82 | 204 | 45.3% | 18.8% |
+| Kerrigan | 51 | 51 | 8 | 629 | 24314 | 38.6 | 25.72 | 10.65 | 166 | 32.6% | 28.6% |
+| Mengsk | 48 | 48 | 6 | 590 | 25760 | 43.7 | 22.47 | 6.22 | 213 | 40.5% | 21.6% |
+| Karax | 45 | 45 | 7 | 691 | 25172 | 36.4 | 14.48 | 8.55 | 119 | 26.3% | 41.7% |
+| Stukov | 45 | 45 | 4 | 618 | 20926 | 33.9 | 18.68 | 8.08 | 164 | 33.8% | 23.6% |
+| Vorazun | 45 | 45 | 14 | 615 | 17853 | 29.0 | 20.12 | 10.81 | 151 | 18.1% | 44.4% |
+| Raynor | 26 | 26 | 5 | 356 | 15922 | 44.7 | 75.88 | 11.44 | 199 | 10.5% | 47.0% |
 
-Control-group load is the number that varies most, and not with command rate: Raynor runs 74.28 control-group actions a minute (mostly recalls, on 364 minutes of play) against Han & Horner's 12.96. A layout tuned for one commander is not tuned for another.
+Control-group load is the number that varies most, and not with command rate: Raynor runs 75.88 control-group actions a minute (mostly recalls, on 356 minutes of play) against Han & Horner's 12.96. That spread may be the runner rather than the commander. The "Players" column counts the distinct handles behind the player-games, and the counts are small: Raynor's 26 player-games come from 5 players and Han & Horner's 55 from 9, with two or three runners holding a large share of the rows in every commander. Per-player rates inside one commander are about as spread out as the rates between commanders, so each row describes a handful of record holders at least as much as it describes the commander.
 
-"On a TheCore key" uses only the bindings the hotkey file gives that commander (its own units, its race's melee units, and the global commands), so it is a fair per-commander coverage figure. The hex-id commands can never map, which is most of what the gap is.
+"On a TheCore key" uses only the bindings the hotkey file gives that commander (its own units, its race's melee units, and the global commands), so it is a fair per-commander coverage figure. The rest of each commander's commands are three things: right-clicks, which are a mouse action and no layout's business (36.1% of all commands here); hex-id commands, which have no name to look up (31.5%); and named commands the hotkey file does not bind (1.4%). Right-clicks are the largest of the three for 11 of the 18 commanders, so most of the gap is the mouse, not the missing names.
 
 ### Dehaka
 
-158 replays, 158 player-games, 1738 minutes, 69665 commands: **40.1 commands per minute** (440.9 per game). 21.74 control-group actions and 10.28 camera jumps per minute. 41.3% of commands are hex ids.
+158 replays, 158 player-games, 1727 minutes, 69321 commands: **40.1 commands per minute** (438.7 per game). 21.78 control-group actions and 10.3 camera jumps per minute. 46.2% of commands are hex ids.
 
 Top abilities, per minute:
 
 | # | Ability | Per minute | Share of commands |
 |---|---|---|---|
-| 1 | RightClick | 14.46 | 36.07% |
-| 2 | Attack | 6.09 | 15.2% |
-| 3 | ability:0x11400 | 2.02 | 5.04% |
-| 4 | ability:0x11300 | 1.48 | 3.7% |
-| 5 | ability:0x113A0 | 1.14 | 2.84% |
-| 6 | ability:0x11220 | 1.13 | 2.82% |
-| 7 | ability:0x112A0 | 0.7 | 1.75% |
+| 1 | RightClick | 14.51 | 36.13% |
+| 2 | Attack | 6.07 | 15.13% |
+| 3 | ability:0x11400 | 2.03 | 5.07% |
+| 4 | ability:0x11300 | 1.5 | 3.73% |
+| 5 | ability:0x113A0 | 1.15 | 2.85% |
+| 6 | ability:0x11220 | 1.14 | 2.83% |
+| 7 | ability:0x112A0 | 0.71 | 1.78% |
 | 8 | ability:0x111C0 | 0.7 | 1.75% |
 | 9 | ability:0x160A0 | 0.6 | 1.5% |
-| 10 | HoldPosition | 0.58 | 1.46% |
-| 11 | ability:0x11120 | 0.46 | 1.15% |
-| 12 | ability:0x16420 | 0.43 | 1.08% |
+| 10 | HoldPosition | 0.59 | 1.47% |
+| 11 | ability:0x11120 | 0.46 | 1.14% |
+| 12 | ability:0x16420 | 0.44 | 1.08% |
 | 13 | Stop | 0.34 | 0.84% |
-| 14 | ability:0x11200 | 0.33 | 0.81% |
-| 15 | ability:0x112C0 | 0.31 | 0.77% |
+| 14 | ability:0x11200 | 0.33 | 0.83% |
+| 15 | ability:0x112C0 | 0.31 | 0.78% |
 
 Control groups, actions per minute:
 
 | Group | Set/min | Add/min | Steal/min | Recall/min |
 |---|---|---|---|---|
-| 0 | 0.056 | 0 | 0 | 0.695 |
-| 1 | 0.149 | 0.005 | 0.002 | 8.469 |
-| 2 | 0.183 | 0.024 | 0.001 | 1.664 |
-| 3 | 0.121 | 0.083 | 0.002 | 2.46 |
-| 4 | 0.12 | 0.022 | 0 | 4.229 |
-| 5 | 0.131 | 0.018 | 0.001 | 2.057 |
-| 6 | 0.026 | 0.003 | 0 | 0.082 |
+| 0 | 0.057 | 0 | 0 | 0.702 |
+| 1 | 0.15 | 0.005 | 0.002 | 8.473 |
+| 2 | 0.176 | 0.024 | 0.001 | 1.666 |
+| 3 | 0.122 | 0.084 | 0.002 | 2.475 |
+| 4 | 0.119 | 0.022 | 0 | 4.238 |
+| 5 | 0.131 | 0.018 | 0.001 | 2.048 |
+| 6 | 0.027 | 0.003 | 0 | 0.082 |
 | 7 | 0.001 | 0 | 0 | 0 |
-| 8 | 0.035 | 0 | 0.001 | 0.306 |
-| 9 | 0.045 | 0.004 | 0 | 0.743 |
-| all | 0.87 | 0.16 | 0.01 | 20.7 |
+| 8 | 0.035 | 0 | 0.001 | 0.308 |
+| 9 | 0.046 | 0.004 | 0 | 0.751 |
+| all | 0.86 | 0.16 | 0.01 | 20.74 |
 
 Busiest TheCore keys (of the 45.7% of sequence events that map to one):
 
 | Key | Finger | Events/min |
 |---|---|---|
 | O | middle | 8.47 |
-| P | index | 6.1 |
-| K | ring | 4.23 |
-| L | middle | 2.46 |
-| 9 | middle | 2.06 |
-| I | ring | 1.66 |
-| Comma | ring | 0.74 |
-| Period | middle | 0.69 |
-| BracketClose | index | 0.58 |
+| P | index | 6.08 |
+| K | ring | 4.24 |
+| L | middle | 2.48 |
+| 9 | middle | 2.05 |
+| I | ring | 1.67 |
+| Comma | ring | 0.75 |
+| Period | middle | 0.7 |
+| BracketClose | index | 0.59 |
 | G | pinky | 0.34 |
 
-Top pairs within 1s (42.8 per minute over 74437 pairs):
+Top pairs within 1s (43.0 per minute over 74175 pairs):
 
 | # | Pair | Count | Per game |
 |---|---|---|---|
-| 1 | CG1 > RightClick | 4313 | 27.3 |
-| 2 | RightClick > Attack | 2488 | 15.75 |
-| 3 | Attack > RightClick | 1996 | 12.63 |
+| 1 | CG1 > RightClick | 4271 | 27.03 |
+| 2 | RightClick > Attack | 2460 | 15.57 |
+| 3 | Attack > RightClick | 1985 | 12.56 |
 | 4 | ability:0x11400 > RightClick | 1464 | 9.27 |
-| 5 | RightClick > CG1 | 1464 | 9.27 |
-| 6 | Attack > CG1 | 1280 | 8.1 |
-| 7 | CG1 > CG5 | 1280 | 8.1 |
-| 8 | CG1 > Attack | 1250 | 7.91 |
-| 9 | CG1 > CG4 | 1182 | 7.48 |
-| 10 | ability:0x11300 > RightClick | 1167 | 7.39 |
-| 11 | CG4 > CG1 | 1160 | 7.34 |
+| 5 | RightClick > CG1 | 1461 | 9.25 |
+| 6 | CG1 > CG5 | 1278 | 8.09 |
+| 7 | Attack > CG1 | 1266 | 8.01 |
+| 8 | CG1 > Attack | 1239 | 7.84 |
+| 9 | CG1 > CG4 | 1181 | 7.47 |
+| 10 | ability:0x11300 > RightClick | 1172 | 7.42 |
+| 11 | CG4 > CG1 | 1158 | 7.33 |
 | 12 | ability:0x11220 > RightClick | 1034 | 6.54 |
 
-Same finger on the next key: **23.7%** of the 19264 pairs where both events map to a key. Of those same pairs, 8.1% are the same key twice (a repeat no layout can move apart) and **15.6% are the same finger on a different key**.
+Same finger on the next key: **23.8%** of the 19210 pairs where both events map to a key. Of those same pairs, 8.1% are the same key twice (a repeat no layout can move apart) and **15.7% are the same finger on a different key**.
 
 ### Abathur
 
-89 replays, 89 player-games, 838 minutes, 22258 commands: **26.6 commands per minute** (250.1 per game). 29.39 control-group actions and 10.9 camera jumps per minute. 20.8% of commands are hex ids.
+90 replays, 90 player-games, 844 minutes, 22446 commands: **26.6 commands per minute** (249.4 per game). 29.64 control-group actions and 10.91 camera jumps per minute. 21.1% of commands are hex ids.
 
 Top abilities, per minute:
 
 | # | Ability | Per minute | Share of commands |
 |---|---|---|---|
-| 1 | RightClick | 11.36 | 42.76% |
-| 2 | Attack | 5.46 | 20.56% |
-| 3 | MorphDrone | 0.85 | 3.22% |
-| 4 | ability:0x12060 | 0.76 | 2.86% |
-| 5 | MorphMutalisk | 0.7 | 2.64% |
-| 6 | HoldPosition | 0.57 | 2.14% |
-| 7 | ability:0x11E00 | 0.5 | 1.87% |
-| 8 | MorphOverlord | 0.48 | 1.81% |
-| 9 | ability:0x11F20 | 0.33 | 1.24% |
-| 10 | ability:0x143A0 | 0.31 | 1.16% |
-| 11 | ability:0x14740 | 0.29 | 1.1% |
-| 12 | ability:0x11C60 | 0.28 | 1.04% |
-| 13 | ability:0x11D00 | 0.19 | 0.73% |
-| 14 | ability:0x14720 | 0.19 | 0.72% |
-| 15 | ability:0x14540 | 0.19 | 0.71% |
+| 1 | RightClick | 11.37 | 42.76% |
+| 2 | Attack | 5.45 | 20.49% |
+| 3 | MorphDrone | 0.86 | 3.22% |
+| 4 | ability:0x12060 | 0.75 | 2.83% |
+| 5 | MorphMutalisk | 0.7 | 2.63% |
+| 6 | HoldPosition | 0.57 | 2.13% |
+| 7 | ability:0x11E00 | 0.49 | 1.86% |
+| 8 | MorphOverlord | 0.48 | 1.82% |
+| 9 | ability:0x11F20 | 0.36 | 1.34% |
+| 10 | ability:0x143A0 | 0.31 | 1.15% |
+| 11 | ability:0x14740 | 0.29 | 1.09% |
+| 12 | ability:0x11C60 | 0.27 | 1.03% |
+| 13 | ability:0x14540 | 0.2 | 0.75% |
+| 14 | ability:0x11D00 | 0.19 | 0.72% |
+| 15 | ability:0x14720 | 0.19 | 0.71% |
 
 Control groups, actions per minute:
 
 | Group | Set/min | Add/min | Steal/min | Recall/min |
 |---|---|---|---|---|
-| 0 | 0.068 | 0.002 | 0 | 0.718 |
-| 1 | 0.413 | 0.211 | 0.084 | 3.012 |
-| 2 | 0.351 | 0.074 | 0.06 | 7.059 |
-| 3 | 0.321 | 0.029 | 0.013 | 5.522 |
-| 4 | 0.045 | 0.007 | 0.006 | 1.902 |
-| 5 | 0.06 | 0 | 0.005 | 7.707 |
-| 6 | 0.004 | 0 | 0.011 | 0.269 |
+| 0 | 0.07 | 0.002 | 0 | 0.72 |
+| 1 | 0.417 | 0.21 | 0.083 | 2.993 |
+| 2 | 0.355 | 0.073 | 0.059 | 7.119 |
+| 3 | 0.323 | 0.028 | 0.013 | 5.609 |
+| 4 | 0.045 | 0.007 | 0.006 | 1.887 |
+| 5 | 0.06 | 0 | 0.005 | 7.842 |
+| 6 | 0.004 | 0 | 0.011 | 0.267 |
 | 7 | 0.001 | 0.001 | 0 | 0.039 |
-| 8 | 0.012 | 0.017 | 0.027 | 0.26 |
-| 9 | 0.013 | 0.026 | 0.049 | 0.931 |
-| all | 1.29 | 0.37 | 0.26 | 27.42 |
+| 8 | 0.012 | 0.017 | 0.027 | 0.258 |
+| 9 | 0.013 | 0.026 | 0.049 | 0.924 |
+| all | 1.3 | 0.36 | 0.25 | 27.66 |
 
-Busiest TheCore keys (of the 68.2% of sequence events that map to one):
+Busiest TheCore keys (of the 68.3% of sequence events that map to one):
 
 | Key | Finger | Events/min |
 |---|---|---|
-| 9 | middle | 7.71 |
-| I | ring | 7.06 |
-| P | index | 5.58 |
-| L | middle | 5.52 |
-| O | middle | 3.01 |
-| K | ring | 1.9 |
+| 9 | middle | 7.84 |
+| I | ring | 7.12 |
+| L | middle | 5.61 |
+| P | index | 5.57 |
+| O | middle | 2.99 |
+| K | ring | 1.89 |
 | Minus | index | 0.93 |
-| Comma | ring | 0.93 |
-| SemiColon | index | 0.76 |
+| Comma | ring | 0.92 |
+| SemiColon | index | 0.77 |
 | Period | middle | 0.72 |
 
-Top pairs within 1s (36.8 per minute over 30817 pairs):
+Top pairs within 1s (37.0 per minute over 31270 pairs):
 
 | # | Pair | Count | Per game |
 |---|---|---|---|
-| 1 | CG3 > CG5 | 3210 | 36.07 |
-| 2 | CG5 > CG2 | 2728 | 30.65 |
-| 3 | CG2 > CG5 | 2503 | 28.12 |
-| 4 | CG5 > CG3 | 2070 | 23.26 |
-| 5 | RightClick > Attack | 1560 | 17.53 |
-| 6 | Attack > RightClick | 989 | 11.11 |
-| 7 | CG2 > RightClick | 928 | 10.43 |
-| 8 | RightClick > RightClick | 704 | 7.91 |
-| 9 | CG1 > RightClick | 517 | 5.81 |
-| 10 | RightClick > CG2 | 474 | 5.33 |
-| 11 | CG3 > RightClick | 398 | 4.47 |
-| 12 | RightClick > CG1 | 395 | 4.44 |
+| 1 | CG3 > CG5 | 3306 | 36.73 |
+| 2 | CG5 > CG2 | 2779 | 30.88 |
+| 3 | CG2 > CG5 | 2553 | 28.37 |
+| 4 | CG5 > CG3 | 2141 | 23.79 |
+| 5 | RightClick > Attack | 1570 | 17.44 |
+| 6 | Attack > RightClick | 989 | 10.99 |
+| 7 | CG2 > RightClick | 943 | 10.48 |
+| 8 | RightClick > RightClick | 709 | 7.88 |
+| 9 | CG1 > RightClick | 517 | 5.74 |
+| 10 | RightClick > CG2 | 487 | 5.41 |
+| 11 | CG3 > RightClick | 405 | 4.5 |
+| 12 | RightClick > CG1 | 395 | 4.39 |
 
-Same finger on the next key: **35.8%** of the 17883 pairs where both events map to a key. Of those same pairs, 2.4% are the same key twice (a repeat no layout can move apart) and **33.4% are the same finger on a different key**.
-
-### Artanis
-
-77 replays, 77 player-games, 1162 minutes, 36269 commands: **31.2 commands per minute** (471.0 per game). 13.39 control-group actions and 9.85 camera jumps per minute. 14.2% of commands are hex ids.
-
-Top abilities, per minute:
-
-| # | Ability | Per minute | Share of commands |
-|---|---|---|---|
-| 1 | RightClick | 11.71 | 37.52% |
-| 2 | Attack | 8.99 | 28.8% |
-| 3 | WarpInStalker | 1.5 | 4.81% |
-| 4 | TrainProbe | 1.5 | 4.79% |
-| 5 | WarpInZealot | 0.79 | 2.53% |
-| 6 | ability:0xDDE0 | 0.72 | 2.31% |
-| 7 | ability:0xF3A0 | 0.39 | 1.26% |
-| 8 | ability:0xF3C0 | 0.39 | 1.24% |
-| 9 | Stop | 0.33 | 1.07% |
-| 10 | HoldPosition | 0.3 | 0.95% |
-| 11 | BuildPhotonCannon | 0.28 | 0.9% |
-| 12 | BuildAssimilator | 0.23 | 0.75% |
-| 13 | BuildPylon | 0.21 | 0.68% |
-| 14 | ability:0x155D | 0.21 | 0.68% |
-| 15 | ability:0xD229 | 0.2 | 0.63% |
-
-Control groups, actions per minute:
-
-| Group | Set/min | Add/min | Steal/min | Recall/min |
-|---|---|---|---|---|
-| 0 | 0.009 | 0.043 | 0 | 0.336 |
-| 1 | 0.698 | 0.375 | 0.003 | 3.555 |
-| 2 | 0.382 | 0.035 | 0.001 | 1.936 |
-| 3 | 0.082 | 0.014 | 0.022 | 0.603 |
-| 4 | 0.145 | 0.019 | 0.001 | 2.324 |
-| 5 | 0.067 | 0.005 | 0 | 0.84 |
-| 6 | 0.09 | 0.004 | 0 | 1.347 |
-| 7 | 0 | 0.002 | 0 | 0 |
-| 8 | 0.003 | 0.021 | 0 | 0.04 |
-| 9 | 0.011 | 0.053 | 0 | 0.325 |
-| all | 1.49 | 0.57 | 0.03 | 11.31 |
-
-Busiest TheCore keys (of the 61.4% of sequence events that map to one):
-
-| Key | Finger | Events/min |
-|---|---|---|
-| P | index | 10.15 |
-| O | middle | 3.55 |
-| Minus | index | 3.15 |
-| K | ring | 2.32 |
-| I | ring | 1.94 |
-| 0 | index | 1.35 |
-| 9 | middle | 0.84 |
-| L | middle | 0.6 |
-| Period | middle | 0.34 |
-| G | pinky | 0.33 |
-
-Top pairs within 1s (25.6 per minute over 29764 pairs):
-
-| # | Pair | Count | Per game |
-|---|---|---|---|
-| 1 | RightClick > Attack | 5319 | 69.08 |
-| 2 | Attack > RightClick | 3357 | 43.6 |
-| 3 | CG1 > Attack | 1125 | 14.61 |
-| 4 | CG4 > WarpInStalker | 1030 | 13.38 |
-| 5 | CG1 > RightClick | 642 | 8.34 |
-| 6 | Attack > CG1 | 595 | 7.73 |
-| 7 | RightClick > CG1 | 527 | 6.84 |
-| 8 | CG2 > RightClick | 496 | 6.44 |
-| 9 | ability:0xDDE0 > CG4 | 494 | 6.42 |
-| 10 | Attack > CG4 | 443 | 5.75 |
-| 11 | Attack > CG2 | 419 | 5.44 |
-| 12 | CG5 > CG6 | 408 | 5.3 |
-
-Same finger on the next key: **20.2%** of the 10441 pairs where both events map to a key. Of those same pairs, 11.4% are the same key twice (a repeat no layout can move apart) and **8.8% are the same finger on a different key**.
+Same finger on the next key: **36.1%** of the 18201 pairs where both events map to a key. Of those same pairs, 2.4% are the same key twice (a repeat no layout can move apart) and **33.7% are the same finger on a different key**.
 
 ### Zagara
 
-72 replays, 72 player-games, 1003 minutes, 31891 commands: **31.8 commands per minute** (442.9 per game). 22.89 control-group actions and 8.85 camera jumps per minute. 24.3% of commands are hex ids.
+72 replays, 72 player-games, 1003 minutes, 31891 commands: **31.8 commands per minute** (442.9 per game). 22.89 control-group actions and 8.85 camera jumps per minute. 24.9% of commands are hex ids.
 
 Top abilities, per minute:
 
@@ -423,157 +349,83 @@ Top pairs within 1s (47.4 per minute over 41164 pairs):
 
 Same finger on the next key: **29.3%** of the 14077 pairs where both events map to a key. Of those same pairs, 15.1% are the same key twice (a repeat no layout can move apart) and **14.1% are the same finger on a different key**.
 
-### Nova
+### Artanis
 
-63 replays, 63 player-games, 860 minutes, 31146 commands: **36.2 commands per minute** (494.4 per game). 17.86 control-group actions and 7.83 camera jumps per minute. 42.0% of commands are hex ids.
-
-Top abilities, per minute:
-
-| # | Ability | Per minute | Share of commands |
-|---|---|---|---|
-| 1 | RightClick | 12.62 | 34.84% |
-| 2 | Attack | 4.77 | 13.19% |
-| 3 | ability:0x10660 | 1.65 | 4.56% |
-| 4 | ability:0x142E0 | 1.49 | 4.12% |
-| 5 | TrainSCV | 1.08 | 2.99% |
-| 6 | ability:0x14660 | 0.82 | 2.26% |
-| 7 | ability:0x14EE0 | 0.76 | 2.11% |
-| 8 | ability:0x14F00 | 0.65 | 1.8% |
-| 9 | ability:0x10600 | 0.62 | 1.72% |
-| 10 | ability:0x14520 | 0.6 | 1.67% |
-| 11 | ability:0x106A0 | 0.51 | 1.42% |
-| 12 | ability:0x146C0 | 0.44 | 1.22% |
-| 13 | ability:0x15080 | 0.43 | 1.18% |
-| 14 | ability:0x14780 | 0.42 | 1.16% |
-| 15 | ability:0x148A0 | 0.35 | 0.98% |
-
-Control groups, actions per minute:
-
-| Group | Set/min | Add/min | Steal/min | Recall/min |
-|---|---|---|---|---|
-| 0 | 0.019 | 0.042 | 0 | 0.277 |
-| 1 | 0.173 | 0.16 | 0 | 6.585 |
-| 2 | 0.279 | 0.016 | 0 | 3.632 |
-| 3 | 0.157 | 0.014 | 0 | 2.25 |
-| 4 | 0.086 | 0.013 | 0 | 1.399 |
-| 5 | 0.159 | 0.001 | 0 | 1.156 |
-| 6 | 0.113 | 0.001 | 0 | 1.03 |
-| 7 | 0.023 | 0.005 | 0 | 0.109 |
-| 8 | 0.001 | 0.017 | 0 | 0.006 |
-| 9 | 0.012 | 0.045 | 0 | 0.084 |
-| all | 1.02 | 0.31 | 0 | 16.53 |
-
-Busiest TheCore keys (of the 44.6% of sequence events that map to one):
-
-| Key | Finger | Events/min |
-|---|---|---|
-| O | middle | 6.58 |
-| P | index | 4.94 |
-| I | ring | 3.63 |
-| L | middle | 2.25 |
-| K | ring | 1.4 |
-| Minus | index | 1.21 |
-| 9 | middle | 1.16 |
-| 0 | index | 1.03 |
-| Period | middle | 0.28 |
-| N | pinky | 0.23 |
-
-Top pairs within 1s (35.6 per minute over 30646 pairs):
-
-| # | Pair | Count | Per game |
-|---|---|---|---|
-| 1 | RightClick > Attack | 1374 | 21.81 |
-| 2 | ability:0x142E0 > RightClick | 1176 | 18.67 |
-| 3 | CG1 > RightClick | 1169 | 18.56 |
-| 4 | Attack > RightClick | 678 | 10.76 |
-| 5 | RightClick > ability:0x10660 | 659 | 10.46 |
-| 6 | Attack > CG1 | 650 | 10.32 |
-| 7 | CG1 > CG2 | 610 | 9.68 |
-| 8 | RightClick > CG1 | 607 | 9.63 |
-| 9 | ability:0x10660 > RightClick | 604 | 9.59 |
-| 10 | CG1 > Attack | 533 | 8.46 |
-| 11 | CG2 > RightClick | 516 | 8.19 |
-| 12 | CG2 > CG1 | 513 | 8.14 |
-
-Same finger on the next key: **24.4%** of the 7032 pairs where both events map to a key. Of those same pairs, 9.6% are the same key twice (a repeat no layout can move apart) and **14.8% are the same finger on a different key**.
-
-### Tychus
-
-58 replays, 58 player-games, 813 minutes, 29626 commands: **36.4 commands per minute** (510.8 per game). 15.67 control-group actions and 9.46 camera jumps per minute. 31.7% of commands are hex ids.
+61 replays, 61 player-games, 913 minutes, 26957 commands: **29.5 commands per minute** (441.9 per game). 14.08 control-group actions and 10.05 camera jumps per minute. 14.6% of commands are hex ids.
 
 Top abilities, per minute:
 
 | # | Ability | Per minute | Share of commands |
 |---|---|---|---|
-| 1 | RightClick | 11.88 | 32.61% |
-| 2 | Attack | 11.58 | 31.77% |
-| 3 | ability:0x17F40 | 1.26 | 3.45% |
-| 4 | ability:0x18480 | 1.04 | 2.86% |
-| 5 | ability:0x18180 | 0.85 | 2.33% |
-| 6 | ability:0x18360 | 0.69 | 1.9% |
-| 7 | ability:0x18380 | 0.66 | 1.81% |
-| 8 | ability:0x18460 | 0.57 | 1.57% |
-| 9 | Stop | 0.53 | 1.44% |
-| 10 | ability:0x17C60 | 0.53 | 1.44% |
-| 11 | ability:0x184A0 | 0.51 | 1.4% |
-| 12 | ability:0x17C40 | 0.5 | 1.37% |
-| 13 | ability:0x18160 | 0.49 | 1.34% |
-| 14 | ability:0x181A0 | 0.45 | 1.23% |
-| 15 | ability:0x17C80 | 0.24 | 0.66% |
+| 1 | RightClick | 10.92 | 37.0% |
+| 2 | Attack | 8.5 | 28.81% |
+| 3 | TrainProbe | 1.45 | 4.92% |
+| 4 | WarpInStalker | 1.27 | 4.31% |
+| 5 | WarpInZealot | 0.84 | 2.85% |
+| 6 | ability:0xDDE0 | 0.53 | 1.81% |
+| 7 | Stop | 0.31 | 1.05% |
+| 8 | HoldPosition | 0.31 | 1.04% |
+| 9 | ability:0xF3A0 | 0.29 | 1.0% |
+| 10 | ability:0xF3C0 | 0.29 | 0.98% |
+| 11 | ability:0xD229 | 0.25 | 0.85% |
+| 12 | ability:0xAA00 | 0.25 | 0.84% |
+| 13 | BuildPhotonCannon | 0.23 | 0.79% |
+| 14 | ability:0xDD80 | 0.23 | 0.78% |
+| 15 | BuildAssimilator | 0.23 | 0.78% |
 
 Control groups, actions per minute:
 
 | Group | Set/min | Add/min | Steal/min | Recall/min |
 |---|---|---|---|---|
-| 0 | 0.044 | 0.009 | 0 | 0.165 |
-| 1 | 0.048 | 0.004 | 0.091 | 4.831 |
-| 2 | 0.093 | 0.004 | 0.006 | 2.961 |
-| 3 | 0.151 | 0.004 | 0.004 | 2.48 |
-| 4 | 0.144 | 0.038 | 0.004 | 2.499 |
-| 5 | 0.089 | 0.011 | 0.01 | 1.335 |
-| 6 | 0.012 | 0.063 | 0.002 | 0.405 |
-| 7 | 0.005 | 0.005 | 0.004 | 0.027 |
-| 8 | 0.01 | 0.018 | 0.001 | 0.025 |
-| 9 | 0.043 | 0.004 | 0 | 0.014 |
-| all | 0.64 | 0.16 | 0.12 | 14.74 |
+| 0 | 0.011 | 0.027 | 0 | 0.23 |
+| 1 | 0.695 | 0.477 | 0.003 | 4.246 |
+| 2 | 0.379 | 0.045 | 0.001 | 2.297 |
+| 3 | 0.081 | 0.018 | 0.027 | 0.744 |
+| 4 | 0.104 | 0.024 | 0.001 | 1.866 |
+| 5 | 0.064 | 0.007 | 0 | 0.758 |
+| 6 | 0.076 | 0.005 | 0 | 1.565 |
+| 7 | 0 | 0.001 | 0 | 0 |
+| 8 | 0.002 | 0.013 | 0 | 0.025 |
+| 9 | 0.012 | 0.035 | 0 | 0.239 |
+| all | 1.42 | 0.65 | 0.03 | 11.97 |
 
-Busiest TheCore keys (of the 53.2% of sequence events that map to one):
+Busiest TheCore keys (of the 62.6% of sequence events that map to one):
 
 | Key | Finger | Events/min |
 |---|---|---|
-| P | index | 11.6 |
-| O | middle | 4.83 |
-| I | ring | 2.96 |
-| K | ring | 2.5 |
-| L | middle | 2.48 |
-| 9 | middle | 1.34 |
-| G | pinky | 0.53 |
-| 0 | index | 0.4 |
-| Period | middle | 0.16 |
-| BracketClose | index | 0.11 |
+| P | index | 9.66 |
+| O | middle | 4.25 |
+| Minus | index | 2.87 |
+| I | ring | 2.3 |
+| K | ring | 1.87 |
+| 0 | index | 1.56 |
+| 9 | middle | 0.76 |
+| L | middle | 0.74 |
+| G | pinky | 0.31 |
+| BracketClose | index | 0.31 |
 
-Top pairs within 1s (33.7 per minute over 27435 pairs):
+Top pairs within 1s (24.9 per minute over 22782 pairs):
 
 | # | Pair | Count | Per game |
 |---|---|---|---|
-| 1 | RightClick > Attack | 3534 | 60.93 |
-| 2 | Attack > RightClick | 1907 | 32.88 |
-| 3 | CG1 > Attack | 876 | 15.1 |
-| 4 | Attack > CG1 | 778 | 13.41 |
-| 5 | CG2 > RightClick | 683 | 11.78 |
-| 6 | Attack > CG2 | 641 | 11.05 |
-| 7 | RightClick > CG1 | 452 | 7.79 |
-| 8 | CG1 > CG3 | 441 | 7.6 |
-| 9 | CG1 > RightClick | 431 | 7.43 |
-| 10 | CG3 > CG1 | 413 | 7.12 |
-| 11 | Attack > CG3 | 386 | 6.66 |
-| 12 | ability:0x18360 > Attack | 381 | 6.57 |
+| 1 | RightClick > Attack | 3610 | 59.18 |
+| 2 | Attack > RightClick | 2312 | 37.9 |
+| 3 | CG1 > Attack | 1084 | 17.77 |
+| 4 | CG1 > RightClick | 558 | 9.15 |
+| 5 | Attack > CG1 | 547 | 8.97 |
+| 6 | CG4 > WarpInStalker | 515 | 8.44 |
+| 7 | RightClick > CG1 | 505 | 8.28 |
+| 8 | CG2 > RightClick | 442 | 7.25 |
+| 9 | CG5 > CG6 | 391 | 6.41 |
+| 10 | Attack > CG2 | 382 | 6.26 |
+| 11 | CG6 > CG5 | 317 | 5.2 |
+| 12 | RightClick > RightClick | 270 | 4.43 |
 
-Same finger on the next key: **23.2%** of the 7508 pairs where both events map to a key. Of those same pairs, 5.6% are the same key twice (a repeat no layout can move apart) and **17.6% are the same finger on a different key**.
+Same finger on the next key: **21.6%** of the 8579 pairs where both events map to a key. Of those same pairs, 12.4% are the same key twice (a repeat no layout can move apart) and **9.3% are the same finger on a different key**.
 
 ### Swann
 
-57 replays, 57 player-games, 816 minutes, 37812 commands: **46.3 commands per minute** (663.4 per game). 25.09 control-group actions and 11.69 camera jumps per minute. 18.2% of commands are hex ids.
+57 replays, 57 player-games, 816 minutes, 37812 commands: **46.3 commands per minute** (663.4 per game). 25.09 control-group actions and 11.69 camera jumps per minute. 18.7% of commands are hex ids.
 
 Top abilities, per minute:
 
@@ -645,9 +497,83 @@ Top pairs within 1s (50.8 per minute over 41479 pairs):
 
 Same finger on the next key: **27.3%** of the 13176 pairs where both events map to a key. Of those same pairs, 8.9% are the same key twice (a repeat no layout can move apart) and **18.4% are the same finger on a different key**.
 
+### Tychus
+
+57 replays, 57 player-games, 797 minutes, 28997 commands: **36.4 commands per minute** (508.7 per game). 15.82 control-group actions and 9.51 camera jumps per minute. 33.0% of commands are hex ids.
+
+Top abilities, per minute:
+
+| # | Ability | Per minute | Share of commands |
+|---|---|---|---|
+| 1 | RightClick | 11.87 | 32.64% |
+| 2 | Attack | 11.57 | 31.8% |
+| 3 | ability:0x17F40 | 1.28 | 3.52% |
+| 4 | ability:0x18480 | 1.04 | 2.86% |
+| 5 | ability:0x18180 | 0.82 | 2.27% |
+| 6 | ability:0x18360 | 0.71 | 1.94% |
+| 7 | ability:0x18380 | 0.67 | 1.85% |
+| 8 | ability:0x18460 | 0.58 | 1.61% |
+| 9 | Stop | 0.53 | 1.47% |
+| 10 | ability:0x17C60 | 0.51 | 1.41% |
+| 11 | ability:0x17C40 | 0.51 | 1.4% |
+| 12 | ability:0x18160 | 0.5 | 1.37% |
+| 13 | ability:0x184A0 | 0.48 | 1.33% |
+| 14 | ability:0x181A0 | 0.42 | 1.16% |
+| 15 | ability:0x17F60 | 0.24 | 0.65% |
+
+Control groups, actions per minute:
+
+| Group | Set/min | Add/min | Steal/min | Recall/min |
+|---|---|---|---|---|
+| 0 | 0.045 | 0.009 | 0 | 0.168 |
+| 1 | 0.049 | 0.004 | 0.089 | 4.866 |
+| 2 | 0.093 | 0.004 | 0.006 | 3.002 |
+| 3 | 0.151 | 0.004 | 0.004 | 2.499 |
+| 4 | 0.144 | 0.039 | 0.004 | 2.545 |
+| 5 | 0.088 | 0.011 | 0.01 | 1.331 |
+| 6 | 0.011 | 0.064 | 0.003 | 0.413 |
+| 7 | 0.005 | 0.005 | 0.004 | 0.028 |
+| 8 | 0.01 | 0.019 | 0.001 | 0.025 |
+| 9 | 0.044 | 0.004 | 0 | 0.014 |
+| all | 0.64 | 0.16 | 0.12 | 14.89 |
+
+Busiest TheCore keys (of the 53.4% of sequence events that map to one):
+
+| Key | Finger | Events/min |
+|---|---|---|
+| P | index | 11.59 |
+| O | middle | 4.87 |
+| I | ring | 3.0 |
+| K | ring | 2.55 |
+| L | middle | 2.5 |
+| 9 | middle | 1.33 |
+| G | pinky | 0.53 |
+| 0 | index | 0.41 |
+| Period | middle | 0.17 |
+| BracketClose | index | 0.12 |
+
+Top pairs within 1s (33.9 per minute over 26994 pairs):
+
+| # | Pair | Count | Per game |
+|---|---|---|---|
+| 1 | RightClick > Attack | 3454 | 60.6 |
+| 2 | Attack > RightClick | 1861 | 32.65 |
+| 3 | CG1 > Attack | 876 | 15.37 |
+| 4 | Attack > CG1 | 770 | 13.51 |
+| 5 | CG2 > RightClick | 682 | 11.96 |
+| 6 | Attack > CG2 | 638 | 11.19 |
+| 7 | RightClick > CG1 | 444 | 7.79 |
+| 8 | CG1 > CG3 | 441 | 7.74 |
+| 9 | CG1 > RightClick | 431 | 7.56 |
+| 10 | CG3 > CG1 | 413 | 7.25 |
+| 11 | ability:0x18360 > Attack | 381 | 6.68 |
+| 12 | Attack > CG3 | 381 | 6.68 |
+
+Same finger on the next key: **23.3%** of the 7452 pairs where both events map to a key. Of those same pairs, 5.6% are the same key twice (a repeat no layout can move apart) and **17.7% are the same finger on a different key**.
+
 ### Han & Horner
 
-55 replays, 55 player-games, 731 minutes, 23673 commands: **32.4 commands per minute** (430.4 per game). 12.96 control-group actions and 9.01 camera jumps per minute. 40.7% of commands are hex ids.
+55 replays, 55 player-games, 731 minutes, 23673 commands: **32.4 commands per minute** (430.4 per game). 12.96 control-group actions and 9.01 camera jumps per minute. 42.5% of commands are hex ids.
 
 Top abilities, per minute:
 
@@ -720,7 +646,7 @@ Same finger on the next key: **25.7%** of the 4548 pairs where both events map t
 
 ### Zeratul
 
-54 replays, 54 player-games, 551 minutes, 22943 commands: **41.6 commands per minute** (424.9 per game). 17.51 control-group actions and 9.61 camera jumps per minute. 34.9% of commands are hex ids.
+54 replays, 54 player-games, 551 minutes, 22943 commands: **41.6 commands per minute** (424.9 per game). 17.51 control-group actions and 9.61 camera jumps per minute. 35.7% of commands are hex ids.
 
 Top abilities, per minute:
 
@@ -794,7 +720,7 @@ Same finger on the next key: **24.0%** of the 3732 pairs where both events map t
 
 ### Fenix
 
-53 replays, 53 player-games, 637 minutes, 26734 commands: **41.9 commands per minute** (504.4 per game). 21.63 control-group actions and 9.52 camera jumps per minute. 18.5% of commands are hex ids.
+53 replays, 53 player-games, 637 minutes, 26734 commands: **41.9 commands per minute** (504.4 per game). 21.63 control-group actions and 9.52 camera jumps per minute. 19.2% of commands are hex ids.
 
 Top abilities, per minute:
 
@@ -866,9 +792,83 @@ Top pairs within 1s (43.5 per minute over 27726 pairs):
 
 Same finger on the next key: **33.0%** of the 11760 pairs where both events map to a key. Of those same pairs, 22.6% are the same key twice (a repeat no layout can move apart) and **10.5% are the same finger on a different key**.
 
+### Nova
+
+52 replays, 52 player-games, 723 minutes, 25176 commands: **34.8 commands per minute** (484.2 per game). 17.83 control-group actions and 7.72 camera jumps per minute. 44.0% of commands are hex ids.
+
+Top abilities, per minute:
+
+| # | Ability | Per minute | Share of commands |
+|---|---|---|---|
+| 1 | RightClick | 11.99 | 34.43% |
+| 2 | Attack | 5.01 | 14.38% |
+| 3 | ability:0x10660 | 1.11 | 3.2% |
+| 4 | TrainSCV | 1.05 | 3.03% |
+| 5 | ability:0x142E0 | 1.04 | 2.99% |
+| 6 | ability:0x10600 | 0.74 | 2.13% |
+| 7 | ability:0x14520 | 0.72 | 2.07% |
+| 8 | ability:0x14660 | 0.7 | 2.02% |
+| 9 | ability:0x106A0 | 0.61 | 1.76% |
+| 10 | ability:0x14EE0 | 0.6 | 1.71% |
+| 11 | ability:0x14F00 | 0.52 | 1.49% |
+| 12 | ability:0x146C0 | 0.46 | 1.31% |
+| 13 | ability:0x148A0 | 0.42 | 1.21% |
+| 14 | ability:0x141A0 | 0.39 | 1.13% |
+| 15 | ability:0x13AE0 | 0.35 | 1.01% |
+
+Control groups, actions per minute:
+
+| Group | Set/min | Add/min | Steal/min | Recall/min |
+|---|---|---|---|---|
+| 0 | 0.021 | 0.028 | 0 | 0.234 |
+| 1 | 0.19 | 0.191 | 0 | 6.356 |
+| 2 | 0.289 | 0.019 | 0 | 3.909 |
+| 3 | 0.156 | 0.017 | 0 | 2.02 |
+| 4 | 0.1 | 0.015 | 0 | 1.644 |
+| 5 | 0.147 | 0.001 | 0 | 1.097 |
+| 6 | 0.094 | 0.001 | 0 | 1.034 |
+| 7 | 0.025 | 0.003 | 0 | 0.122 |
+| 8 | 0.001 | 0.011 | 0 | 0.007 |
+| 9 | 0.014 | 0.029 | 0 | 0.051 |
+| all | 1.04 | 0.32 | 0 | 16.47 |
+
+Busiest TheCore keys (of the 46.1% of sequence events that map to one):
+
+| Key | Finger | Events/min |
+|---|---|---|
+| O | middle | 6.36 |
+| P | index | 5.18 |
+| I | ring | 3.91 |
+| L | middle | 2.02 |
+| K | ring | 1.64 |
+| Minus | index | 1.18 |
+| 9 | middle | 1.1 |
+| 0 | index | 1.03 |
+| Period | middle | 0.23 |
+| N | pinky | 0.22 |
+
+Top pairs within 1s (34.2 per minute over 24747 pairs):
+
+| # | Pair | Count | Per game |
+|---|---|---|---|
+| 1 | RightClick > Attack | 1073 | 20.63 |
+| 2 | CG1 > RightClick | 939 | 18.06 |
+| 3 | ability:0x142E0 > RightClick | 661 | 12.71 |
+| 4 | Attack > RightClick | 595 | 11.44 |
+| 5 | CG1 > CG2 | 582 | 11.19 |
+| 6 | Attack > CG1 | 531 | 10.21 |
+| 7 | CG1 > Attack | 523 | 10.06 |
+| 8 | CG2 > CG1 | 482 | 9.27 |
+| 9 | RightClick > CG1 | 475 | 9.13 |
+| 10 | CG2 > RightClick | 448 | 8.62 |
+| 11 | Attack > CG2 | 377 | 7.25 |
+| 12 | RightClick > ability:0x10660 | 355 | 6.83 |
+
+Same finger on the next key: **23.9%** of the 6270 pairs where both events map to a key. Of those same pairs, 9.4% are the same key twice (a repeat no layout can move apart) and **14.5% are the same finger on a different key**.
+
 ### Stetmann
 
-52 replays, 52 player-games, 696 minutes, 31211 commands: **44.9 commands per minute** (600.2 per game). 23.07 control-group actions and 6.82 camera jumps per minute. 44.4% of commands are hex ids.
+52 replays, 52 player-games, 696 minutes, 31211 commands: **44.9 commands per minute** (600.2 per game). 23.07 control-group actions and 6.82 camera jumps per minute. 45.3% of commands are hex ids.
 
 Top abilities, per minute:
 
@@ -942,7 +942,7 @@ Same finger on the next key: **48.9%** of the 6171 pairs where both events map t
 
 ### Kerrigan
 
-51 replays, 51 player-games, 629 minutes, 24314 commands: **38.6 commands per minute** (476.7 per game). 25.72 control-group actions and 10.65 camera jumps per minute. 32.3% of commands are hex ids.
+51 replays, 51 player-games, 629 minutes, 24314 commands: **38.6 commands per minute** (476.7 per game). 25.72 control-group actions and 10.65 camera jumps per minute. 32.6% of commands are hex ids.
 
 Top abilities, per minute:
 
@@ -1016,151 +1016,77 @@ Same finger on the next key: **26.2%** of the 8809 pairs where both events map t
 
 ### Mengsk
 
-49 replays, 49 player-games, 598 minutes, 26071 commands: **43.6 commands per minute** (532.1 per game). 22.41 control-group actions and 6.33 camera jumps per minute. 39.3% of commands are hex ids.
+48 replays, 48 player-games, 590 minutes, 25760 commands: **43.7 commands per minute** (536.7 per game). 22.47 control-group actions and 6.22 camera jumps per minute. 40.5% of commands are hex ids.
 
 Top abilities, per minute:
 
 | # | Ability | Per minute | Share of commands |
 |---|---|---|---|
-| 1 | RightClick | 16.56 | 37.96% |
-| 2 | Attack | 8.99 | 20.61% |
-| 3 | ability:0x1A421 | 2.76 | 6.33% |
-| 4 | ability:0x1A221 | 1.91 | 4.37% |
-| 5 | ability:0x1A400 | 0.84 | 1.93% |
-| 6 | ability:0x19FC0 | 0.66 | 1.51% |
-| 7 | ability:0x19DC0 | 0.63 | 1.44% |
-| 8 | ability:0x1A260 | 0.55 | 1.26% |
-| 9 | ability:0x1A041 | 0.53 | 1.21% |
-| 10 | ability:0x1A820 | 0.47 | 1.08% |
-| 11 | ability:0x19DA0 | 0.43 | 0.99% |
-| 12 | ability:0x19FA0 | 0.41 | 0.94% |
-| 13 | ability:0x1A200 | 0.4 | 0.91% |
-| 14 | ability:0x1A840 | 0.34 | 0.78% |
-| 15 | ability:0x19DC2 | 0.32 | 0.74% |
+| 1 | RightClick | 16.56 | 37.92% |
+| 2 | Attack | 9.08 | 20.8% |
+| 3 | ability:0x1A421 | 2.8 | 6.41% |
+| 4 | ability:0x1A221 | 1.93 | 4.42% |
+| 5 | ability:0x1A400 | 0.85 | 1.96% |
+| 6 | ability:0x19FC0 | 0.67 | 1.53% |
+| 7 | ability:0x19DC0 | 0.64 | 1.46% |
+| 8 | ability:0x1A260 | 0.56 | 1.28% |
+| 9 | ability:0x1A041 | 0.54 | 1.23% |
+| 10 | ability:0x1A820 | 0.48 | 1.09% |
+| 11 | ability:0x19DA0 | 0.44 | 1.0% |
+| 12 | ability:0x19FA0 | 0.42 | 0.95% |
+| 13 | ability:0x1A200 | 0.4 | 0.92% |
+| 14 | ability:0x1A840 | 0.35 | 0.79% |
+| 15 | ability:0x19DC2 | 0.33 | 0.75% |
 
 Control groups, actions per minute:
 
 | Group | Set/min | Add/min | Steal/min | Recall/min |
 |---|---|---|---|---|
-| 0 | 0.05 | 0.08 | 0.007 | 1.253 |
-| 1 | 0.179 | 2.507 | 0.003 | 6.702 |
-| 2 | 0.146 | 0.134 | 0 | 1.862 |
-| 3 | 0.214 | 0.032 | 0 | 1.422 |
-| 4 | 0.156 | 0.069 | 0 | 5.346 |
-| 5 | 0.074 | 0 | 0 | 0.651 |
-| 6 | 0.062 | 0 | 0 | 0.229 |
+| 0 | 0.051 | 0.081 | 0.007 | 1.27 |
+| 1 | 0.181 | 2.539 | 0 | 6.786 |
+| 2 | 0.147 | 0.136 | 0 | 1.887 |
+| 3 | 0.217 | 0.032 | 0 | 1.441 |
+| 4 | 0.158 | 0.069 | 0 | 5.416 |
+| 5 | 0.075 | 0 | 0 | 0.659 |
+| 6 | 0.063 | 0 | 0 | 0.232 |
 | 7 | 0 | 0.005 | 0 | 0.002 |
-| 8 | 0 | 0.114 | 0 | 0.162 |
-| 9 | 0.04 | 0.089 | 0.002 | 0.81 |
-| all | 0.92 | 3.03 | 0.01 | 18.44 |
+| 8 | 0 | 0.076 | 0 | 0.115 |
+| 9 | 0.041 | 0.085 | 0.002 | 0.683 |
+| all | 0.93 | 3.02 | 0.01 | 18.49 |
 
-Busiest TheCore keys (of the 44.8% of sequence events that map to one):
+Busiest TheCore keys (of the 44.9% of sequence events that map to one):
 
 | Key | Finger | Events/min |
 |---|---|---|
-| P | index | 8.99 |
-| O | middle | 6.7 |
-| K | ring | 5.35 |
-| I | ring | 1.86 |
-| L | middle | 1.42 |
-| Period | middle | 1.25 |
-| Comma | ring | 0.81 |
-| 9 | middle | 0.65 |
+| P | index | 9.08 |
+| O | middle | 6.79 |
+| K | ring | 5.42 |
+| I | ring | 1.89 |
+| L | middle | 1.44 |
+| Period | middle | 1.27 |
+| Comma | ring | 0.68 |
+| 9 | middle | 0.66 |
 | 0 | index | 0.23 |
-| U | pinky | 0.16 |
+| G | pinky | 0.15 |
 
-Top pairs within 1s (43.6 per minute over 26067 pairs):
-
-| # | Pair | Count | Per game |
-|---|---|---|---|
-| 1 | RightClick > Attack | 1909 | 38.96 |
-| 2 | CG1 > Attack | 1641 | 33.49 |
-| 3 | CG4 > RightClick | 1078 | 22.0 |
-| 4 | Attack > RightClick | 986 | 20.12 |
-| 5 | RightClick > ability:0x1A421 | 967 | 19.73 |
-| 6 | Attack > CG1 | 780 | 15.92 |
-| 7 | RightClick > ability:0x1A221 | 776 | 15.84 |
-| 8 | Attack > CG4 | 765 | 15.61 |
-| 9 | ability:0x1A221 > RightClick | 690 | 14.08 |
-| 10 | CG1 > CG1 | 594 | 12.12 |
-| 11 | ability:0x1A421 > RightClick | 470 | 9.59 |
-| 12 | RightClick > CG4 | 440 | 8.98 |
-
-Same finger on the next key: **18.7%** of the 6360 pairs where both events map to a key. Of those same pairs, 13.1% are the same key twice (a repeat no layout can move apart) and **5.6% are the same finger on a different key**.
-
-### Vorazun
-
-48 replays, 48 player-games, 679 minutes, 20184 commands: **29.7 commands per minute** (420.5 per game). 19.17 control-group actions and 10.44 camera jumps per minute. 17.9% of commands are hex ids.
-
-Top abilities, per minute:
-
-| # | Ability | Per minute | Share of commands |
-|---|---|---|---|
-| 1 | RightClick | 10.74 | 36.11% |
-| 2 | Attack | 6.89 | 23.18% |
-| 3 | WarpInDarkTemplar | 1.17 | 3.94% |
-| 4 | TrainProbe | 1.08 | 3.64% |
-| 5 | BuildPylon | 0.96 | 3.24% |
-| 6 | WarpInStalker | 0.64 | 2.15% |
-| 7 | BuildPhotonCannon | 0.59 | 1.99% |
-| 8 | ability:0xED60 | 0.56 | 1.88% |
-| 9 | BuildGateway | 0.44 | 1.49% |
-| 10 | ability:0xED00 | 0.41 | 1.39% |
-| 11 | ability:0x12420 | 0.39 | 1.31% |
-| 12 | ability:0x12B20 | 0.37 | 1.23% |
-| 13 | ability:0xEDA0 | 0.29 | 0.98% |
-| 14 | ability:0x12440 | 0.21 | 0.7% |
-| 15 | ability:0xBDE0 | 0.2 | 0.68% |
-
-Control groups, actions per minute:
-
-| Group | Set/min | Add/min | Steal/min | Recall/min |
-|---|---|---|---|---|
-| 0 | 0.032 | 0.028 | 0.004 | 0.361 |
-| 1 | 0.747 | 0.343 | 0 | 5.495 |
-| 2 | 0.797 | 0.012 | 0.001 | 4.496 |
-| 3 | 0.186 | 0.013 | 0.001 | 0.75 |
-| 4 | 0.121 | 0.009 | 0.006 | 1.668 |
-| 5 | 0.15 | 0 | 0 | 1.406 |
-| 6 | 0.084 | 0 | 0.006 | 1.936 |
-| 7 | 0.037 | 0 | 0 | 0.063 |
-| 8 | 0.006 | 0.015 | 0 | 0.096 |
-| 9 | 0.012 | 0.031 | 0.012 | 0.246 |
-| all | 2.17 | 0.45 | 0.03 | 16.52 |
-
-Busiest TheCore keys (of the 64.1% of sequence events that map to one):
-
-| Key | Finger | Events/min |
-|---|---|---|
-| P | index | 7.68 |
-| O | middle | 5.5 |
-| I | ring | 4.5 |
-| 0 | index | 1.94 |
-| Minus | index | 1.87 |
-| K | ring | 1.67 |
-| 9 | middle | 1.41 |
-| H | pinky | 1.23 |
-| SemiColon | index | 1.15 |
-| L | middle | 0.75 |
-
-Top pairs within 1s (27.9 per minute over 18939 pairs):
+Top pairs within 1s (43.7 per minute over 25808 pairs):
 
 | # | Pair | Count | Per game |
 |---|---|---|---|
-| 1 | RightClick > Attack | 1260 | 26.25 |
-| 2 | CG1 > Attack | 791 | 16.48 |
-| 3 | Attack > CG2 | 719 | 14.98 |
-| 4 | CG1 > CG2 | 696 | 14.5 |
-| 5 | CG2 > CG1 | 667 | 13.9 |
-| 6 | CG1 > RightClick | 626 | 13.04 |
-| 7 | CG5 > CG6 | 541 | 11.27 |
-| 8 | Attack > RightClick | 502 | 10.46 |
-| 9 | CG2 > RightClick | 431 | 8.98 |
-| 10 | RightClick > CG1 | 401 | 8.35 |
-| 11 | CG6 > CG5 | 397 | 8.27 |
-| 12 | RightClick > CG2 | 329 | 6.85 |
+| 1 | RightClick > Attack | 1903 | 39.65 |
+| 2 | CG1 > Attack | 1641 | 34.19 |
+| 3 | CG4 > RightClick | 1078 | 22.46 |
+| 4 | Attack > RightClick | 983 | 20.48 |
+| 5 | RightClick > ability:0x1A421 | 967 | 20.15 |
+| 6 | Attack > CG1 | 780 | 16.25 |
+| 7 | RightClick > ability:0x1A221 | 776 | 16.17 |
+| 8 | Attack > CG4 | 765 | 15.94 |
+| 9 | ability:0x1A221 > RightClick | 690 | 14.38 |
+| 10 | CG1 > CG1 | 594 | 12.38 |
+| 11 | ability:0x1A421 > RightClick | 470 | 9.79 |
+| 12 | RightClick > CG4 | 440 | 9.17 |
 
-Same finger on the next key: **16.5%** of the 8466 pairs where both events map to a key. Of those same pairs, 9.8% are the same key twice (a repeat no layout can move apart) and **6.7% are the same finger on a different key**.
+Same finger on the next key: **18.7%** of the 6341 pairs where both events map to a key. Of those same pairs, 13.1% are the same key twice (a repeat no layout can move apart) and **5.6% are the same finger on a different key**.
 
 ### Karax
 
@@ -1238,7 +1164,7 @@ Same finger on the next key: **21.7%** of the 6919 pairs where both events map t
 
 ### Stukov
 
-45 replays, 45 player-games, 618 minutes, 20926 commands: **33.9 commands per minute** (465.0 per game). 18.68 control-group actions and 8.08 camera jumps per minute. 33.5% of commands are hex ids.
+45 replays, 45 player-games, 618 minutes, 20926 commands: **33.9 commands per minute** (465.0 per game). 18.68 control-group actions and 8.08 camera jumps per minute. 33.8% of commands are hex ids.
 
 Top abilities, per minute:
 
@@ -1310,26 +1236,100 @@ Top pairs within 1s (30.8 per minute over 19026 pairs):
 
 Same finger on the next key: **24.4%** of the 4144 pairs where both events map to a key. Of those same pairs, 9.0% are the same key twice (a repeat no layout can move apart) and **15.4% are the same finger on a different key**.
 
-### Raynor
+### Vorazun
 
-27 replays, 27 player-games, 364 minutes, 15926 commands: **43.8 commands per minute** (589.9 per game). 74.28 control-group actions and 11.24 camera jumps per minute. 10.1% of commands are hex ids.
+45 replays, 45 player-games, 615 minutes, 17853 commands: **29.0 commands per minute** (396.7 per game). 20.12 control-group actions and 10.81 camera jumps per minute. 18.1% of commands are hex ids.
 
 Top abilities, per minute:
 
 | # | Ability | Per minute | Share of commands |
 |---|---|---|---|
-| 1 | RightClick | 16.6 | 37.93% |
-| 2 | Attack | 5.9 | 13.47% |
-| 3 | TrainMarine | 5.81 | 13.27% |
-| 4 | UseStimpack | 2.25 | 5.13% |
-| 5 | TrainSCV | 1.44 | 3.29% |
-| 6 | CalldownMULE | 1.13 | 2.58% |
-| 7 | ability:0x13E4 | 0.95 | 2.16% |
-| 8 | XelNaga_Caverns_Floating_BridgeNE8 | 0.65 | 1.49% |
-| 9 | Stop | 0.48 | 1.11% |
-| 10 | ability:0x3340 | 0.42 | 0.96% |
-| 11 | XelNaga_Caverns_Floating_BridgeNW8Out | 0.37 | 0.84% |
-| 12 | WidowMine | 0.31 | 0.72% |
+| 1 | RightClick | 10.41 | 35.85% |
+| 2 | Attack | 6.8 | 23.44% |
+| 3 | WarpInDarkTemplar | 1.14 | 3.92% |
+| 4 | TrainProbe | 1.09 | 3.75% |
+| 5 | BuildPylon | 0.93 | 3.2% |
+| 6 | WarpInStalker | 0.6 | 2.05% |
+| 7 | BuildPhotonCannon | 0.49 | 1.7% |
+| 8 | ability:0xED00 | 0.46 | 1.57% |
+| 9 | BuildGateway | 0.45 | 1.55% |
+| 10 | ability:0x12420 | 0.44 | 1.52% |
+| 11 | ability:0xED60 | 0.4 | 1.36% |
+| 12 | ability:0xEDA0 | 0.32 | 1.1% |
+| 13 | ability:0x12B20 | 0.24 | 0.84% |
+| 14 | ability:0x12440 | 0.24 | 0.82% |
+| 15 | ability:0xBDE0 | 0.22 | 0.77% |
+
+Control groups, actions per minute:
+
+| Group | Set/min | Add/min | Steal/min | Recall/min |
+|---|---|---|---|---|
+| 0 | 0.036 | 0.02 | 0.005 | 0.309 |
+| 1 | 0.779 | 0.379 | 0 | 5.94 |
+| 2 | 0.745 | 0.013 | 0.002 | 4.732 |
+| 3 | 0.215 | 0.015 | 0.002 | 0.837 |
+| 4 | 0.094 | 0.01 | 0.007 | 1.39 |
+| 5 | 0.164 | 0 | 0 | 1.603 |
+| 6 | 0.078 | 0 | 0.007 | 2.285 |
+| 7 | 0.026 | 0 | 0 | 0.044 |
+| 8 | 0.007 | 0.01 | 0 | 0.101 |
+| 9 | 0.013 | 0.021 | 0.013 | 0.218 |
+| all | 2.16 | 0.47 | 0.04 | 17.46 |
+
+Busiest TheCore keys (of the 65.3% of sequence events that map to one):
+
+| Key | Finger | Events/min |
+|---|---|---|
+| P | index | 7.51 |
+| O | middle | 5.94 |
+| I | ring | 4.73 |
+| 0 | index | 2.28 |
+| Minus | index | 1.84 |
+| 9 | middle | 1.6 |
+| K | ring | 1.39 |
+| H | pinky | 1.2 |
+| SemiColon | index | 1.12 |
+| L | middle | 0.84 |
+
+Top pairs within 1s (28.3 per minute over 17400 pairs):
+
+| # | Pair | Count | Per game |
+|---|---|---|---|
+| 1 | RightClick > Attack | 1006 | 22.36 |
+| 2 | CG1 > Attack | 790 | 17.56 |
+| 3 | CG1 > CG2 | 692 | 15.38 |
+| 4 | Attack > CG2 | 666 | 14.8 |
+| 5 | CG2 > CG1 | 655 | 14.56 |
+| 6 | CG1 > RightClick | 610 | 13.56 |
+| 7 | CG5 > CG6 | 593 | 13.18 |
+| 8 | Attack > RightClick | 431 | 9.58 |
+| 9 | CG6 > CG5 | 426 | 9.47 |
+| 10 | CG2 > RightClick | 405 | 9.0 |
+| 11 | RightClick > CG1 | 396 | 8.8 |
+| 12 | RightClick > CG2 | 315 | 7.0 |
+
+Same finger on the next key: **16.8%** of the 8075 pairs where both events map to a key. Of those same pairs, 9.8% are the same key twice (a repeat no layout can move apart) and **7.0% are the same finger on a different key**.
+
+### Raynor
+
+26 replays, 26 player-games, 356 minutes, 15922 commands: **44.7 commands per minute** (612.4 per game). 75.88 control-group actions and 11.44 camera jumps per minute. 10.5% of commands are hex ids.
+
+Top abilities, per minute:
+
+| # | Ability | Per minute | Share of commands |
+|---|---|---|---|
+| 1 | RightClick | 16.96 | 37.92% |
+| 2 | Attack | 6.03 | 13.48% |
+| 3 | TrainMarine | 5.93 | 13.27% |
+| 4 | UseStimpack | 2.29 | 5.13% |
+| 5 | TrainSCV | 1.47 | 3.29% |
+| 6 | CalldownMULE | 1.15 | 2.58% |
+| 7 | ability:0x13E4 | 0.97 | 2.16% |
+| 8 | XelNaga_Caverns_Floating_BridgeNE8 | 0.67 | 1.49% |
+| 9 | Stop | 0.49 | 1.11% |
+| 10 | ability:0x3340 | 0.43 | 0.96% |
+| 11 | XelNaga_Caverns_Floating_BridgeNW8Out | 0.38 | 0.84% |
+| 12 | WidowMine | 0.32 | 0.72% |
 | 13 | UpgradeToOrbitalCommand | 0.29 | 0.66% |
 | 14 | BuildBarracks | 0.28 | 0.63% |
 | 15 | ability:0x1409 | 0.27 | 0.61% |
@@ -1338,50 +1338,50 @@ Control groups, actions per minute:
 
 | Group | Set/min | Add/min | Steal/min | Recall/min |
 |---|---|---|---|---|
-| 0 | 0.016 | 0 | 0 | 0.107 |
-| 1 | 0.212 | 0.217 | 0 | 2.543 |
-| 2 | 0.322 | 0.011 | 0.003 | 5.146 |
-| 3 | 0.324 | 0.014 | 0 | 26.311 |
-| 4 | 0.267 | 0.107 | 0 | 7.607 |
-| 5 | 0.258 | 0.008 | 0 | 30.126 |
-| 6 | 0.055 | 0.038 | 0 | 0.506 |
-| 7 | 0.011 | 0 | 0 | 0.066 |
-| 9 | 0.005 | 0 | 0 | 0 |
-| all | 1.47 | 0.4 | 0.0 | 72.41 |
+| 0 | 0.017 | 0 | 0 | 0.11 |
+| 1 | 0.216 | 0.222 | 0 | 2.598 |
+| 2 | 0.329 | 0.011 | 0.003 | 5.257 |
+| 3 | 0.331 | 0.014 | 0 | 26.879 |
+| 4 | 0.272 | 0.11 | 0 | 7.771 |
+| 5 | 0.264 | 0.008 | 0 | 30.777 |
+| 6 | 0.056 | 0.039 | 0 | 0.517 |
+| 7 | 0.011 | 0 | 0 | 0.067 |
+| 9 | 0.006 | 0 | 0 | 0 |
+| all | 1.5 | 0.4 | 0.0 | 73.98 |
 
 Busiest TheCore keys (of the 80.0% of sequence events that map to one):
 
 | Key | Finger | Events/min |
 |---|---|---|
-| 9 | middle | 30.13 |
-| L | middle | 26.31 |
-| P | index | 14.09 |
-| K | ring | 7.61 |
-| I | ring | 5.15 |
-| O | middle | 2.54 |
-| J | pinky | 1.8 |
-| Minus | index | 1.57 |
-| SemiColon | index | 0.84 |
-| BracketOpen | index | 0.59 |
+| 9 | middle | 30.78 |
+| L | middle | 26.88 |
+| P | index | 14.4 |
+| K | ring | 7.77 |
+| I | ring | 5.26 |
+| O | middle | 2.6 |
+| J | pinky | 1.83 |
+| Minus | index | 1.61 |
+| SemiColon | index | 0.86 |
+| BracketOpen | index | 0.6 |
 
-Top pairs within 1s (99.8 per minute over 36316 pairs):
+Top pairs within 1s (102.0 per minute over 36315 pairs):
 
 | # | Pair | Count | Per game |
 |---|---|---|---|
-| 1 | CG3 > CG5 | 8758 | 324.37 |
-| 2 | CG5 > CG3 | 6737 | 249.52 |
-| 3 | RightClick > TrainMarine | 1465 | 54.26 |
-| 4 | CG5 > CG2 | 1313 | 48.63 |
-| 5 | CG2 > CG5 | 1267 | 46.93 |
-| 6 | CG4 > RightClick | 1035 | 38.33 |
-| 7 | TrainMarine > RightClick | 982 | 36.37 |
-| 8 | Attack > CG4 | 723 | 26.78 |
-| 9 | RightClick > Attack | 680 | 25.19 |
-| 10 | CG5 > CG4 | 578 | 21.41 |
-| 11 | RightClick > CG3 | 467 | 17.3 |
-| 12 | UseStimpack > Attack | 402 | 14.89 |
+| 1 | CG3 > CG5 | 8758 | 336.85 |
+| 2 | CG5 > CG3 | 6737 | 259.12 |
+| 3 | RightClick > TrainMarine | 1465 | 56.35 |
+| 4 | CG5 > CG2 | 1313 | 50.5 |
+| 5 | CG2 > CG5 | 1267 | 48.73 |
+| 6 | CG4 > RightClick | 1035 | 39.81 |
+| 7 | TrainMarine > RightClick | 982 | 37.77 |
+| 8 | Attack > CG4 | 723 | 27.81 |
+| 9 | RightClick > Attack | 680 | 26.15 |
+| 10 | CG5 > CG4 | 578 | 22.23 |
+| 11 | RightClick > CG3 | 467 | 17.96 |
+| 12 | UseStimpack > Attack | 402 | 15.46 |
 
-Same finger on the next key: **65.4%** of the 25844 pairs where both events map to a key. Of those same pairs, 4.0% are the same key twice (a repeat no layout can move apart) and **61.4% are the same finger on a different key**.
+Same finger on the next key: **65.4%** of the 25843 pairs where both events map to a key. Of those same pairs, 4.0% are the same key twice (a repeat no layout can move apart) and **61.4% are the same finger on a different key**.
 
 ## Reproducing
 
@@ -1392,7 +1392,8 @@ uv run --python 3.12 --with sc2reader python tools/sc2_sequences.py \
     -o ~/scratch/thecore/coop/events.jsonl.gz
 uv run --python 3.12 --with sc2reader python tools/sc2_sequences.py \
     report ~/scratch/thecore/coop/events.jsonl.gz --coop \
-    -o wiki/sc2-coop-sequences.md --summary thecore/coop-summary.json
+    -o wiki/sc2-coop-sequences.md --summary thecore/coop-summary.json \
+    --replay-set ... --parse-note ...   # exact text: replays/README.md
 # or rebuild this page from the committed summary alone:
 python3 tools/sc2_sequences.py report thecore/coop-summary.json \
     -o wiki/sc2-coop-sequences.md
