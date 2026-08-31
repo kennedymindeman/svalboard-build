@@ -12,9 +12,9 @@ sizes differ 26 to 158 player-games).  Constraints, finger weights, slot order
 and the optimizer are untouched; only the load and pair inputs change.
 
 `--coop-normalize` (default off) scales the co-op aggregate before mixing so
-the two corpora contribute equal total mass at weight 0.5: co-op per-minute
-rates are about ten times smaller than 1v1 rates, so the raw blend gives
-co-op far less than half the influence.  The per-key co-op loads are scaled
+the two corpora contribute equal total mass at weight 0.5: co-op per-key
+rates total ~5x below 1v1 and co-op bigram totals ~10x below, so the raw
+blend gives co-op well under half the influence.  The per-key co-op loads are scaled
 by (sum of 1v1 key loads / sum of co-op key loads) and the co-op pair rates
 by the analogous ratio over pair totals.
 

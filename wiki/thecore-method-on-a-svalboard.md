@@ -148,8 +148,8 @@ Three inputs, all cited elsewhere on this page or in the repo:
    `--coop-blend 0.5 --coop-normalize`, so each key's load is 0.5 x its 1v1 rate + 0.5 x its co-op rate, the
    equal-commander mean over the 18 commanders of [`../thecore/coop-summary.json`](../thecore/coop-summary.json)
    (per-minute rates averaged, raw counts never pooled), with the co-op side first scaled so its total load and
-   total bigram rate equal the 1v1 totals; without that scaling co-op rates are ~10x smaller and get far less than
-   half the influence. Bigram rates blend the same way. What equal influence costs 1v1 play is measured in
+   total bigram rate equal the 1v1 totals; without that scaling co-op per-key rates total ~5x below 1v1 (bigram
+   totals ~10x below) and co-op gets well under half the influence. Bigram rates blend the same way. What equal influence costs 1v1 play is measured in
    [`../thecore/coop-blend-report.md`](../thecore/coop-blend-report.md): about 1.7%.
 3. The zones of 4a and the finger roles of 4c.
 
