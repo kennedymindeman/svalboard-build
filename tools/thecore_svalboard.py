@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
 """Compute a Svalboard mapping for TheCore, one left hand, and draw it.
 
-Usage: python3 tools/thecore_svalboard.py [--markdown]
+Usage: python3 tools/thecore_svalboard.py [--markdown] [--coop-blend W]
+
+`--coop-blend W` (issue #27, default off) mixes co-op load into the ranking:
+each key's load becomes (1-W) x its 1v1 per-minute rate + W x its co-op rate,
+and the bigram rates blend the same way.  The co-op rate is the mean over all
+18 commanders, equally weighted, of that commander's per-minute rate from
+`thecore/coop-summary.json` (rates averaged, raw counts never pooled: corpus
+sizes differ 26 to 158 player-games).  Constraints, finger weights, slot order
+and the optimizer are untouched; only the load and pair inputs change.
 
 The premise (wiki/thecore-method-on-a-svalboard.md section 4c, the user's
 decision): the LEFT hand is on the Svalboard and the RIGHT hand is on an
@@ -80,6 +88,7 @@ FILES = [
     ("TheCore 6.0 Right", "thecore/TheCore6g_right_US_qwerty.SC2Hotkeys"),
 ]
 SUMMARY = "thecore/sequences-summary.json"
+COOP = "thecore/coop-summary.json"
 OUT = "thecore/svalboard-keymap.html"
 
 FINGERS = ["index", "middle", "ring", "pinky"]
@@ -350,6 +359,56 @@ def replay_load(summary, path):
             {"minutes": minutes})
 
 
+def coop_load(summary, path):
+    """Equal-commander per-minute (load, pairs) for one hotkey file.
+
+    Mirrors replay_load, except each commander's counts are divided by that
+    commander's own minutes and the per-minute rates are averaged with equal
+    weight across the 18 commanders.
+    """
+    cmdrs = summary["races"]
+    index, _ = load_hotkeys(os.path.join(HERE, path))
+    abilities = sorted({row[0] for c in cmdrs for row in cmdrs[c]["top_abilities"]})
+    amap = build_map(abilities, index)
+    cg = {}
+    for cmd, key, _combo, _raw in parse_entries(os.path.join(HERE, path)):
+        if cmd.startswith(CG_COMMAND):
+            cg[cmd[len(CG_COMMAND):]] = key
+
+    def token_key(tok):
+        if tok.startswith("CG") and tok[2:] in cg:
+            return cg[tok[2:]]
+        if tok == "RightClick":
+            return None
+        return amap[tok][0] if tok in amap else None
+
+    load = collections.Counter()
+    pairs = collections.Counter()
+    share = 1.0 / len(cmdrs)
+    for c in cmdrs:
+        minutes = cmdrs[c]["minutes"]
+        for row in cmdrs[c]["top_abilities"]:
+            name, count = row[0], row[1]
+            if name != "RightClick" and name in amap:
+                load[amap[name][0]] += share * count / minutes
+        for row, vals in cmdrs[c]["control_groups"].items():
+            group = row.split("/")[1]
+            if group in cg:
+                load[cg[group]] += share * vals[0] / minutes
+        for pair, count, _pg in cmdrs[c]["top_bigrams"]:
+            a, b = pair.split(" > ")
+            ka, kb = token_key(a), token_key(b)
+            if ka and kb and ka != kb:
+                pairs[(ka, kb)] += share * count / minutes
+    return dict(load), dict(pairs)
+
+
+def mix(a, b, w):
+    """(1 - w) * a + w * b over the sorted union of keys (order-stable sums)."""
+    return {k: (1.0 - w) * a.get(k, 0.0) + w * b.get(k, 0.0)
+            for k in sorted(set(a) | set(b))}
+
+
 def cost(place, slots, load, pairs):
     """Events per minute of same-finger work plus load-weighted slot difficulty."""
     finger, plane = {}, {}
@@ -503,9 +562,15 @@ def build_entries(path):
 
 
 def main():
-    markdown = "--markdown" in sys.argv[1:]
+    argv = sys.argv[1:]
+    markdown = "--markdown" in argv
+    weight = float(argv[argv.index("--coop-blend") + 1]) if "--coop-blend" in argv else 0.0
     with open(os.path.join(HERE, SUMMARY), encoding="utf-8") as f:
         summary = json.load(f)
+    coop = None
+    if weight:
+        with open(os.path.join(HERE, COOP), encoding="utf-8") as f:
+            coop = json.load(f)
     slots = build_slots()
     print("Slot order (difficulty = (zone - 1) + finger weight"
           " + 1 if the Nail layer is held):")
@@ -525,6 +590,12 @@ def main():
         total = sum(k["n"] for k in keys.values())
         nkeys = len(keys)
         load, pairs, notes = replay_load(summary, rel)
+        if weight:
+            cload, cpairs = coop_load(coop, rel)
+            load = mix(load, cload, weight)
+            pairs = mix(pairs, cpairs, weight)
+            print("co-op blend %.2f: load = %.2f x 1v1 + %.2f x equal-commander"
+                  " co-op mean" % (weight, 1.0 - weight, weight))
         print("\n=== %s: %d bindings on %d keys, %.0f replay minutes"
               % (name, total, len(keys), notes["minutes"]))
         reasons = exclude(keys)
@@ -556,7 +627,7 @@ def main():
         hot = [k for k, v in load.items() if v > 0 and k not in place]
         print("keys with replay load > 0 that are unplaced: %s"
               % (", ".join(sorted(hot)) if hot else "none"))
-        if set(reasons) != EXPECTED_UNPLACED[name]:
+        if weight == 0.0 and set(reasons) != EXPECTED_UNPLACED[name]:
             raise SystemExit(
                 "unplaced keys for %s are %s, expected %s: the inputs or the "
                 "rules changed, check the placement before updating the guard"

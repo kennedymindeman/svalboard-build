@@ -144,7 +144,11 @@ Three inputs, all cited elsewhere on this page or in the repo:
    described in [SC2 command sequences](/sc2-command-sequences.md). The summary ships a key map for 5.0 only, so both
    files are scored the same way instead: each summary ability row is matched to the key that file binds it to, and
    each control-group set, add, steal, delete and recall is counted on that file's own recall key. Right clicks are
-   dropped, because they are on the mouse.
+   dropped, because they are on the mouse. **This branch is the issue #27 experiment**: the tool was run with
+   `--coop-blend 0.5`, so each key's load is 0.5 x its 1v1 rate + 0.5 x its co-op rate, the equal-commander mean
+   over the 18 commanders of [`../thecore/coop-summary.json`](../thecore/coop-summary.json) (per-minute rates
+   averaged, raw counts never pooled), and the bigram rates blend the same way. What that costs 1v1 play is
+   measured in [`../thecore/coop-blend-report.md`](../thecore/coop-blend-report.md): almost nothing.
 3. The zones of 4a and the finger roles of 4c.
 
 Slots: 20 base keys and 20 with the Nail layer held. A slot's difficulty is `(zone - 1) + 1 if the layer is held` plus
@@ -174,9 +178,10 @@ Assignment, deterministic and printed by the tool:
    loaded differently) plus each key's load times its slot difficulty. Same-key repeats such as `CG3 > CG3` are not a
    cost; the summary counts them separately.
 
-For 5.0 Right Plus that is 106.42 after the greedy pass and 99.11 after 4 swaps; for 6.0 Right, 105.41 and then 98.16
-after 2 swaps. These are not comparable with the 69.29 and 41.13 of the pass before the two rules above: the finger
-weights add to every key's zone term and the control-group floor forbids arrangements the old search could use.
+For 5.0 Right Plus that is 59.32 after the greedy pass and 55.72 after 4 swaps; for 6.0 Right, 58.76 and then 55.17
+after 4 swaps. These are blended-unit costs (the 50/50 mix above), so they are not comparable with the 1v1-only
+106.42/99.11 and 105.41/98.16, nor with the 69.29 and 41.13 of the pass before the finger weights and the
+control-group floor.
 
 Some same-finger work is forced rather than a failure of the search. The control-group floor puts all ten groups on
 middle and ring, and five of them carry most of the replay load, so heavy pairs such as `CG1 > CG3` share a finger
@@ -201,30 +206,30 @@ emit for that well (section 4e).
 | Svalboard key | Zone | TheCore key | Vial keycode | Carries | Load /min |
 | --- | --- | --- | --- | --- | --- |
 | **Base** | | | | | |
-| index centre | 1 | P | `KC_P` | Cam 0/3, Attack, Larva | 19.2 |
-| index south | 1 | - | `KC_MINS` | Larva, command card (187) | 5.6 |
-| index inward | 2 | H | `KC_H` | Larva, Burrow Up, command card (74) | 0.9 |
-| index north | 2 | ] | `KC_RBRC` | Move Hold Position, command card (11) | 0.6 |
-| index outward | 3 | M | `KC_M` | Stop Generate Creep, Larva, command card (84) | 0.4 |
-| middle centre | 1 | I | `KC_I` | CG 2, Cam 2 | 23.1 |
-| middle south | 1 | K | `KC_K` | CG 4, Cam 6 | 26.8 |
-| middle inward | 2 | 9 | `KC_9` | CG 5, Cam 7 | 21.8 |
-| middle north | 2 | . | `KC_DOT` | CG 0 | 5.6 |
-| middle outward | 3 | U | `KC_U` | CG 8 | 1.8 |
-| ring centre | 1 | L | `KC_L` | CG 3, Cam 5 | 24.1 |
-| ring south | 1 | O | `KC_O` | CG 1, Cam 1 | 35.8 |
-| ring inward | 2 | 0 | `KC_0` | CG 6 | 7.0 |
-| ring north | 2 | 8 | `KC_8` | CG 7 | 1.9 |
-| ring outward | 3 | , | `KC_COMM` | CG 9 | 1.4 |
-| pinky centre | 1 | J | `KC_J` | Cam 3, Larva, command card (297) | 4.7 |
-| pinky south | 1 | ; | `KC_SCLN` | Cam 4, command card (254) | 3.3 |
-| pinky inward | 2 | N | `KC_N` | Land, Lift, Larva | 0.6 |
+| index centre | 1 | P | `KC_P` | Cam 0/3, Attack, Larva | 14.0 |
+| index south | 1 | - | `KC_MINS` | Larva, command card (187) | 3.4 |
+| index inward | 2 | [ | `KC_LBRC` | Burrow Down, command card (106) | 1.1 |
+| index north | 2 | ] | `KC_RBRC` | Move Hold Position, command card (11) | 0.4 |
+| index outward | 3 | M | `KC_M` | Stop Generate Creep, Larva, command card (84) | 0.2 |
+| middle centre | 1 | I | `KC_I` | CG 2, Cam 2 | 13.2 |
+| middle south | 1 | K | `KC_K` | CG 4, Cam 6 | 15.5 |
+| middle inward | 2 | 9 | `KC_9` | CG 5, Cam 7 | 12.7 |
+| middle north | 2 | . | `KC_DOT` | CG 0 | 3.1 |
+| middle outward | 3 | 8 | `KC_8` | CG 7 | 1.0 |
+| ring centre | 1 | L | `KC_L` | CG 3, Cam 5 | 13.7 |
+| ring south | 1 | O | `KC_O` | CG 1, Cam 1 | 21.3 |
+| ring inward | 2 | U | `KC_U` | CG 8 | 1.0 |
+| ring north | 2 | 0 | `KC_0` | CG 6 | 3.9 |
+| ring outward | 3 | , | `KC_COMM` | CG 9 | 0.9 |
+| pinky centre | 1 | J | `KC_J` | Cam 3, Larva, command card (297) | 2.5 |
+| pinky south | 1 | ; | `KC_SCLN` | Cam 4, command card (254) | 2.0 |
+| pinky inward | 2 | N | `KC_N` | Land, Lift, Larva | 0.3 |
 | pinky north | 3 | W | `KC_W` | command card (5) | 0.0 |
 | pinky outward | 3 | D | `KC_D` | Rally Egg, command card (6) | 0.0 |
 | **Nail layer held** | | | | | |
-| index centre | 1 | [ | `KC_LBRC` | Burrow Down, command card (106) | 2.1 |
-| index south | 1 | ' | `KC_QUOT` | Larva, command card (52) | 1.6 |
-| index inward | 2 | Y | `KC_Y` | Move Patrol, Larva, Army Select | 0.2 |
+| index centre | 1 | H | `KC_H` | Larva, Burrow Up, command card (74) | 0.5 |
+| index south | 1 | ' | `KC_QUOT` | Larva, command card (52) | 0.8 |
+| index inward | 2 | Y | `KC_Y` | Move Patrol, Larva, Army Select | 0.1 |
 | index north | 2 | = | `KC_EQL` | Larva, command card (30) | 0.0 |
 | index outward | 3 | F10 | `KC_F10` | Menu Game | 0.0 |
 | middle centre | 1 | F | `KC_F` | Rally SCV | 0.1 |
@@ -237,8 +242,8 @@ emit for that well (section 4e).
 | ring inward | 2 | Backspace | `KC_BSPC` | Camera Turn Left, Camera Turn Right | 0.0 |
 | ring north | 2 | Escape | `KC_ESC` | Menu Game | 0.0 |
 | ring outward | 3 | Tab | `KC_TAB` | misc | 0.0 |
-| pinky centre | 1 | / | `KC_SLSH` | Cancel, command card (12) | 0.4 |
-| pinky south | 1 | G | `KC_G` | Stop, command card (13) | 0.4 |
+| pinky centre | 1 | G | `KC_G` | Stop, command card (13) | 0.3 |
+| pinky south | 1 | / | `KC_SLSH` | Cancel, command card (12) | 0.3 |
 | pinky inward | 2 | C | `KC_C` | Select Builder, command card (5) | 0.0 |
 | pinky north | 3 | B | `KC_B` | misc | 0.0 |
 | pinky outward | 3 | X | `KC_X` | misc | 0.0 |
