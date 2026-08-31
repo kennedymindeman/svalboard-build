@@ -321,17 +321,19 @@ def cmd_extract(args):
     seen_digests = {}
     with open_out(args.out) as out:
         for i, path in enumerate(paths, 1):
-            # The archive saves some runs twice under different names; `paths`
-            # is sorted, so the first path of each byte-identical group wins and
-            # the rest are skipped in the same order every run.
-            digest = file_digest(path)
-            if digest in seen_digests:
-                duplicate += 1
-                print("DUP  %s == %s" % (path, seen_digests[digest]),
-                      file=sys.stderr)
-                continue
-            seen_digests[digest] = path
             try:
+                # The archive saves some runs twice under different names;
+                # `paths` is sorted, so the first path of each byte-identical
+                # group wins and the rest are skipped in the same order every
+                # run.  Hashing sits inside the try so an unreadable file
+                # counts as failed instead of aborting the run.
+                digest = file_digest(path)
+                if digest in seen_digests:
+                    duplicate += 1
+                    print("DUP  %s == %s" % (path, seen_digests[digest]),
+                          file=sys.stderr)
+                    continue
+                seen_digests[digest] = path
                 recs = list(extract_replay(path, sc2reader, coop=args.coop,
                                            set_name=set_of(path, roots)))
             except Misfiled as exc:
