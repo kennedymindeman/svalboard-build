@@ -24,6 +24,18 @@ The committed numbers were produced with a venv kept outside the repo,
 
   /Users/kennedy/scratch/thecore/venv-replays/bin/python tools/sc2_sequences.py ...
 
+Co-op replays go through the same two steps with `--coop` on both, which groups
+by commander instead of melee race and keeps only the human players (see
+`extract_replay` and `solo_commanders`):
+
+  uv run --python 3.12 --with sc2reader python tools/sc2_sequences.py \
+      extract ~/scratch/thecore/coop/replays --coop \
+      -o ~/scratch/thecore/coop/events.jsonl.gz
+
+  uv run --python 3.12 --with sc2reader python tools/sc2_sequences.py \
+      report ~/scratch/thecore/coop/events.jsonl.gz --coop \
+      -o wiki/sc2-coop-sequences.md --summary thecore/coop-summary.json
+
 `report` also accepts the summary JSON in place of the event stream, so the page
 rebuilds without the replays (and without sc2reader, on any python 3):
 
@@ -44,12 +56,13 @@ import gzip
 import json
 import math
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from thecore_keys import FINGERS  # noqa: E402
-from thecore_keymap import (MELEE, GLOBAL, UNIT_FACTIONS, own_factions,  # noqa: E402
-                            parse_entries)
+from thecore_keymap import (MELEE, GLOBAL, COMMANDERS, UNIT_FACTIONS,  # noqa: E402
+                            factions_for, own_factions, parse_entries)
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOTKEYS = os.path.join(HERE, "thecore", "TheCore_5.0_Right_Plus.SC2Hotkeys")
@@ -151,12 +164,65 @@ def replay_paths(inputs):
     return sorted(out)
 
 
+# The hotkey file's spelling of a commander sc2reader names differently.
+COOP_ALIASES = {"Horner": "Han & Horner", "Han and Horner": "Han & Horner"}
+
+
+def _norm(name):
+    return re.sub(r"[^a-z0-9]", "", name.lower())
+
+
+def solo_commanders(set_name, present):
+    """For a `<Commander> Solo` directory, the commanders whose players count.
+
+    A "solo" run in the archive still has two human slots: the runner and an
+    ally who idles (usually a Raynor doing nothing, which is why counting both
+    buries Raynor's real numbers under 700 idle games).  The directory names the
+    commander of the run, so in a `... Solo` directory only that commander's
+    players are kept; `-Co-Op` and anything unrecognised keep both humans.
+    Returns None when no filtering applies.
+    """
+    if not set_name:
+        return None
+    n = _norm(set_name)
+    if not n.endswith("solo"):
+        return None
+    n = n[: -len("solo")]
+    hits = [c for c in present if _norm(c) in n or n in _norm(c)]
+    return hits or None
+
+
+def set_of(path, roots):
+    """The immediate directory a replay sits in under one of the input roots.
+
+    The co-op archive files runs by commander ("Dehaka Solo", "Alarak-Co-Op"),
+    which is provenance worth keeping even though the commander used for the
+    counts comes from the replay itself.
+    """
+    path = os.path.abspath(path)
+    for root in roots:
+        if path.startswith(root + os.sep):
+            rel = os.path.relpath(os.path.dirname(path), root)
+            if rel != ".":
+                return rel
+    return None
+
+
+HEX_ABILITY = "ability:0x%04X"
+
 CG_KINDS = {0: "cg_set", 1: "cg_add", 2: "cg_get", 3: "cg_del",
             4: "cg_steal", 5: "cg_steal"}
 
 
-def extract_replay(path, sc2reader):
-    """Yield JSON-able records for one replay: a game record, then its events."""
+def extract_replay(path, sc2reader, coop=False, set_name=None):
+    """Yield JSON-able records for one replay: a game record, then its events.
+
+    In `coop` mode the grouping key in every record (the `race` field) is the
+    player's co-op commander instead of their melee race, and only players who
+    have one are kept: that is what tells the two humans of a co-op game apart
+    from Amon's computer players.  `replay.cooperative` is not used, because it
+    is 0 on plenty of genuine co-op replays.
+    """
     replay = sc2reader.load_replay(path, load_level=4)
     if replay.expansion != "LotV" or replay.speed != "Faster":
         raise ValueError(
@@ -167,12 +233,32 @@ def extract_replay(path, sc2reader):
     game = os.path.splitext(os.path.basename(path))[0]
     races = {}
     for p in replay.players:
-        races[p.pid] = (p.play_race or "?")
-    yield {"kind": "game", "game": game, "map": replay.map_name,
+        if coop:
+            commander = (getattr(p, "commander", "") or "").strip()
+            if not commander:
+                continue          # Amon's computer players have no commander
+            races[p.pid] = COOP_ALIASES.get(commander, commander)
+        else:
+            races[p.pid] = (p.play_race or "?")
+    if coop and not races:
+        raise ValueError("%s: no player has a commander, so it is not a co-op "
+                         "replay" % os.path.basename(path))
+    solo = solo_commanders(set_name, set(races.values())) if coop else None
+    if solo:
+        races = {pid: c for pid, c in races.items() if c in solo}
+    kept = [p for p in replay.players if p.pid in races]
+    rec = {"kind": "game", "game": game, "map": replay.map_name,
            "patch": ".".join(str(n) for n in replay.versions[1:5]),
+           "build": replay.build,
            "seconds": replay.game_length.seconds,
            "players": [{"pid": p.pid, "name": p.name, "race": races[p.pid],
-                        "result": p.result} for p in replay.players]}
+                        "result": p.result} for p in kept]}
+    if coop:
+        rec["mode"] = "coop"
+        rec["set"] = set_name
+        rec["solo"] = bool(solo)
+        rec["humans"] = len(kept)
+    yield rec
     last_cam = {}
     for e in replay.events:
         pid = getattr(getattr(e, "player", None), "pid", None)
@@ -183,7 +269,11 @@ def extract_replay(path, sc2reader):
                "t": round(e.frame / LOOPS_PER_SECOND, 3)}
         if name.endswith("CommandEvent"):
             rec["kind"] = "command_update" if name.startswith("Update") else "command"
-            rec["ability"] = e.ability_name or None
+            # A third of the commander-specific co-op abilities have no name in
+            # sc2reader's data; their numeric id is stable within a build, so in
+            # co-op mode it becomes the token instead of being thrown away.
+            rec["ability"] = e.ability_name or (
+                HEX_ABILITY % e.ability_id if coop and e.ability_id else None)
             rec["target"] = ("point" if "TargetPoint" in name else
                              "unit" if "TargetUnit" in name else "none")
         elif name.endswith("ControlGroupEvent"):
@@ -204,12 +294,14 @@ def cmd_extract(args):
     import sc2reader
 
     paths = replay_paths(args.inputs)
+    roots = [os.path.abspath(i) for i in args.inputs if os.path.isdir(i)]
     parsed = failed = events = 0
     errors = []
     with open_out(args.out) as out:
         for i, path in enumerate(paths, 1):
             try:
-                recs = list(extract_replay(path, sc2reader))
+                recs = list(extract_replay(path, sc2reader, coop=args.coop,
+                                           set_name=set_of(path, roots)))
             except Exception as exc:  # a replay sc2reader cannot read
                 failed += 1
                 errors.append("%s: %s: %s" % (os.path.basename(path),
@@ -253,6 +345,31 @@ def load_hotkeys(path=HOTKEYS):
         if len(counter) > 1:
             ambiguous[ability] = counter.most_common()
     return index, ambiguous
+
+
+def commander_hotkeys(commander, path=HOTKEYS):
+    """Command name -> key for one co-op commander (its units plus global).
+
+    The name is the one `extract` writes, already mapped through
+    COOP_ALIASES to the hotkey file's spelling.
+
+    Same majority vote as `load_hotkeys`, over a different slice of the file:
+    the commander's own units and the melee units its race also fields, which is
+    what `factions_for` in tools/thecore_keymap.py already computes for
+    thecore/keymap.html.  A commander the file has no units for (Mengsk) keeps
+    only the global bindings.
+    """
+    keys = collections.defaultdict(collections.Counter)
+    for cmd, key, combo, _raw in parse_entries(path):
+        ability, unit = (cmd.split("/", 1) + [None])[:2] if "/" in cmd else (cmd, None)
+        if unit is None:
+            facs = [GLOBAL]
+        else:
+            facs = factions_for(unit)
+        if commander not in facs and GLOBAL not in facs:
+            continue
+        keys[ability][key] += 1
+    return {a: c.most_common(1)[0][0] for a, c in keys.items()}
 
 
 PREFIXES = ("Train", "Build", "WarpIn", "Warpin", "Use", "MorphTo", "Morph",
@@ -422,7 +539,7 @@ def aggregate(path):
                  "unnamed": 0, "abilities": collections.Counter(),
                  "cg": collections.Counter(), "camera": 0, "camera_jumps": 0,
                  "bigrams": collections.Counter(), "trigrams": collections.Counter(),
-                 "pairs": 0}
+                 "pairs": 0, "games": set()}
     races = collections.defaultdict(R)
     streams = collections.defaultdict(list)   # (game, pid) -> [(t, token)]
     seen = set()
@@ -441,6 +558,7 @@ def aggregate(path):
             race, kind = rec["race"], rec["kind"]
             r = races[race]
             key = (rec["game"], rec["player"])
+            r["games"].add(rec["game"])
             if key not in seen:
                 seen.add(key)
                 r["player_games"] += 1
@@ -466,9 +584,14 @@ def aggregate(path):
     return games, races, streams
 
 
-def sequence_stats(races, streams, mapping, cg_finger):
-    """Fill in bigrams, trigrams and the per-finger and same-finger numbers."""
+def sequence_stats(races, streams, mappings, cg_finger):
+    """Fill in bigrams, trigrams and the per-finger and same-finger numbers.
+
+    `mappings` is {race or commander: {ability: (key, finger, command)}}; in
+    melee every race shares one map, in co-op each commander has its own.
+    """
     fingers = collections.defaultdict(collections.Counter)      # race -> finger
+    keycount = collections.defaultdict(collections.Counter)     # race -> key
     # race -> [same finger, scored pairs, same key]; same key is a subset of
     # same finger, so "same finger, different key" is the difference.
     same = collections.defaultdict(lambda: [0, 0, 0])
@@ -476,11 +599,11 @@ def sequence_stats(races, streams, mapping, cg_finger):
     mapped = collections.defaultdict(lambda: [0, 0])            # race -> [mapped, total]
     unmapped = collections.defaultdict(collections.Counter)
 
-    def place(tok):
+    def place(race, tok):
         """(key, finger) for a token, or (None, None) if it maps to neither."""
         if tok.startswith("CG") and tok[2:].isdigit():
             return cg_finger[int(tok[2:])]
-        hit = mapping.get(tok)
+        hit = mappings[race].get(tok)
         return (hit[0], hit[1]) if hit else (None, None)
 
     for (_game, _pid), stream in streams.items():
@@ -490,11 +613,12 @@ def sequence_stats(races, streams, mapping, cg_finger):
         race = stream[0][2]
         r = races[race]
         for i, (t, tok, _) in enumerate(stream):
-            k, f = place(tok)
+            k, f = place(race, tok)
             mapped[race][1] += 1
             if f:
                 mapped[race][0] += 1
                 fingers[race][f] += 1
+                keycount[race][k] += 1
             else:
                 unmapped[race][tok] += 1
             if i == 0:
@@ -504,7 +628,7 @@ def sequence_stats(races, streams, mapping, cg_finger):
                 continue
             r["bigrams"]["%s > %s" % (ptok, tok)] += 1
             r["pairs"] += 1
-            pk, pf = place(ptok)
+            pk, pf = place(race, ptok)
             if f and pf:
                 same[race][1] += 1
                 if f == pf:
@@ -518,23 +642,25 @@ def sequence_stats(races, streams, mapping, cg_finger):
                 ppt, pptok, _ = stream[i - 2]
                 if pt - ppt <= WINDOW:
                     r["trigrams"]["%s > %s > %s" % (pptok, ptok, tok)] += 1
-    return fingers, same, offenders, mapped, unmapped
+    return fingers, keycount, same, offenders, mapped, unmapped
 
 
-def summarise(events_path, replay_set, parse_note):
+def summarise(events_path, replay_set, parse_note, coop=False):
     index, ambiguous = load_hotkeys()
     check_normalisation(index)
     cg_finger = cg_keys()
     games, races, streams = aggregate(events_path)
-    abilities = set()
-    for r in races.values():
-        abilities |= set(r["abilities"])
-    mapping = build_map(abilities, index)
-    fingers, same, offenders, mapped, unmapped = sequence_stats(
-        races, streams, mapping, cg_finger)
+    mappings, mapping = {}, {}
+    for race, r in races.items():
+        idx = commander_hotkeys(race) if coop else index
+        mappings[race] = build_map(set(r["abilities"]), idx)
+        mapping.update(mappings[race])
+    fingers, keycount, same, offenders, mapped, unmapped = sequence_stats(
+        races, streams, mappings, cg_finger)
 
     patches = collections.Counter(g["patch"] for g in games.values())
     out = {
+        "mode": "coop" if coop else "melee",
         "replay_set": replay_set,
         "games": len(games),
         "patches": patches.most_common(),
@@ -547,9 +673,11 @@ def summarise(events_path, replay_set, parse_note):
         "control_group_keys": {str(g): list(v) for g, v in sorted(cg_finger.items())},
         "races": {},
     }
+    finger_of_key = {k: f for f, keys in FINGERS.items() for k in keys}
     for race, r in sorted(races.items()):
         pg, mins = r["player_games"], r["seconds"] / 60.0
-        cmd_mapped = sum(c for a, c in r["abilities"].items() if a in mapping)
+        cmd_mapped = sum(c for a, c in r["abilities"].items()
+                         if a in mappings[race])
         cmd_mouse = sum(c for a, c in r["abilities"].items() if a in MOUSE)
         by_finger = fingers[race]
         s_same, s_pairs, s_key = same[race]
@@ -557,6 +685,7 @@ def summarise(events_path, replay_set, parse_note):
         pct = lambda n: round(100.0 * n / s_pairs, 1) if s_pairs else None
         out["races"][race] = {
             "player_games": pg,
+            "games": len(r["games"]),
             "minutes": round(mins, 1),
             "commands": r["commands"],
             "commands_per_game": round(r["commands"] / pg, 1),
@@ -569,8 +698,10 @@ def summarise(events_path, replay_set, parse_note):
                               for a, c in r["abilities"].most_common(TOP_ABILITIES)],
             "top_share": round(100.0 * sum(c for _, c in r["abilities"].most_common(40))
                                / r["commands"], 1),
-            "control_groups": {k: [v, round(v / pg, 2)]
+            "control_groups": {k: [v, round(v / pg, 2), round(v / mins, 3)]
                                for k, v in sorted(r["cg"].items())},
+            "control_group_events_per_minute": round(
+                sum(r["cg"].values()) / mins, 2),
             "camera_events_per_game": round(r["camera"] / pg, 1),
             "camera_jumps_per_game": round(r["camera_jumps"] / pg, 1),
             "camera_jumps_per_minute": round(r["camera_jumps"] / mins, 2),
@@ -592,6 +723,9 @@ def summarise(events_path, replay_set, parse_note):
             "finger_share": {f: round(100.0 * c / sum(by_finger.values()), 1)
                              for f, c in by_finger.most_common()},
             "finger_counts": dict(by_finger.most_common()),
+            "key_events_per_minute": [[k, finger_of_key.get(k, "other"), c,
+                                       round(c / mins, 2)]
+                                      for k, c in keycount[race].most_common()],
             "same_finger_pairs": s_same,
             "scored_pairs": s_pairs,
             "same_finger_rate": pct(s_same),
@@ -646,6 +780,10 @@ def render(s):
               "The set is **%s**: %d games, patch %s, parsed with sc2reader at "
               "`load_level=4`."
               % (s["replay_set"], s["games"], patches)).rstrip())
+    L.append("")
+    L.append("Co-op Commanders are measured separately, one set of numbers per "
+             "commander, in [SC2 co-op command sequences, measured]"
+             "(sc2-coop-sequences.md).")
     L.append("")
     L.append("`tools/sc2_sequences.py` produced both this page and "
              "`thecore/sequences-summary.json`, which holds the same aggregates; "
@@ -817,21 +955,216 @@ def render(s):
     return "\n".join(L)
 
 
+def hex_share(r):
+    """Share of a commander's commands that came through as a numeric id."""
+    hexed = sum(c for a, c, _pg, _pm, _sh in r["top_abilities"]
+                if a.startswith("ability:0x"))
+    return round(100.0 * hexed / r["commands"], 1) if r["commands"] else 0.0
+
+
+def render_coop(s):
+    """The co-op page: same measurements, keyed by commander instead of race."""
+    coms = s["races"]
+    order = sorted(coms, key=lambda c: -coms[c]["player_games"])
+    builds = [p for p, _ in s["patches"]]
+    L = []
+    L.append("---")
+    L.append("type: Reference")
+    L.append("title: SC2 co-op command sequences, measured")
+    L.append("description: Command frequencies, control-group use and event "
+             "sequences measured from %d StarCraft II Co-op speedrun replays, "
+             "one set of numbers per commander." % s["games"])
+    L.append("tags: [starcraft, thecore, gaming, measurement, hotkeys, coop]")
+    L.append('source: "%s; measured with tools/sc2_sequences.py"' % s["replay_set"])
+    L.append("---")
+    L.append("")
+    L.append("# SC2 co-op command sequences, measured")
+    L.append("")
+    L.append("The companion to [SC2 command sequences, measured]"
+             "(sc2-command-sequences.md), which measures 1v1 pro play. This page "
+             "measures **Co-op Commanders** instead: %d replays, %d player-games, "
+             "%d commanders, %s minutes played. Co-op is where a hotkey layout is "
+             "stressed differently: every commander has its own calldowns and top-bar "
+             "abilities on top of the melee kit."
+             % (s["games"], sum(c["player_games"] for c in coms.values()),
+                len(coms), format(int(sum(c["minutes"] for c in coms.values())), ",")))
+    L.append("")
+    L.append("## Where the replays come from")
+    L.append("")
+    L.append("The set is the community **co-op speedrun archive**: the replays "
+             "behind the clear-time leaderboards on "
+             "[starcraft2coop.com](https://starcraft2coop.com/), kept in the public "
+             "Google Drive folder "
+             "[0B0kAPEv3WqAeZlhmbzN5NWlDc1E]"
+             "(https://drive.google.com/drive/folders/0B0kAPEv3WqAeZlhmbzN5NWlDc1E), "
+             "one directory per commander (`Dehaka Solo`, `Alarak-Co-Op`, ...). "
+             "These are record attempts, not average games, so read every rate as "
+             "the fast end of what a player does, not the median.")
+    L.append("")
+    L.append("The archive is old and wide: %d distinct game builds, %s to %s. "
+             "`replays/README.md` says how to fetch it and where it lives locally."
+             % (len(builds), min(builds, key=lambda p: int(p.rsplit(".", 1)[-1])),
+                max(builds, key=lambda p: int(p.rsplit(".", 1)[-1]))))
+    L.append("")
+    L.append("## What is counted")
+    L.append("")
+    L.append("Definitions (command, control-group action, camera jump, sequence "
+             "pair, the TheCore projection) are the ones on the "
+             "[1v1 page](sc2-command-sequences.md#what-is-counted), with three "
+             "co-op-specific points:")
+    L.append("")
+    L.append("- **Who is a player.** A co-op replay has two player slots and a pile "
+             "of Amon computer players. Human players are the ones with a commander; "
+             "`replay.cooperative` is not used, because it is 0 on plenty of these "
+             "replays. In a two-human run each player is counted under their own "
+             "commander, so one replay can feed two commanders' numbers.")
+    L.append("- **Hex-id tokens.** sc2reader has no name for many "
+             "commander-specific abilities, so about %s%% of commands here arrive as "
+             "a numeric ability id, written `ability:0x....`. They are kept verbatim "
+             "rather than dropped: the id is stable inside a build, so it counts and "
+             "sequences correctly, and only the label is missing. Because the archive "
+             "spans %d builds, the same id can mean different abilities in different "
+             "years \u2014 treat a hex token as a within-commander shape, not a name."
+             % (round(sum(hex_share(c) * c["commands"] for c in coms.values())
+                      / max(1, sum(c["commands"] for c in coms.values())), 1),
+                len(builds)))
+    L.append("- **Camera hotkeys are invisible.** A replay records where the camera "
+             "went, never which key sent it there, and co-op players lean on camera "
+             "hotkeys and the minimap hard. The camera-jump counts below are an upper "
+             "bound on camera hotkey presses, and no camera key appears in the "
+             "sequences at all, so the real same-finger load is higher than the "
+             "numbers here.")
+    L.append("")
+    L.append("## Commanders")
+    L.append("")
+    if s["parse"]:
+        L.append(s["parse"])
+        L.append("")
+    rows = []
+    for c in order:
+        r = coms[c]
+        rows.append([c, r["games"], r["player_games"], round(r["minutes"]),
+                     r["commands"], r["commands_per_minute"],
+                     r["control_group_events_per_minute"],
+                     r["camera_jumps_per_minute"], r["distinct_abilities"],
+                     "%s%%" % hex_share(r), "%s%%" % r["mapped_command_share"]])
+    L += table(["Commander", "Replays", "Player-games", "Minutes", "Commands",
+                "Commands/min", "CG actions/min", "Camera jumps/min",
+                "Distinct abilities", "Hex-id share", "On a TheCore key"], rows)
+    L.append("")
+    by_cg = sorted(order, key=lambda c: -coms[c]["control_group_events_per_minute"])
+    hi, lo = by_cg[0], by_cg[-1]
+    L.append("Control-group load is the number that varies most, and not with "
+             "command rate: %s runs %s control-group actions a minute (mostly "
+             "recalls, on %.0f minutes of play) against %s's %s. A layout tuned "
+             "for one commander is not tuned for another."
+             % (hi, coms[hi]["control_group_events_per_minute"],
+                coms[hi]["minutes"], lo,
+                coms[lo]["control_group_events_per_minute"]))
+    L.append("")
+    L.append("\"On a TheCore key\" uses only the bindings the hotkey file gives that "
+             "commander (its own units, its race's melee units, and the global "
+             "commands), so it is a fair per-commander coverage figure. The hex-id "
+             "commands can never map, which is most of what the gap is.")
+    L.append("")
+    for c in order:
+        r = coms[c]
+        L.append("### %s" % c)
+        L.append("")
+        L.append("%d replays, %d player-games, %.0f minutes, %d commands: "
+                 "**%s commands per minute** (%s per game). "
+                 "%s control-group actions and %s camera jumps per minute. "
+                 "%s%% of commands are hex ids."
+                 % (r["games"], r["player_games"], r["minutes"], r["commands"],
+                    r["commands_per_minute"], r["commands_per_game"],
+                    r["control_group_events_per_minute"],
+                    r["camera_jumps_per_minute"], hex_share(r)))
+        L.append("")
+        L.append("Top abilities, per minute:")
+        L.append("")
+        L += table(["#", "Ability", "Per minute", "Share of commands"],
+                   [[i + 1, a, pm, "%s%%" % sh] for i, (a, _c, _pg, pm, sh)
+                    in enumerate(r["top_abilities"][:15])])
+        L.append("")
+        L.append("Control groups, actions per minute:")
+        L.append("")
+        actions = [("cg_set", "Set"), ("cg_add", "Add"), ("cg_steal", "Steal"),
+                   ("cg_get", "Recall")]
+        rows = []
+        for g in range(10):
+            row = [g]
+            for kind, _label in actions:
+                row.append(r["control_groups"].get("%s/%d" % (kind, g),
+                                                   [0, 0, 0])[2])
+            if any(v for v in row[1:]):
+                rows.append(row)
+        rows.append(["all"] + [round(sum(v[2] for k, v in r["control_groups"].items()
+                                         if k.startswith(kind + "/")), 2)
+                               for kind, _l in actions])
+        L += table(["Group", "Set/min", "Add/min", "Steal/min", "Recall/min"], rows)
+        L.append("")
+        L.append("Busiest TheCore keys (of the %s%% of sequence events that map to "
+                 "one):" % r["mapped_sequence_share"])
+        L.append("")
+        L += table(["Key", "Finger", "Events/min"],
+                   [[k, f, pm] for k, f, _c, pm in r["key_events_per_minute"][:10]])
+        L.append("")
+        L.append("Top pairs within %gs (%s per minute over %d pairs):"
+                 % (s["window_seconds"], round(r["pairs"] / r["minutes"], 1),
+                    r["pairs"]))
+        L.append("")
+        L += table(["#", "Pair", "Count", "Per game"],
+                   [[i + 1, b, n, pg] for i, (b, n, pg)
+                    in enumerate(r["top_bigrams"][:12])])
+        L.append("")
+        if r["same_finger_rate"] is not None:
+            L.append("Same finger on the next key: **%s%%** of the %d pairs where "
+                     "both events map to a key. Of those same pairs, %s%% are the "
+                     "same key twice (a repeat no layout can move apart) and "
+                     "**%s%% are the same finger on a different key**."
+                     % (r["same_finger_rate"], r["scored_pairs"],
+                        r["same_key_rate"], r["same_finger_diff_key_rate"]))
+            L.append("")
+    L.append("## Reproducing")
+    L.append("")
+    L.append("```")
+    L.append("# fetch the archive: see replays/README.md")
+    L.append("uv run --python 3.12 --with sc2reader python tools/sc2_sequences.py \\")
+    L.append("    extract ~/scratch/thecore/coop/replays --coop \\")
+    L.append("    -o ~/scratch/thecore/coop/events.jsonl.gz")
+    L.append("uv run --python 3.12 --with sc2reader python tools/sc2_sequences.py \\")
+    L.append("    report ~/scratch/thecore/coop/events.jsonl.gz --coop \\")
+    L.append("    -o wiki/sc2-coop-sequences.md --summary thecore/coop-summary.json")
+    L.append("# or rebuild this page from the committed summary alone:")
+    L.append("python3 tools/sc2_sequences.py report thecore/coop-summary.json \\")
+    L.append("    -o wiki/sc2-coop-sequences.md")
+    L.append("```")
+    L.append("")
+    L.append("The full aggregates, including the top %d bigrams and the top %d "
+             "abilities per commander, are in `thecore/coop-summary.json`; the "
+             "replays and the event stream stay out of the repo."
+             % (TOP_BIGRAMS, TOP_ABILITIES))
+    L.append("")
+    return "\n".join(L)
+
+
 def cmd_report(args):
     if args.input.endswith(".json"):
         check_normalisation()
         with open(args.input, encoding="utf-8") as f:
             summary = json.load(f)
     else:
-        summary = summarise(args.input, args.replay_set, args.parse_note)
+        summary = summarise(args.input, args.replay_set, args.parse_note,
+                            coop=args.coop)
     if args.summary:
         with open(args.summary, "w", encoding="utf-8") as f:
             json.dump(summary, f, separators=(",", ":"), sort_keys=False)
         print("wrote %s (%.0f KB)" % (args.summary,
                                       os.path.getsize(args.summary) / 1024.0),
               file=sys.stderr)
+    renderer = render_coop if summary.get("mode") == "coop" else render
     with open(args.out, "w", encoding="utf-8") as f:
-        f.write(render(summary))
+        f.write(renderer(summary))
     print("wrote %s" % args.out, file=sys.stderr)
 
 
@@ -850,6 +1183,9 @@ def main():
     e = sub.add_parser("extract", help="parse replays into a JSONL event stream")
     e.add_argument("inputs", nargs="+", help=".SC2Replay files or directories")
     e.add_argument("-o", "--out", required=True, help="output .jsonl or .jsonl.gz")
+    e.add_argument("--coop", action="store_true",
+                   help="co-op replays: group by commander, keep only the "
+                        "human players (those with one)")
     e.set_defaults(func=cmd_extract)
     r = sub.add_parser("report", help="aggregate a stream into a page and a summary")
     r.add_argument("input", help="events .jsonl[.gz], or a summary .json to re-render")
@@ -858,6 +1194,8 @@ def main():
     r.add_argument("--replay-set", default="IEM Katowice 2024 main event",
                    help="name of the replay set, for the page")
     r.add_argument("--parse-note", default="", help="one sentence on parse coverage")
+    r.add_argument("--coop", action="store_true",
+                   help="co-op stream: group by commander and render the co-op page")
     r.set_defaults(func=cmd_report)
     t = sub.add_parser("selftest", help="check the ability-name normalisation")
     t.set_defaults(func=cmd_selftest)
