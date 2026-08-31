@@ -144,7 +144,7 @@ Three inputs, all cited elsewhere on this page or in the repo:
    described in [SC2 command sequences](/sc2-command-sequences.md). The summary ships a key map for 5.0 only, so both
    files are scored the same way instead: each summary ability row is matched to the key that file binds it to, and
    each control-group set, add, steal, delete and recall is counted on that file's own recall key. Right clicks are
-   dropped, because they are on the mouse. **This branch is the issue #27 experiment**: the tool was run with
+   dropped, because they are on the mouse. **The co-op blend was adopted in issue #27**: the tool is run with
    `--coop-blend 0.5 --coop-normalize`, so each key's load is 0.5 x its 1v1 rate + 0.5 x its co-op rate, the
    equal-commander mean over the 18 commanders of [`../thecore/coop-summary.json`](../thecore/coop-summary.json)
    (per-minute rates averaged, raw counts never pooled), with the co-op side first scaled so its total load and
