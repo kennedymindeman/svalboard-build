@@ -11,6 +11,13 @@ and the bigram rates blend the same way.  The co-op rate is the mean over all
 sizes differ 26 to 158 player-games).  Constraints, finger weights, slot order
 and the optimizer are untouched; only the load and pair inputs change.
 
+`--coop-normalize` (default off) scales the co-op aggregate before mixing so
+the two corpora contribute equal total mass at weight 0.5: co-op per-minute
+rates are about ten times smaller than 1v1 rates, so the raw blend gives
+co-op far less than half the influence.  The per-key co-op loads are scaled
+by (sum of 1v1 key loads / sum of co-op key loads) and the co-op pair rates
+by the analogous ratio over pair totals.
+
 The premise (wiki/thecore-method-on-a-svalboard.md section 4c, the user's
 decision): the LEFT hand is on the Svalboard and the RIGHT hand is on an
 ordinary mouse, so mouse clicks cost no keys and the only room beyond the 20
@@ -403,6 +410,14 @@ def coop_load(summary, path):
     return dict(load), dict(pairs)
 
 
+def normalized(load, pairs, cload, cpairs):
+    """Scale the co-op dicts so their totals match the 1v1 totals."""
+    kscale = sum(load.values()) / sum(cload.values())
+    pscale = sum(pairs.values()) / sum(cpairs.values())
+    return ({k: v * kscale for k, v in cload.items()},
+            {k: v * pscale for k, v in cpairs.items()})
+
+
 def mix(a, b, w):
     """(1 - w) * a + w * b over the sorted union of keys (order-stable sums)."""
     return {k: (1.0 - w) * a.get(k, 0.0) + w * b.get(k, 0.0)
@@ -565,6 +580,7 @@ def main():
     argv = sys.argv[1:]
     markdown = "--markdown" in argv
     weight = float(argv[argv.index("--coop-blend") + 1]) if "--coop-blend" in argv else 0.0
+    normalize = "--coop-normalize" in argv
     with open(os.path.join(HERE, SUMMARY), encoding="utf-8") as f:
         summary = json.load(f)
     coop = None
@@ -592,10 +608,14 @@ def main():
         load, pairs, notes = replay_load(summary, rel)
         if weight:
             cload, cpairs = coop_load(coop, rel)
+            if normalize:
+                cload, cpairs = normalized(load, pairs, cload, cpairs)
             load = mix(load, cload, weight)
             pairs = mix(pairs, cpairs, weight)
-            print("co-op blend %.2f: load = %.2f x 1v1 + %.2f x equal-commander"
-                  " co-op mean" % (weight, 1.0 - weight, weight))
+            print("co-op blend %.2f%s: load = %.2f x 1v1 + %.2f x"
+                  " equal-commander co-op mean"
+                  % (weight, ", normalized to equal total mass" if normalize
+                     else "", 1.0 - weight, weight))
         print("\n=== %s: %d bindings on %d keys, %.0f replay minutes"
               % (name, total, len(keys), notes["minutes"]))
         reasons = exclude(keys)
@@ -690,8 +710,11 @@ def main():
         html = html.replace(marker, marker[:-7] + (
             ' blended %.0f/%.0f with per-minute rates averaged equally across '
             'the 18 co-op commanders of\n<a href="coop-summary.json">'
-            'coop-summary.json</a> (<code>--coop-blend %g</code>), places'
-            % (100 * (1 - weight), 100 * weight, weight)))
+            'coop-summary.json</a>%s (<code>--coop-blend %g%s</code>), places'
+            % (100 * (1 - weight), 100 * weight,
+               ', the co-op side normalized to equal total load before the mix'
+               if normalize else '',
+               weight, ' --coop-normalize' if normalize else '')))
     out = os.path.join(HERE, OUT)
     with open(out, "w", encoding="utf-8") as f:
         f.write(html)
