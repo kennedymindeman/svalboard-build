@@ -84,7 +84,7 @@ Keys that moved (6):
   The tool's stdout was byte-identical before and after adding the flag.
 * Blended run is deterministic: `--coop-blend 0.5` run under
   `PYTHONHASHSEED=1` and `PYTHONHASHSEED=99` produced byte-identical
-  `svalboard-keymap.html` (sha1 7447286010d9ba0c280a82800af3f1f25b91f87e)
+  `svalboard-keymap.html` (sha1 576d46051332880eb695531b6dcd3bc5a1c534d6)
   and byte-identical stdout.
 * Placed keys unchanged: 40 per file in both layouts (asserted above), and
   the blended run's unplaced sets match `EXPECTED_UNPLACED` for both files.

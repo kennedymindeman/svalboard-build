@@ -627,7 +627,7 @@ def main():
         hot = [k for k, v in load.items() if v > 0 and k not in place]
         print("keys with replay load > 0 that are unplaced: %s"
               % (", ".join(sorted(hot)) if hot else "none"))
-        if weight == 0.0 and set(reasons) != EXPECTED_UNPLACED[name]:
+        if set(reasons) != EXPECTED_UNPLACED[name]:
             raise SystemExit(
                 "unplaced keys for %s are %s, expected %s: the inputs or the "
                 "rules changed, check the placement before updating the guard"
@@ -683,6 +683,15 @@ def main():
             print("\n### %s\n\n%s" % (name, table))
         return
     html = TEMPLATE.replace("__DATA__", json.dumps(data, separators=(",", ":")))
+    if weight:
+        marker = ('187 pro replays (<a href="../wiki/sc2-command-sequences.md">'
+                  'wiki/sc2-command-sequences.md</a>), places')
+        assert marker in html
+        html = html.replace(marker, marker[:-7] + (
+            ' blended %.0f/%.0f with per-minute rates averaged equally across '
+            'the 18 co-op commanders of\n<a href="coop-summary.json">'
+            'coop-summary.json</a> (<code>--coop-blend %g</code>), places'
+            % (100 * (1 - weight), 100 * weight, weight)))
     out = os.path.join(HERE, OUT)
     with open(out, "w", encoding="utf-8") as f:
         f.write(html)
