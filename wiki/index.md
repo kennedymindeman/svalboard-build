@@ -24,7 +24,7 @@ Build and configuration knowledge for the Svalboard in this repo, as an [OKF v0.
 - [sc2-command-sequences](/sc2-command-sequences.md) — What 187 professional StarCraft II games actually press: command and control-group frequencies, camera jumps, the commonest two- and three-event sequences, and what they land on under TheCore 5.0's keys and fingers.
 - [sc2-coop-sequences](/sc2-coop-sequences.md) — The same measurement over 975 StarCraft II Co-op speedrun replays, one set of numbers per commander: commands, control-group and camera rates per minute, the busiest TheCore keys and the commonest pairs, and how far the load spreads between commanders.
 - [svalboard-and-thecore](/svalboard-and-thecore.md) — What TheCore StarCraft II hotkey community's layout principles, modifier habits and hotkey-file tricks imply for playing on a Svalboard, and what neither community has settled.
-- [thecore-method-on-a-svalboard](/thecore-method-on-a-svalboard.md) — TheCore's design method (rank keys by ease, rank commands by use, assign deterministically, efficiency over intuition) stated from its own documents, the Svalboard's per-position ease evidence, and a derived recipe and worked assignment for a Svalboard.
+- [thecore-method-on-a-svalboard](/thecore-method-on-a-svalboard.md) — TheCore's design method (rank keys by ease, rank commands by use, assign deterministically, efficiency over intuition) stated from its own documents, the Svalboard's per-position ease evidence, and a computed assignment of TheCore's keys to one left Svalboard hand plus a held layer, ranked by pro-replay load.
 
 ## TheCore (separate bundle)
 
