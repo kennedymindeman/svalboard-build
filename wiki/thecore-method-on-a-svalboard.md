@@ -147,10 +147,21 @@ Three inputs, all cited elsewhere on this page or in the repo:
    dropped, because they are on the mouse.
 3. The zones of 4a and the finger roles of 4c.
 
-Slots: 20 base keys and 20 with the Nail layer held. A slot's difficulty is `(zone - 1) + 1 if the layer is held`,
-which treats a held layer as costing about one zone step and *derives* the ordering base zone 1, base zone 2, layer
-zone 1, base zone 3, layer zone 2, layer zone 3. Inside a zone the order is 4a's: centre, south, inward, north,
-outward, with pinky north forced last as "the worst key" (S:283944).
+Slots: 20 base keys and 20 with the Nail layer held. A slot's difficulty is `(zone - 1) + 1 if the layer is held` plus
+a per-finger weight of index 0.0, middle 0.0, ring 0.2, pinky 0.5, which treats a held layer as costing about one zone
+step and a pinky key as costing half of one. That *derives* the ordering base zone 1, base zone 2, layer zone 1, base
+zone 3, layer zone 2, layer zone 3, with index and middle ahead of ring and pinky inside each band. Inside a zone the
+order is 4a's: centre, south, inward, north, outward, with pinky north forced last as "the worst key" (S:283944).
+
+Two rules were added after the first pass, and one of them is not evidence. **The per-finger weights are an
+assumption**: the Svalboard wiki of section 3 ranks positions within one finger and never ranks the fingers against
+each other, so the four numbers above are a judgement call, picked so that the highest-load keys prefer index and
+middle over ring and pinky. Without them every finger cost the same and Attack landed on the pinky. **The
+control-group floor** is the second rule: the ten keys carrying `ControlGroupRecall0` to `9` each get a base-plane
+middle or ring slot. Middle and ring have exactly ten base slots, so the ten groups own them outright, no group sits
+anywhere else and nothing else sits there. Where 6.0 stacks a group onto a command-card key (`J`, `M`, `N`, `H`, `G`)
+this beats the index/pinky rule for `Command n`. Everything else, camera keys included, competes for the other 30
+slots under the rules already stated.
 
 Assignment, deterministic and printed by the tool:
 
@@ -158,16 +169,17 @@ Assignment, deterministic and printed by the tool:
    numbers are not in the hotkey files, so binding count stands in for them.
 2. Greedy: each key takes the easiest free slot its role allows.
 3. Then a hill climb: repeatedly make the one swap of two placed keys that lowers the cost most, as long as each key's
-   role still allows its new finger. Cost, in events per minute, is the rate of same-finger different-key transitions
+   role still allows its new finger and the control-group floor still holds. Cost, in events per minute, is the rate of same-finger different-key transitions
    over the summary's bigrams (a transition that crosses into the layer counts half, since the layer hand is already
    loaded differently) plus each key's load times its slot difficulty. Same-key repeats such as `CG3 > CG3` are not a
    cost; the summary counts them separately.
 
-For 5.0 Right Plus that is 85.12 after the greedy pass and 69.29 after 5 swaps; for 6.0 Right, 45.79 and then 41.13
-after 11 swaps.
+For 5.0 Right Plus that is 106.42 after the greedy pass and 99.11 after 4 swaps; for 6.0 Right, 105.41 and then 98.16
+after 2 swaps. These are not comparable with the 69.29 and 41.13 of the pass before the two rules above: the finger
+weights add to every key's zone term and the control-group floor forbids arrangements the old search could use.
 
-Some same-finger work is forced rather than a failure of the search. Rule 1 of 4c allows control groups only on middle
-and ring, and five control groups carry most of the replay load, so heavy pairs such as `CG1 > CG3` share a finger
+Some same-finger work is forced rather than a failure of the search. The control-group floor puts all ten groups on
+middle and ring, and five of them carry most of the replay load, so heavy pairs such as `CG1 > CG3` share a finger
 whichever way they are arranged; the tool spends the half-price cross-plane transition on the heaviest of them. Camera
 and idle-worker keys score zero, because a replay records where the camera went and never which key moved it, so they
 sort to the tail and two of them (5.0 `6` and `7`, Town Camera and Idle Worker) overflow the ten middle and ring
@@ -189,45 +201,45 @@ emit for that well (section 4e).
 | Svalboard key | Zone | TheCore key | Vial keycode | Carries | Load /min |
 | --- | --- | --- | --- | --- | --- |
 | **Base** | | | | | |
-| index centre | 1 | - | `KC_MINS` | Larva, command card (187) | 5.6 |
-| index south | 1 | J | `KC_J` | Cam 3, Larva, command card (297) | 4.7 |
-| index inward | 2 | [ | `KC_LBRC` | Burrow Down, command card (106) | 2.1 |
-| index north | 2 | H | `KC_H` | Larva, Burrow Up, command card (74) | 0.9 |
+| index centre | 1 | P | `KC_P` | Cam 0/3, Attack, Larva | 19.2 |
+| index south | 1 | - | `KC_MINS` | Larva, command card (187) | 5.6 |
+| index inward | 2 | H | `KC_H` | Larva, Burrow Up, command card (74) | 0.9 |
+| index north | 2 | ] | `KC_RBRC` | Move Hold Position, command card (11) | 0.6 |
 | index outward | 3 | M | `KC_M` | Stop Generate Creep, Larva, command card (84) | 0.4 |
-| middle centre | 1 | O | `KC_O` | CG 1, Cam 1 | 35.8 |
-| middle south | 1 | L | `KC_L` | CG 3, Cam 5 | 24.1 |
-| middle inward | 2 | Z | `KC_Z` | Rally | 0.0 |
-| middle north | 2 | U | `KC_U` | CG 8 | 1.8 |
-| middle outward | 3 | A | `KC_A` | Move | 0.0 |
-| ring centre | 1 | K | `KC_K` | CG 4, Cam 6 | 26.8 |
-| ring south | 1 | I | `KC_I` | CG 2, Cam 2 | 23.1 |
-| ring inward | 2 | F | `KC_F` | Rally SCV | 0.1 |
+| middle centre | 1 | I | `KC_I` | CG 2, Cam 2 | 23.1 |
+| middle south | 1 | K | `KC_K` | CG 4, Cam 6 | 26.8 |
+| middle inward | 2 | 9 | `KC_9` | CG 5, Cam 7 | 21.8 |
+| middle north | 2 | . | `KC_DOT` | CG 0 | 5.6 |
+| middle outward | 3 | U | `KC_U` | CG 8 | 1.8 |
+| ring centre | 1 | L | `KC_L` | CG 3, Cam 5 | 24.1 |
+| ring south | 1 | O | `KC_O` | CG 1, Cam 1 | 35.8 |
+| ring inward | 2 | 0 | `KC_0` | CG 6 | 7.0 |
 | ring north | 2 | 8 | `KC_8` | CG 7 | 1.9 |
-| ring outward | 3 | Enter | `KC_ENT` | Chat Default, Chat Allies | 0.0 |
-| pinky centre | 1 | P | `KC_P` | Cam 0/3, Attack, Larva | 19.2 |
+| ring outward | 3 | , | `KC_COMM` | CG 9 | 1.4 |
+| pinky centre | 1 | J | `KC_J` | Cam 3, Larva, command card (297) | 4.7 |
 | pinky south | 1 | ; | `KC_SCLN` | Cam 4, command card (254) | 3.3 |
-| pinky inward | 2 | G | `KC_G` | Stop, command card (13) | 0.4 |
-| pinky north | 3 | = | `KC_EQL` | Larva, command card (30) | 0.0 |
-| pinky outward | 3 | Y | `KC_Y` | Move Patrol, Larva, Army Select | 0.2 |
+| pinky inward | 2 | N | `KC_N` | Land, Lift, Larva | 0.6 |
+| pinky north | 3 | W | `KC_W` | command card (5) | 0.0 |
+| pinky outward | 3 | D | `KC_D` | Rally Egg, command card (6) | 0.0 |
 | **Nail layer held** | | | | | |
-| index centre | 1 | ] | `KC_RBRC` | Move Hold Position, command card (11) | 0.6 |
-| index south | 1 | / | `KC_SLSH` | Cancel, command card (12) | 0.4 |
-| index inward | 2 | D | `KC_D` | Rally Egg, command card (6) | 0.0 |
-| index north | 2 | C | `KC_C` | Select Builder, command card (5) | 0.0 |
+| index centre | 1 | [ | `KC_LBRC` | Burrow Down, command card (106) | 2.1 |
+| index south | 1 | ' | `KC_QUOT` | Larva, command card (52) | 1.6 |
+| index inward | 2 | Y | `KC_Y` | Move Patrol, Larva, Army Select | 0.2 |
+| index north | 2 | = | `KC_EQL` | Larva, command card (30) | 0.0 |
 | index outward | 3 | F10 | `KC_F10` | Menu Game | 0.0 |
-| middle centre | 1 | . | `KC_DOT` | CG 0 | 5.6 |
-| middle south | 1 | 0 | `KC_0` | CG 6 | 7.0 |
+| middle centre | 1 | F | `KC_F` | Rally SCV | 0.1 |
+| middle south | 1 | Z | `KC_Z` | Rally | 0.0 |
 | middle inward | 2 | E | `KC_E` | misc | 0.0 |
-| middle north | 2 | Backspace | `KC_BSPC` | Camera Turn Left, Camera Turn Right | 0.0 |
+| middle north | 2 | Q | `KC_Q` | misc | 0.0 |
 | middle outward | 3 | R | `KC_R` | misc | 0.0 |
-| ring centre | 1 | , | `KC_COMM` | CG 9 | 1.4 |
-| ring south | 1 | 9 | `KC_9` | CG 5, Cam 7 | 21.8 |
-| ring inward | 2 | Q | `KC_Q` | misc | 0.0 |
+| ring centre | 1 | A | `KC_A` | Move | 0.0 |
+| ring south | 1 | Enter | `KC_ENT` | Chat Default, Chat Allies | 0.0 |
+| ring inward | 2 | Backspace | `KC_BSPC` | Camera Turn Left, Camera Turn Right | 0.0 |
 | ring north | 2 | Escape | `KC_ESC` | Menu Game | 0.0 |
 | ring outward | 3 | Tab | `KC_TAB` | misc | 0.0 |
-| pinky centre | 1 | N | `KC_N` | Land, Lift, Larva | 0.6 |
-| pinky south | 1 | ' | `KC_QUOT` | Larva, command card (52) | 1.6 |
-| pinky inward | 2 | W | `KC_W` | command card (5) | 0.0 |
+| pinky centre | 1 | / | `KC_SLSH` | Cancel, command card (12) | 0.4 |
+| pinky south | 1 | G | `KC_G` | Stop, command card (13) | 0.4 |
+| pinky inward | 2 | C | `KC_C` | Select Builder, command card (5) | 0.0 |
 | pinky north | 3 | B | `KC_B` | misc | 0.0 |
 | pinky outward | 3 | X | `KC_X` | misc | 0.0 |
 

@@ -21,17 +21,25 @@ Nothing here is hand-picked.  The mapping is computed from three inputs:
 
 Placement rule, applied in this order:
 
-* Slot difficulty = (zone - 1) + (1 if the slot needs the Nail layer held),
-  i.e. a held layer costs about one zone step.  Sorting the 40 slots by
-  difficulty, base before layer, gives the order base zone 1, base zone 2,
-  layer zone 1, base zone 3, layer zone 2, layer zone 3.  Inside a zone,
-  centre before south and inward before north (section 4a's ordering), pinky
-  north forced last as "the worst key on the board" (S:283944), then index,
-  middle, ring, pinky.
+* Slot difficulty = (zone - 1) + (1 if the slot needs the Nail layer held)
+  + a per-finger weight (`FINGER_WEIGHT`, an assumption, see the constant),
+  i.e. a held layer costs about one zone step and a pinky key costs half of
+  one.  Sorting the 40 slots by difficulty, base before layer, gives roughly
+  base zone 1, base zone 2, layer zone 1, base zone 3, layer zone 2, layer
+  zone 3, with index and middle ahead of ring and pinky inside each band.
+  Inside a zone, centre before south and inward before north (section 4a's
+  ordering), pinky north forced last as "the worst key on the board"
+  (S:283944), then index, middle, ring, pinky.
 * Role is a hard constraint (section 4c): `Command n` keys only on index and
-  pinky, control-group / camera / idle-worker keys only on middle and ring.
+  pinky, camera / idle-worker keys only on middle and ring.
   Classes are derived per file from that file's own bindings (see `classify`),
   so 6.0's merged keys land where 6.0 puts them.
+* The control-group floor: the ten keys carrying `ControlGroupRecall0..9` each
+  get a base-plane middle or ring slot.  Middle and ring have exactly ten base
+  slots, so the ten control groups own them outright: no control group sits
+  anywhere else and no other key sits there, camera keys and command cards
+  included.  Higher-load groups take the easier of the ten.  This class wins
+  over the `Command n` rule where 6.0 stacks a group on a command-card key.
 * Greedy: TheCore keys in descending replay load (ties: more bindings first,
   then key name) each take the best free slot their role allows.
 * Then a hill climb: swap the two placed keys whose exchange lowers the cost
@@ -45,9 +53,9 @@ Placement rule, applied in this order:
   Both terms are events per minute, so no weighting constant is needed.
   Same-key repeats are not a cost; the summary counts those separately.
 
-Some same-finger work is forced, not a failure of the search: 4c allows
-control groups only on middle and ring, so five hot control groups share two
-fingers.  The climb spends the cheap escape it does have, the half-price
+Some same-finger work is forced, not a failure of the search: the control
+group floor puts all ten groups on middle and ring, so five hot control groups
+share two fingers.  The climb spends the cheap escape it does have, the half-price
 cross-plane transition, on the heaviest pairs.
 
 Everything the tool decides is printed: the load table, the slot order, the
@@ -78,15 +86,31 @@ FINGERS = ["index", "middle", "ring", "pinky"]
 POSITIONS = ["centre", "south", "inward", "north", "outward"]
 PLANES = ["base", "layer"]
 
+# ASSUMPTION, not replay evidence.  The wiki's speed zones (section 4a) rank
+# positions within one finger; nothing there ranks the fingers against each
+# other.  These weights are added to a slot's difficulty so that high-frequency
+# keys prefer index and middle over ring and pinky: a pinky centre slot costs
+# 0.5 where an index centre slot costs 0.0.  Change them here if better
+# evidence turns up.
+FINGER_WEIGHT = {"index": 0.0, "middle": 0.0, "ring": 0.2, "pinky": 0.5}
+
+# The control-group floor: the fingers and plane reserved for the ten keys
+# carrying ControlGroupRecall0..9, and theirs alone.
+CG_COMMAND = "ControlGroupRecall"
+CG_FINGERS = ("middle", "ring")
+CG_PLANE = "base"
+
 # Section 4c's finger roles, as the fingers each role class may use.
 ROLE_FINGERS = {
+    "cg": CG_FINGERS,
     "command": ("index", "pinky"),
     "group": ("middle", "ring"),
     "free": tuple(FINGERS),
 }
 ROLE_NAMES = {
+    "cg": "control group (middle/ring, base plane)",
     "command": "Command n (index/pinky)",
-    "group": "control group, camera, idle worker (middle/ring)",
+    "group": "camera, idle worker (middle/ring)",
     "free": "unconstrained",
 }
 # A key is a group key if it carries one of these slots; a key with 5 or more
@@ -203,7 +227,8 @@ def build_slots():
                     rank = len(POSITIONS)
                 slots.append({
                     "plane": plane, "finger": finger, "pos": pos, "zone": zone,
-                    "difficulty": (zone - 1) + PLANES.index(plane),
+                    "difficulty": ((zone - 1) + PLANES.index(plane)
+                                   + FINGER_WEIGHT[finger]),
                     "sort": (zone, rank, FINGERS.index(finger)),
                 })
     slots.sort(key=lambda s: (s["difficulty"], PLANES.index(s["plane"]),
@@ -228,6 +253,10 @@ def read_file(path):
 
 def classify(binds):
     """Role class of a key, from its own bindings (section 4c)."""
+    if any(cmd.startswith(CG_COMMAND) for _, cmd, _ in binds):
+        # The control-group floor outranks the Command n rule: 6.0 stacks
+        # ControlGroupRecall1 on J's 196 command bindings, and the group wins.
+        return "cg"
     ordinary = sum(1 for combo, cmd, _ in binds
                    if combo != BANISHED and not is_group_command(cmd))
     if ordinary >= COMMAND_MIN:
@@ -336,15 +365,27 @@ def cost(place, slots, load, pairs):
     return same, zones
 
 
+def legal(cls, slot):
+    """May a key of this role class sit in this slot?
+
+    The ten base-plane middle and ring slots are the control-group floor: only
+    the ten ControlGroupRecall keys may use them, and they may use nothing else.
+    """
+    reserved = (slot["plane"] == CG_PLANE and slot["finger"] in CG_FINGERS)
+    if cls == "cg":
+        return reserved
+    return not reserved and slot["finger"] in ROLE_FINGERS[cls]
+
+
 def assign(keys, load, pairs, slots, log):
     """Greedy by load, then a legal-swap hill climb. Returns the placement."""
     order = sorted(keys, key=lambda k: (-load.get(k, 0.0), -keys[k]["n"], k))
     place, taken = {}, set()
     unplaced = []
     for key in order:
-        allowed = ROLE_FINGERS[keys[key]["class"]]
+        cls = keys[key]["class"]
         for slot in slots:
-            if slot["order"] not in taken and slot["finger"] in allowed:
+            if slot["order"] not in taken and legal(cls, slot):
                 place[key] = slot["order"]
                 taken.add(slot["order"])
                 break
@@ -361,9 +402,8 @@ def assign(keys, load, pairs, slots, log):
         items = sorted(place)
         for i, a in enumerate(items):
             for b in items[i + 1:]:
-                if (slots[place[b]]["finger"] not in ROLE_FINGERS[keys[a]["class"]]
-                        or slots[place[a]]["finger"]
-                        not in ROLE_FINGERS[keys[b]["class"]]):
+                if (not legal(keys[a]["class"], slots[place[b]])
+                        or not legal(keys[b]["class"], slots[place[a]])):
                     continue
                 place[a], place[b] = place[b], place[a]
                 trial = sum(cost(place, slots, load, pairs))
@@ -469,7 +509,7 @@ def main():
     slots = build_slots()
     print("Slot order (difficulty = (zone - 1) + 1 if the Nail layer is held):")
     for slot in slots:
-        print("  %2d  %-6s %-6s %-7s zone %d  difficulty %d"
+        print("  %2d  %-6s %-6s %-7s zone %d  difficulty %.1f"
               % (slot["order"], slot["plane"], slot["finger"], slot["pos"],
                  slot["zone"], slot["difficulty"]))
 
@@ -490,7 +530,7 @@ def main():
         counts = collections.Counter(k["class"] for k in keys.values())
         print("role classes: %s"
               % ", ".join("%s %d" % (c, counts[c])
-                          for c in ("command", "group", "free")))
+                          for c in ("cg", "command", "group", "free")))
         print("replay load, events per minute, all three races:")
         ranked = sorted(keys, key=lambda k: (-load.get(k, 0.0), -keys[k]["n"], k))
         for key in ranked:
@@ -901,9 +941,15 @@ function init() {
     "emit F13-F24 from layer slots and free a banished command from the three-thumb-key contortion. Not done here.",
     "<b>Camera keys carry no replay load.</b> Replays record where the camera went, never which key moved it, so " +
     "camera view, camera save, Idle Worker and Town Camera all score zero and sort to the tail of the order. " +
-    "They are placed on whatever middle and ring wells are left, and the two or three that do not fit are listed " +
-    "above; that is a limit of the evidence, not a judgement that they are unused.",
-    "<b>Some same-finger work is forced.</b> Section 4c allows control groups only on middle and ring, and " +
+    "They are placed on whatever middle and ring wells the control-group floor leaves, which is the Nail layer, and " +
+    "the two or three that do not fit are listed above; that is a limit of the evidence, not a judgement that they " +
+    "are unused.",
+    "<b>The ten control groups own the middle and ring base keys.</b> Middle and ring have exactly ten base-plane " +
+    "wells, and the ten ControlGroupRecall keys take all ten: no group sits elsewhere and nothing else sits there. " +
+    "Slot difficulty also carries a per-finger weight (index 0.0, middle 0.0, ring 0.2, pinky 0.5). That weight is " +
+    "an assumption, not replay evidence: the Svalboard wiki ranks positions within a finger, never fingers against " +
+    "each other.",
+    "<b>Some same-finger work is forced.</b> The control-group floor puts all ten groups on middle and ring, and " +
     "five control groups carry most of the load, so pairs such as CG1 &gt; CG3 land on one finger whatever the " +
     "search does. The layer is the escape the mapping does have: a transition that crosses into the Nail layer " +
     "is counted at half cost, and the climb spends that on the heaviest pairs.",
