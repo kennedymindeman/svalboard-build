@@ -145,13 +145,13 @@ here, and no committed artifact is regenerated on this branch.
 
 ### 1v1-only inputs
 
-Flat-cost layout, flat objective: 29.83 same-finger + 69.28 zone = 99.11.
+Flat-cost layout, flat objective: 29.83 same-finger + 69.12 zone = 98.95.
 
-| tiers (easy/med/hard) | keys moved vs flat | tiered objective | flat objective of the tiered layout (flat layout: 99.11) | 1v1 same-finger /min (flat layout: 29.83) |
+| tiers (easy/med/hard) | keys moved vs flat | tiered objective | flat objective of the tiered layout (flat layout: 98.95) | 1v1 same-finger /min (flat layout: 29.83) |
 | --- | --- | --- | --- | --- |
-| 0.5/1.0/1.5 | 7 | 88.49 | 99.21 (+0.10) | 29.10 |
-| 0.7/1.0/1.3 | 7 | 92.78 | 99.21 (+0.10) | 29.10 |
-| 0.3/1.0/2.0 | 8 | 83.83 | 103.25 (+4.14) | 35.70 |
+| 0.5/1.0/1.5 | 7 | 88.32 | 99.05 (+0.10) | 29.10 |
+| 0.7/1.0/1.3 | 7 | 92.61 | 99.05 (+0.10) | 29.10 |
+| 0.3/1.0/2.0 | 8 | 83.67 | 103.09 (+4.14) | 35.70 |
 
 Collision classes under 1v1 data, rate /min:
 
@@ -199,7 +199,7 @@ Keys that moved, tiers 0.3/1.0/2.0 vs flat:
 | U | middle outward, base | ring outward, base | 1.82 |
 | , | ring outward, base | middle outward, base | 1.40 |
 
-Placements identical across all three tier settings: 38 of 40 keys.
+Placements identical across all three tier settings: 35 of 37 keys.
 
 | key that differs between tier settings | tiers 0.5/1.0/1.5 | tiers 0.7/1.0/1.3 | tiers 0.3/1.0/2.0 |
 | --- | --- | --- | --- |
@@ -227,22 +227,22 @@ comparable:
 
 | tiers | effective x on the flat layout | keys moved vs flat | flat same-finger | flat zone | flat total | same layout as 0.5/1.0/1.5? |
 | --- | --- | --- | --- | --- | --- | --- |
-| 0.5/1.0/1.5 | 0.66 | 7 | 29.10 | 70.11 | 99.21 | yes |
-| 0.7/1.0/1.3 | 0.80 | 7 | 29.10 | 70.11 | 99.21 | yes |
-| 0.3/1.0/2.0 | 0.54 | 8 | 35.70 | 67.56 | 103.25 | no |
-| 0.6/2.0/4.0 | 1.07 | 7 | 29.10 | 70.11 | 99.21 | yes |
-| 1.5/5.0/10.0 | 2.68 | 7 | 29.10 | 70.11 | 99.21 | yes |
-| 3.0/10.0/20.0 | 5.36 | 9 | 29.05 | 70.24 | 99.29 | no |
+| 0.5/1.0/1.5 | 0.66 | 7 | 29.10 | 69.95 | 99.05 | yes |
+| 0.7/1.0/1.3 | 0.80 | 7 | 29.10 | 69.95 | 99.05 | yes |
+| 0.3/1.0/2.0 | 0.54 | 8 | 35.70 | 67.39 | 103.09 | no |
+| 0.6/2.0/4.0 | 1.07 | 7 | 29.10 | 69.95 | 99.05 | yes |
+| 1.5/5.0/10.0 | 2.68 | 7 | 29.10 | 69.95 | 99.05 | yes |
+| 3.0/10.0/20.0 | 5.36 | 9 | 29.05 | 70.07 | 99.13 | no |
 
 ### normalized 50/50 inputs
 
-Flat-cost layout, flat objective: 24.62 same-finger + 59.05 zone = 83.67.
+Flat-cost layout, flat objective: 24.62 same-finger + 58.96 zone = 83.58.
 
-| tiers (easy/med/hard) | keys moved vs flat | tiered objective | flat objective of the tiered layout (flat layout: 83.67) | 1v1 same-finger /min (flat layout: 32.15) |
+| tiers (easy/med/hard) | keys moved vs flat | tiered objective | flat objective of the tiered layout (flat layout: 83.58) | 1v1 same-finger /min (flat layout: 32.15) |
 | --- | --- | --- | --- | --- |
-| 0.5/1.0/1.5 | 0 | 74.11 | 83.67 (-0.00) | 32.15 |
-| 0.7/1.0/1.3 | 0 | 77.93 | 83.67 (-0.00) | 32.15 |
-| 0.3/1.0/2.0 | 0 | 70.41 | 83.67 (-0.00) | 32.15 |
+| 0.5/1.0/1.5 | 0 | 74.02 | 83.58 (+0.00) | 32.15 |
+| 0.7/1.0/1.3 | 0 | 77.85 | 83.58 (+0.00) | 32.15 |
+| 0.3/1.0/2.0 | 0 | 70.32 | 83.58 (+0.00) | 32.15 |
 
 Collision classes under 1v1 data, rate /min:
 
@@ -265,7 +265,7 @@ Keys that moved, tiers 0.3/1.0/2.0 vs flat:
 
 No key moved.
 
-Placements identical across all three tier settings: 40 of 40 keys.
+Placements identical across all three tier settings: 37 of 37 keys.
 
 # TheCore 6.0 Right
 
@@ -335,30 +335,30 @@ Placements identical across all three tier settings: 40 of 40 keys.
 
 | layout | centre-edge | adjacent-edges | opposite-edges | same-direction | any-cross-plane | all |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1v1-only | 21.24 | 8.11 | 0.88 | 0.05 | 0.16 | 30.28 |
-| raw 50/50 | 21.34 | 6.93 | 1.88 | 0.11 | 0.16 | 30.26 |
+| 1v1-only | 21.19 | 8.11 | 0.88 | 0.10 | 0.16 | 30.28 |
+| raw 50/50 | 21.29 | 6.93 | 1.88 | 0.16 | 0.16 | 30.26 |
 | normalized 50/50 | 24.23 | 7.59 | 0.65 | 0.06 | 0.11 | 32.54 |
 
 ## Part B: the optimizer with tiers on
 
 ### 1v1-only inputs
 
-Flat-cost layout, flat objective: 30.19 same-finger + 67.97 zone = 98.16.
+Flat-cost layout, flat objective: 30.19 same-finger + 67.80 zone = 97.99.
 
-| tiers (easy/med/hard) | keys moved vs flat | tiered objective | flat objective of the tiered layout (flat layout: 98.16) | 1v1 same-finger /min (flat layout: 30.19) |
+| tiers (easy/med/hard) | keys moved vs flat | tiered objective | flat objective of the tiered layout (flat layout: 97.99) | 1v1 same-finger /min (flat layout: 30.19) |
 | --- | --- | --- | --- | --- |
-| 0.5/1.0/1.5 | 9 | 87.36 | 98.26 (+0.10) | 29.47 |
-| 0.7/1.0/1.3 | 9 | 91.72 | 98.26 (+0.10) | 29.47 |
-| 0.3/1.0/2.0 | 10 | 82.60 | 102.28 (+4.12) | 36.06 |
+| 0.5/1.0/1.5 | 9 | 87.18 | 98.09 (+0.10) | 29.47 |
+| 0.7/1.0/1.3 | 9 | 91.55 | 98.09 (+0.10) | 29.47 |
+| 0.3/1.0/2.0 | 10 | 82.43 | 102.11 (+4.12) | 36.06 |
 
 Collision classes under 1v1 data, rate /min:
 
 | layout | centre-edge | adjacent-edges | opposite-edges | same-direction | any-cross-plane | all |
 | --- | --- | --- | --- | --- | --- | --- |
-| flat | 21.24 | 8.11 | 0.88 | 0.05 | 0.16 | 30.28 |
-| tiers 0.5/1.0/1.5 | 22.59 | 6.27 | 0.69 | 0.00 | 0.16 | 29.55 |
-| tiers 0.7/1.0/1.3 | 22.59 | 6.27 | 0.69 | 0.00 | 0.16 | 29.55 |
-| tiers 0.3/1.0/2.0 | 29.19 | 6.27 | 0.69 | 0.00 | 0.16 | 36.15 |
+| flat | 21.19 | 8.11 | 0.88 | 0.10 | 0.16 | 30.28 |
+| tiers 0.5/1.0/1.5 | 22.54 | 6.27 | 0.69 | 0.05 | 0.16 | 29.55 |
+| tiers 0.7/1.0/1.3 | 22.54 | 6.27 | 0.69 | 0.05 | 0.16 | 29.55 |
+| tiers 0.3/1.0/2.0 | 29.14 | 6.27 | 0.69 | 0.05 | 0.16 | 36.15 |
 
 Keys that moved, tiers 0.5/1.0/1.5 vs flat:
 
@@ -431,22 +431,22 @@ comparable:
 
 | tiers | effective x on the flat layout | keys moved vs flat | flat same-finger | flat zone | flat total | same layout as 0.5/1.0/1.5? |
 | --- | --- | --- | --- | --- | --- | --- |
-| 0.5/1.0/1.5 | 0.66 | 9 | 29.47 | 68.80 | 98.26 | yes |
-| 0.7/1.0/1.3 | 0.80 | 9 | 29.47 | 68.80 | 98.26 | yes |
-| 0.3/1.0/2.0 | 0.54 | 10 | 36.06 | 66.22 | 102.28 | no |
-| 0.6/2.0/4.0 | 1.07 | 9 | 29.47 | 68.80 | 98.26 | yes |
-| 1.5/5.0/10.0 | 2.69 | 9 | 29.47 | 68.80 | 98.26 | yes |
-| 3.0/10.0/20.0 | 5.37 | 9 | 29.47 | 68.80 | 98.26 | yes |
+| 0.5/1.0/1.5 | 0.66 | 9 | 29.47 | 68.62 | 98.09 | yes |
+| 0.7/1.0/1.3 | 0.80 | 9 | 29.47 | 68.62 | 98.09 | yes |
+| 0.3/1.0/2.0 | 0.54 | 10 | 36.06 | 66.04 | 102.11 | no |
+| 0.6/2.0/4.0 | 1.07 | 9 | 29.47 | 68.62 | 98.09 | yes |
+| 1.5/5.0/10.0 | 2.69 | 9 | 29.47 | 68.62 | 98.09 | yes |
+| 3.0/10.0/20.0 | 5.37 | 9 | 29.47 | 68.62 | 98.09 | yes |
 
 ### normalized 50/50 inputs
 
-Flat-cost layout, flat objective: 25.01 same-finger + 57.57 zone = 82.58.
+Flat-cost layout, flat objective: 25.01 same-finger + 57.48 zone = 82.49.
 
-| tiers (easy/med/hard) | keys moved vs flat | tiered objective | flat objective of the tiered layout (flat layout: 82.58) | 1v1 same-finger /min (flat layout: 32.48) |
+| tiers (easy/med/hard) | keys moved vs flat | tiered objective | flat objective of the tiered layout (flat layout: 82.49) | 1v1 same-finger /min (flat layout: 32.48) |
 | --- | --- | --- | --- | --- |
-| 0.5/1.0/1.5 | 0 | 72.82 | 82.58 (-0.00) | 32.48 |
-| 0.7/1.0/1.3 | 0 | 76.73 | 82.58 (-0.00) | 32.48 |
-| 0.3/1.0/2.0 | 0 | 69.05 | 82.58 (-0.00) | 32.48 |
+| 0.5/1.0/1.5 | 0 | 72.73 | 82.49 (+0.00) | 32.48 |
+| 0.7/1.0/1.3 | 0 | 76.64 | 82.49 (+0.00) | 32.48 |
+| 0.3/1.0/2.0 | 0 | 68.96 | 82.49 (+0.00) | 32.48 |
 
 Collision classes under 1v1 data, rate /min:
 

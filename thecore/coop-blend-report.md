@@ -23,19 +23,19 @@ load times slot difficulty. The headline is the normalized layout's
 
 ## TheCore 5.0 Right Plus
 
-Placed keys: 40 in all three layouts.
+Placed keys: 37 in all three layouts.
 
 | Objective | 1v1-only layout | raw 50/50 layout | normalized 50/50 layout |
 | --- | --- | --- | --- |
-| 1v1-only | 99.11 | 99.13 (+0.02, +0.0%) | 100.75 (+1.64, +1.7%) |
-| co-op-only (equal-commander) | 12.36 | 12.31 (-0.06, -0.5%) | 11.07 (-1.30, -10.5%) |
+| 1v1-only | 98.95 | 98.96 (+0.02, +0.0%) | 100.58 (+1.64, +1.7%) |
+| co-op-only (equal-commander) | 12.36 | 12.30 (-0.06, -0.5%) | 11.07 (-1.30, -10.5%) |
 
 | Under 1v1 data | 1v1-only | raw 50/50 | normalized 50/50 |
 | --- | --- | --- | --- |
 | same-finger bigram rate /min | 29.83 | 29.82 | 32.15 |
 | index load /min | 30.54 | 30.54 | 30.80 |
-| middle load /min | 79.17 | 79.20 | 91.99 |
-| ring load /min | 70.20 | 70.17 | 57.39 |
+| middle load /min | 79.02 | 79.06 | 91.84 |
+| ring load /min | 70.19 | 70.16 | 57.37 |
 | pinky load /min | 9.40 | 9.40 | 9.15 |
 
 Keys that moved, normalized 50/50 vs 1v1-only (17):
@@ -66,15 +66,15 @@ Placed keys: 40 in all three layouts.
 
 | Objective | 1v1-only layout | raw 50/50 layout | normalized 50/50 layout |
 | --- | --- | --- | --- |
-| 1v1-only | 98.16 | 98.31 (+0.15, +0.1%) | 99.74 (+1.58, +1.6%) |
+| 1v1-only | 97.99 | 98.14 (+0.15, +0.1%) | 99.57 (+1.58, +1.6%) |
 | co-op-only (equal-commander) | 12.24 | 12.04 (-0.20, -1.6%) | 10.82 (-1.42, -11.6%) |
 
 | Under 1v1 data | 1v1-only | raw 50/50 | normalized 50/50 |
 | --- | --- | --- | --- |
 | same-finger bigram rate /min | 30.19 | 30.18 | 32.48 |
 | index load /min | 30.76 | 30.49 | 30.49 |
-| middle load /min | 79.57 | 79.61 | 92.50 |
-| ring load /min | 70.36 | 70.33 | 57.43 |
+| middle load /min | 79.46 | 79.49 | 92.39 |
+| ring load /min | 70.31 | 70.28 | 57.38 |
 | pinky load /min | 8.52 | 8.79 | 8.79 |
 
 Keys that moved, normalized 50/50 vs 1v1-only (13):
