@@ -2,6 +2,7 @@
 """Compute a Svalboard mapping for TheCore, one left hand, and draw it.
 
 Usage: python3 tools/thecore_svalboard.py [--markdown] [--coop-blend W]
+                                         [--coop-normalize]
 
 `--coop-blend W` (issue #27, default off) mixes co-op load into the ranking:
 each key's load becomes (1-W) x its 1v1 per-minute rate + W x its co-op rate,
@@ -412,8 +413,13 @@ def coop_load(summary, path):
 
 def normalized(load, pairs, cload, cpairs):
     """Scale the co-op dicts so their totals match the 1v1 totals."""
-    kscale = sum(load.values()) / sum(cload.values())
-    pscale = sum(pairs.values()) / sum(cpairs.values())
+    ctotal, ptotal = sum(cload.values()), sum(cpairs.values())
+    if not ctotal or not ptotal:
+        raise SystemExit("--coop-normalize needs a non-empty co-op corpus:"
+                         " %s carries %g total key load and %g total pair"
+                         " load" % (COOP, ctotal, ptotal))
+    kscale = sum(load.values()) / ctotal
+    pscale = sum(pairs.values()) / ptotal
     return ({k: v * kscale for k, v in cload.items()},
             {k: v * pscale for k, v in cpairs.items()})
 
@@ -591,6 +597,9 @@ def main():
             raise SystemExit("--coop-blend weight %g is outside [0, 1]"
                              % weight)
     normalize = "--coop-normalize" in argv
+    if normalize and not weight:
+        raise SystemExit("--coop-normalize only means something with a co-op"
+                         " blend: pass --coop-blend W with W > 0")
     with open(os.path.join(HERE, SUMMARY), encoding="utf-8") as f:
         summary = json.load(f)
     coop = None
