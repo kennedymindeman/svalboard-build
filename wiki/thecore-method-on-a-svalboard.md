@@ -171,8 +171,12 @@ slots under the rules already stated.
 
 Assignment, deterministic and printed by the tool:
 
-1. Order TheCore's keys by replay load, most first; ties broken by binding count, then by name. TheCore's own slot
-   numbers are not in the hotkey files, so binding count stands in for them.
+1. Order TheCore's keys by how tight their role is first, then by replay load, most first; ties broken by binding
+   count, then by name. Tightness runs control-group recall (ten fixed slots), then the camera and idle-worker group
+   (middle and ring only), then command-card keys (index and pinky only), then unconstrained keys. Ordering on load
+   alone lets an unconstrained key take the last slot a constrained key is allowed to use, which is what pushed Idle
+   Worker and Town Camera off the hand before issue #33. TheCore's own slot numbers are not in the hotkey files, so
+   binding count stands in for them.
 2. Greedy: each key takes the easiest free slot its role allows.
 3. Then a hill climb: repeatedly make the one swap of two placed keys that lowers the cost most, as long as each key's
    role still allows its new finger and the control-group floor still holds. Cost, in events per minute, is the rate of same-finger different-key transitions
@@ -180,17 +184,22 @@ Assignment, deterministic and printed by the tool:
    loaded differently) plus each key's load times its slot difficulty. Same-key repeats such as `CG3 > CG3` are not a
    cost; the summary counts them separately.
 
-For 5.0 Right Plus that is 98.70 after the greedy pass and 83.67 after 2 swaps; for 6.0 Right, 97.55 and then 82.58
-after 2 swaps. These are blended-unit costs (the normalized 50/50 mix above), so they are not comparable with the 1v1-only
-106.42/99.11 and 105.41/98.16, nor with the 69.29 and 41.13 of the pass before the finger weights and the
+For 5.0 Right Plus that is 98.73 after the greedy pass and 83.67 after 5 swaps; for 6.0 Right, 98.22 and then 82.60
+after 6 swaps. These are blended-unit costs (the normalized 50/50 mix above), so they are not comparable with the 1v1-only
+106.46/99.11 and 106.11/98.20, nor with the 69.29 and 41.13 of the pass before the finger weights and the
 control-group floor.
 
 Some same-finger work is forced rather than a failure of the search. The control-group floor puts all ten groups on
 middle and ring, and five of them carry most of the replay load, so heavy pairs such as `CG1 > CG3` share a finger
 whichever way they are arranged; the tool spends the half-price cross-plane transition on the heaviest of them. Camera
 and idle-worker keys score zero, because a replay records where the camera went and never which key moved it, so they
-sort to the tail and two of them (5.0 `6` and `7`, Town Camera and Idle Worker) overflow the ten middle and ring
-slots. That is a limit of the evidence, not a judgement that they are unused.
+sort to the tail of the load ordering. That is a limit of the evidence, not a judgement that they are unused, and it
+is why the ordering puts role tightness ahead of load: Town Camera and Idle Worker may only take a middle or ring
+slot, and on load alone the zero-scoring unconstrained keys took those slots first and pushed both off the hand.
+Seating them costs almost nothing, because the keys they displace also score zero. 5.0 finishes at the same 83.67 and
+drops `X` (Merc Hellion on the Factory, Set Bunker Rally Point) and `B` (Stop Planetary Fortress); 6.0 finishes at
+82.60 against 82.58 and drops `R` (Vespene Drone on the Command Center and the Planetary Fortress) and `Space`
+(Stalker Hallucination on the Sentry).
 
 Banished commands stay banished: this board can only make Ctrl+Shift+Alt as Pad + Down + Knuckle, and the keys whose
 every binding is that chord get no slot of their own. There is a way out that this pass does not take: SC2 accepts
@@ -233,22 +242,22 @@ emit for that well (section 4e).
 | index south | 1 | H | `KC_H` | Larva, Burrow Up, command card (74) | 0.9 |
 | index inward | 2 | Y | `KC_Y` | Move Patrol, Larva, Army Select | 0.2 |
 | index north | 2 | = | `KC_EQL` | Larva, command card (30) | 0.0 |
-| index outward | 3 | F10 | `KC_F10` | Menu Game | 0.0 |
+| index outward | 3 | Backspace | `KC_BSPC` | Camera Turn Left, Camera Turn Right | 0.0 |
 | middle centre | 1 | F | `KC_F` | Rally SCV | 0.1 |
 | middle south | 1 | Z | `KC_Z` | Rally | 0.0 |
-| middle inward | 2 | E | `KC_E` | misc | 0.0 |
-| middle north | 2 | Q | `KC_Q` | misc | 0.0 |
-| middle outward | 3 | R | `KC_R` | misc | 0.0 |
-| ring centre | 1 | A | `KC_A` | Move | 0.0 |
-| ring south | 1 | Enter | `KC_ENT` | Chat Default, Chat Allies | 0.0 |
-| ring inward | 2 | Backspace | `KC_BSPC` | Camera Turn Left, Camera Turn Right | 0.0 |
-| ring north | 2 | Escape | `KC_ESC` | Menu Game | 0.0 |
-| ring outward | 3 | Tab | `KC_TAB` | misc | 0.0 |
+| middle inward | 2 | 7 | `KC_7` | Idle Worker | 0.0 |
+| middle north | 2 | Enter | `KC_ENT` | Chat Default, Chat Allies | 0.0 |
+| middle outward | 3 | Escape | `KC_ESC` | Menu Game | 0.0 |
+| ring centre | 1 | 6 | `KC_6` | Town Camera | 0.0 |
+| ring south | 1 | A | `KC_A` | Move | 0.0 |
+| ring inward | 2 | E | `KC_E` | misc | 0.0 |
+| ring north | 2 | Q | `KC_Q` | misc | 0.0 |
+| ring outward | 3 | F10 | `KC_F10` | Menu Game | 0.0 |
 | pinky centre | 1 | / | `KC_SLSH` | Cancel, command card (12) | 0.5 |
 | pinky south | 1 | M | `KC_M` | Stop Generate Creep, Larva, command card (84) | 0.5 |
 | pinky inward | 2 | C | `KC_C` | Select Builder, command card (5) | 0.0 |
-| pinky north | 3 | B | `KC_B` | misc | 0.0 |
-| pinky outward | 3 | X | `KC_X` | misc | 0.0 |
+| pinky north | 3 | Tab | `KC_TAB` | misc | 0.0 |
+| pinky outward | 3 | R | `KC_R` | misc | 0.0 |
 
 ### 4e. Vial versus the hotkey file
 
