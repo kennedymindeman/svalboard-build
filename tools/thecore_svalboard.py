@@ -145,6 +145,10 @@ ROLE_FINGERS = {
     "group": ("middle", "ring"),
     "free": tuple(FINGERS),
 }
+# Placement order: the tighter a class's finger constraint, the earlier it
+# picks.  "free" keys can sit anywhere, so letting them outrank a "group" key
+# on load alone costs the group key the only slots it is allowed to use.
+ROLE_TIGHTNESS = {"cg": 0, "group": 1, "command": 2, "free": 3}
 ROLE_NAMES = {
     "cg": "control group (middle/ring, base plane)",
     "command": "Command n (index/pinky)",
@@ -210,13 +214,14 @@ THUMB = [
 # Keys that must come out unplaced, as a guard on the computation.
 EXPECTED_UNPLACED = {
     "TheCore 5.0 Right Plus": {
-        "3", "4", "6", "7", "Alt", "BackMouseButton", "CapsLock", "Control",
-        "F8", "ForwardMouseButton", "LeftMouseButton", "RightMouseButton", "V",
+        "3", "4", "Alt", "B", "BackMouseButton", "CapsLock", "Control",
+        "F8", "ForwardMouseButton", "LeftMouseButton", "RightMouseButton",
+        "V", "X",
     },
     "TheCore 6.0 Right": {
-        "3", "4", "6", "Alt", "BackMouseButton", "CapsLock", "Escape", "F10",
-        "F3", "F8", "ForwardMouseButton", "Grave", "LeftMouseButton",
-        "RightMouseButton", "T", "Tab", "V",
+        "3", "4", "Alt", "BackMouseButton", "CapsLock", "Escape", "F10",
+        "F3", "F8", "ForwardMouseButton", "Grave", "LeftMouseButton", "R",
+        "RightMouseButton", "Space", "Tab", "V",
     },
 }
 
@@ -502,8 +507,9 @@ def legal(cls, slot):
 
 
 def assign(keys, load, pairs, slots, log, tiers=None):
-    """Greedy by load, then a legal-swap hill climb. Returns the placement."""
-    order = sorted(keys, key=lambda k: (-load.get(k, 0.0), -keys[k]["n"], k))
+    """Greedy most-constrained-first, then a legal-swap hill climb."""
+    order = sorted(keys, key=lambda k: (ROLE_TIGHTNESS[keys[k]["class"]],
+                                        -load.get(k, 0.0), -keys[k]["n"], k))
     place, taken = {}, set()
     unplaced = []
     for key in order:
@@ -709,7 +715,8 @@ def main():
         log = []
         place, unfitted, order, swaps, (same, zones) = assign(
             keys, load, pairs, slots, log, tiers)
-        print("placement order (load, then binding count, then name): %s"
+        print("placement order (role tightness, then load, then binding count,"
+              " then name): %s"
               % ", ".join(label(k) for k in order))
         for line in log:
             print(line)
