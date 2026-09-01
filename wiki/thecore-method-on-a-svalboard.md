@@ -126,7 +126,7 @@ Three ways out:
 - **A layer.** TheCore's own answer on small boards, `F` and `Fn+F` in place of `Alt+F` ([Svalboard and TheCore](/svalboard-and-thecore.md), C:917360).
 - **Dropping the tail.** Commands 10 to 13 and CG 9 to 10 are the lowest-priority slots by TheCore's own numbering.
 
-Recommended: **the layer**, held under the thumb Nail, on one hand. This is the user's decision about their own setup, not a finding from either Discord: they play with the left hand on the Svalboard and the right hand on an ordinary mouse, not on the board's trackball. That settles the choice before the ergonomics do. The other hand is simply not available, so the board offers 20 finger keys plus the thumb cluster, and the only extra room is a held layer, which is TheCore's own answer on small boards ([Svalboard and TheCore](/svalboard-and-thecore.md), C:917360). Two consequences worth stating: mouse clicks cost no keys at all, which is what breaks in the two-hand version (S:056916); and a held layer is not the locking gaming layer of 4b, so it costs no mode change under time pressure, only a thumb that is already down. Dropping the tail is not needed: 40 slots hold everything the two shipped files bind except the modifier keys themselves, the mouse buttons, the banished commands, and two or three camera and idle-worker keys that overflow the middle and ring fingers (see 4d).
+Recommended: **the layer**, held under the thumb Nail, on one hand. This is the user's decision about their own setup, not a finding from either Discord: they play with the left hand on the Svalboard and the right hand on an ordinary mouse, not on the board's trackball. That settles the choice before the ergonomics do. The other hand is simply not available, so the board offers 20 finger keys plus the thumb cluster, and the only extra room is a held layer, which is TheCore's own answer on small boards ([Svalboard and TheCore](/svalboard-and-thecore.md), C:917360). Two consequences worth stating: mouse clicks cost no keys at all, which is what breaks in the two-hand version (S:056916); and a held layer is not the locking gaming layer of 4b, so it costs no mode change under time pressure, only a thumb that is already down. Dropping the tail is not needed: 40 slots hold everything the two shipped files bind except the modifier keys themselves, the mouse buttons, the banished commands, and the rally, chat and duplicate-menu keys that belong on the mouse or the right hand (see 4d).
 
 ### 4d. The computed assignment
 
@@ -184,9 +184,9 @@ Assignment, deterministic and printed by the tool:
    loaded differently) plus each key's load times its slot difficulty. Same-key repeats such as `CG3 > CG3` are not a
    cost; the summary counts them separately.
 
-For 5.0 Right Plus that is 98.73 after the greedy pass and 83.67 after 5 swaps; for 6.0 Right, 98.22 and then 82.60
-after 6 swaps. These are blended-unit costs (the normalized 50/50 mix above), so they are not comparable with the 1v1-only
-106.46/99.11 and 106.11/98.20, nor with the 69.29 and 41.13 of the pass before the finger weights and the
+For 5.0 Right Plus that is 98.62 after the greedy pass and 83.58 after 3 swaps; for 6.0 Right, 98.02 and then 82.49
+after 4 swaps. These are blended-unit costs (the normalized 50/50 mix above), so they are not comparable with the 1v1-only
+106.26/98.95 and 105.74/97.99, nor with the 69.29 and 41.13 of the pass before the finger weights and the
 control-group floor.
 
 Some same-finger work is forced rather than a failure of the search. The control-group floor puts all ten groups on
@@ -196,10 +196,10 @@ and idle-worker keys score zero, because a replay records where the camera went 
 sort to the tail of the load ordering. That is a limit of the evidence, not a judgement that they are unused, and it
 is why the ordering puts role tightness ahead of load: Town Camera and Idle Worker may only take a middle or ring
 slot, and on load alone the zero-scoring unconstrained keys took those slots first and pushed both off the hand.
-Seating them costs almost nothing, because the keys they displace also score zero. 5.0 finishes at the same 83.67 and
-drops `X` (Merc Hellion on the Factory, Set Bunker Rally Point) and `B` (Stop Planetary Fortress); 6.0 finishes at
-82.60 against 82.58 and drops `R` (Vespene Drone on the Command Center and the Planetary Fortress) and `Space`
-(Stalker Hallucination on the Sentry).
+Seating them cost almost nothing, because the keys they displaced also score zero, but they did displace two keys
+per file until issue #35: `X` (Merc Hellion on the Factory, Set Bunker Rally Point) and `B` (Stop Planetary Fortress)
+in 5.0, `R` (Vespene Drone on the Command Center and the Planetary Fortress) and `Space` (Stalker Hallucination on the
+Sentry) in 6.0. The exclusions below seat all four alongside Idle Worker and Town Camera, so nothing is displaced now.
 
 Banished commands stay banished: this board can only make Ctrl+Shift+Alt as Pad + Down + Knuckle, and the keys whose
 every binding is that chord get no slot of their own. There is a way out that this pass does not take: SC2 accepts
@@ -208,6 +208,34 @@ a dumping ground and macroed Fn+key to an unused F-key for a one-press inject
 ([hotkey file editing](/thecore/hotkey-file-editing.md), 191702, 384532; [keyboards and
 hardware](/thecore/keyboards-and-hardware.md), H:256033, H:157574, H:130369). Firmware could emit F13-F24 from layer
 slots and free a banished command from the contortion.
+
+Three more groups of keys need no slot at all, and with them gone the demand fits (issue #35). Before them the two
+files ask for 42 and 45 keys against 40 slots.
+
+- **Covered by the mouse.** The right hand is on a mouse and a right-click already sets a rally point, so a key whose
+  every live binding is `Rally`, `RallySCV`, `RallyEgg`, `RallyWorker` or `RallyTarget` needs no well of its own. That
+  is `F` and `Z` in both files.
+- **Belongs on the right hand.** Opening or redirecting chat (`ChatDefault`, `ChatAll`, `ChatAllies`,
+  `ChatIndividual`, `ChatRecipient`, `ChatCancel`) means typing the message on a right-hand keyboard anyway, so the
+  key that opens it belongs on that hand too: `Enter` and `Tab` in 5.0, `Enter` and `` ` `` in 6.0.
+- **Duplicate of a command already on the hand.** Both files bind `MenuGame` on two keys. One holder is enough, and
+  when the pair is a function key and an ordinary key the ordinary one stays, because a function key is the far reach
+  on any board and TheCore's own community treated the F row as a dumping ground ([keyboards and
+  hardware](/thecore/keyboards-and-hardware.md), H:256033). `F10` goes in 5.0 and `F3` in 6.0, both keeping `Escape`.
+
+A key only goes when *every* one of its non-banished bindings is covered, so a key that mixes a rally with real work
+stays: `D` carries `RallyEgg` alongside Devil Dogs and Stukov's horde rally in both files and keeps its slot. The
+duplicate rule runs last, after the other two, because dropping a key changes which commands are still held twice.
+
+The mouse and right-hand rules are design decisions about this specific build, not anything measured from the
+replays: they hold because the right hand is on a mouse and the right half of the board is free for typing, the same
+premise as 4c. Nothing in the replay evidence says a rally or a chat key matters less. The alternative considered was
+editing the `.SC2Hotkeys` file to move single-binding global commands onto free modifier combos of keys already
+placed; these three exclusions are enough on their own, so the file stays TheCore's and 4e's rule that only the
+firmware changes still holds.
+
+That leaves 37 keys to place in 5.0 Right Plus and 40 in 6.0 Right. Everything fits, with three empty wells in 5.0
+and none in 6.0.
 
 TheCore 5.0 Right Plus, generated; the 6.0 Right table is on
 [`thecore/svalboard-keymap.html`](../thecore/svalboard-keymap.html), which draws both files with every binding on the
@@ -242,22 +270,22 @@ emit for that well (section 4e).
 | index south | 1 | H | `KC_H` | Larva, Burrow Up, command card (74) | 0.9 |
 | index inward | 2 | Y | `KC_Y` | Move Patrol, Larva, Army Select | 0.2 |
 | index north | 2 | = | `KC_EQL` | Larva, command card (30) | 0.0 |
-| index outward | 3 | Backspace | `KC_BSPC` | Camera Turn Left, Camera Turn Right | 0.0 |
-| middle centre | 1 | F | `KC_F` | Rally SCV | 0.1 |
-| middle south | 1 | Z | `KC_Z` | Rally | 0.0 |
-| middle inward | 2 | 7 | `KC_7` | Idle Worker | 0.0 |
-| middle north | 2 | Enter | `KC_ENT` | Chat Default, Chat Allies | 0.0 |
-| middle outward | 3 | Escape | `KC_ESC` | Menu Game | 0.0 |
+| index outward | 3 | X | `KC_X` | misc | 0.0 |
+| middle centre | 1 | A | `KC_A` | Move | 0.0 |
+| middle south | 1 | 7 | `KC_7` | Idle Worker | 0.0 |
+| middle inward | 2 | Q | `KC_Q` | misc | 0.0 |
+| middle north | 2 | Backspace | `KC_BSPC` | Camera Turn Left, Camera Turn Right | 0.0 |
+| middle outward | 3 | B | `KC_B` | misc | 0.0 |
 | ring centre | 1 | 6 | `KC_6` | Town Camera | 0.0 |
-| ring south | 1 | A | `KC_A` | Move | 0.0 |
-| ring inward | 2 | E | `KC_E` | misc | 0.0 |
-| ring north | 2 | Q | `KC_Q` | misc | 0.0 |
-| ring outward | 3 | F10 | `KC_F10` | Menu Game | 0.0 |
+| ring south | 1 | E | `KC_E` | misc | 0.0 |
+| ring inward | 2 | Escape | `KC_ESC` | Menu Game | 0.0 |
+| ring north | 2 | R | `KC_R` | misc | 0.0 |
+| ring outward | 3 | — | `—` | — | 0.0 |
 | pinky centre | 1 | / | `KC_SLSH` | Cancel, command card (12) | 0.5 |
 | pinky south | 1 | M | `KC_M` | Stop Generate Creep, Larva, command card (84) | 0.5 |
 | pinky inward | 2 | C | `KC_C` | Select Builder, command card (5) | 0.0 |
-| pinky north | 3 | Tab | `KC_TAB` | misc | 0.0 |
-| pinky outward | 3 | R | `KC_R` | misc | 0.0 |
+| pinky north | 3 | — | `—` | — | 0.0 |
+| pinky outward | 3 | — | `—` | — | 0.0 |
 
 ### 4e. Vial versus the hotkey file
 
