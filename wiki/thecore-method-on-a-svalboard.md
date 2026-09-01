@@ -196,7 +196,7 @@ and idle-worker keys score zero, because a replay records where the camera went 
 sort to the tail of the load ordering. That is a limit of the evidence, not a judgement that they are unused, and it
 is why the ordering puts role tightness ahead of load: Town Camera and Idle Worker may only take a middle or ring
 slot, and on load alone the zero-scoring unconstrained keys took those slots first and pushed both off the hand.
-Seating them cost almost nothing, because the keys they displaced also score zero, but they did displace two keys
+Seating them cost almost nothing, because the keys they displaced also scored zero, but they did displace two keys
 per file until issue #35: `X` (Merc Hellion on the Factory, Set Bunker Rally Point) and `B` (Stop Planetary Fortress)
 in 5.0, `R` (Vespene Drone on the Command Center and the Planetary Fortress) and `Space` (Stalker Hallucination on the
 Sentry) in 6.0. The exclusions below seat all four alongside Idle Worker and Town Camera, so nothing is displaced now.
