@@ -227,6 +227,12 @@ A key only goes when *every* one of its non-banished bindings is covered, so a k
 stays: `D` carries `RallyEgg` alongside Devil Dogs and Stukov's horde rally in both files and keeps its slot. The
 duplicate rule runs last, after the other two, because dropping a key changes which commands are still held twice.
 
+Dropping a key also drops the banished bindings it happened to carry, which is a real cost of these three rules:
+`Tab` takes `StatusEnemy` and `F10` takes `WarpIn` out of 5.0, and `Z` takes `QuickSave` out of 6.0. Nine banished
+commands still share a placed key in 5.0 and nineteen in 6.0. TheCore banished all of them so they could not be hit
+by accident, so losing the Pad+Down+Knuckle route to three of them is a small loss; the F13-F24 escape hatch above
+is the way back if one is wanted.
+
 The mouse and right-hand rules are design decisions about this specific build, not anything measured from the
 replays: they hold because the right hand is on a mouse and the right half of the board is free for typing, the same
 premise as 4c. Nothing in the replay evidence says a rally or a chat key matters less. The alternative considered was

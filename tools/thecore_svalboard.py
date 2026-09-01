@@ -585,7 +585,9 @@ def exclude(keys):
 
     A key only goes when *every* one of its non-banished bindings is covered,
     so a key that mixes a rally with real work stays (`D` carries RallyEgg
-    alongside Devil Dogs and Stukov's horde rally in both files).
+    alongside Devil Dogs and Stukov's horde rally in both files). Dropping a
+    key does take its banished bindings with it: `Tab` (StatusEnemy) and `F10`
+    (WarpIn) in 5.0, `Z` (QuickSave) in 6.0.
     """
     reasons = {}
     for key in list(keys):
