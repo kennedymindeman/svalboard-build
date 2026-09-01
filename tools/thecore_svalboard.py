@@ -76,8 +76,9 @@ Placement rule, applied in this order:
 1.0 same-plane multiplier with one per direction-pair class: centre-edge (one
 key on the centre) EASY, adjacent-edges (two different edges that are not
 opposite) MED, opposite-edges (north/south or inward/outward) HARD.  Two keys
-on the same direction in different planes count as centre-edge (EASY: no
-direction change at all).  The 0.5 cross-plane factor still multiplies on top.
+on the same direction in different planes are their own class, same-direction,
+in the report, and take the EASY multiplier here: the finger does not change
+direction at all.  The 0.5 cross-plane factor still multiplies on top.
 With the flag off the multiplier is 1.0 everywhere, exactly as before.
 
 Keep the tier values near 1.0, or at least keep the ones on the classes that
