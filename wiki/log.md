@@ -31,3 +31,22 @@
 - Adopted a normalized 50/50 1v1+co-op blend as the layout the page ships (#27, PR #30). `tools/thecore_svalboard.py` gained `--coop-blend W` and `--coop-normalize`: the co-op corpus is an equal-weight mean over all 18 commanders, never pooled, then scaled to the 1v1 corpus's total mass (kscale 5.324526 on load, pscale 9.649375 on the bigram dict) before mixing, so the blend weighs the two corpora by choice rather than by how many replays each happens to contain. `tools/coop_blend_report.py` and the committed [`thecore/coop-blend-report.md`](../thecore/coop-blend-report.md) quantify all three variants under both objectives. The 1v1 cost the blend gives up is small and the co-op gain is large, which is why it is the default the page and `thecore/svalboard-keymap.html` now show.
 - Researched where the same-finger collisions land, since some are unavoidable and the useful question is which ones (#28, PR #32). Added `direction_class()` (same-direction, centre-edge, adjacent-edges, opposite-edges), the optional `--direction-tiers EASY,MED,HARD` multipliers that compose with the existing 0.5 cross-plane factor, `tools/collision_report.py` and the committed [`thecore/collision-report.md`](../thecore/collision-report.md). Result: the collisions already sit on the easy class — centre-edge carries 20.9-24.2 of roughly 30 collisions a minute — and re-running with tiers moves zero keys on the adopted layout at every tier setting. The flag stays off by default and no committed artifact changed.
 - Fixed Idle Worker and Town Camera falling off the hand (#33, PR #34). The cause was placement order, not capacity: `assign()` ordered keys by replay load alone, so a zero-load unconstrained key could take the last middle- or ring-finger slot that a `group`-class key is the only kind allowed to use. `ROLE_TIGHTNESS` now sorts most-constrained-role-first (control-group recall, then the camera/idle-worker group, then command-card keys, then free) before load. Both keys are seated at essentially no cost: 5.0 Right Plus is unchanged at 83.67, 6.0 Right goes 82.58 → 82.60. It is a trade, not new room — 5.0 now drops `X` (Merc Hellion, Set Bunker Rally Point) and `B` (Stop Planetary Fortress); 6.0 drops `R` (Vespene Drone) and `Space` (Stalker Hallucination). The prior hypothesis that modifier keys should let far more than 40 bindings onto the hand is false, in three independent ways: SC2 accepts modifiers only on the global tab and refuses them on command-card binds; TheCore already spends the whole modifier space (53 keys carry 1,434 bindings in 5.0); and a scan of all eight modifier states found no free non-Alt combination on any middle or ring key in either file. Real headroom is 2 slots in 5.0 and 5 in 6.0.
+
+## 2026-09-01
+
+- **svalboard-build #35 / PR #36: three exclusion rules make the demand fit.** Both TheCore files asked for more keys
+  than the left hand has slots (42 and 45 against 40). `exclude()` now drops rally-only keys (a right-click already
+  sets a rally, so `F` and `Z` go in both files), chat keys (typing the message needs the right hand anyway, so
+  `Enter`/`Tab` in 5.0 and `Enter`/`` ` `` in 6.0 go), and the redundant second holder of `MenuGame` (`F10` in 5.0,
+  `F3` in 6.0, both keeping `Escape`). Demand falls to 37 and 40, nothing is unplaced, and `X`, `B`, `R`, `Space` and
+  6.0's `Escape` come back onto the hand alongside Idle Worker and Town Camera. The mouse and right-hand rules are
+  design decisions about this build, not measurements; the wiki says so. A key only goes when *every* non-banished
+  binding is covered, so `D` keeps its slot despite carrying `RallyEgg`. Dropping a key takes its banished bindings
+  too: `StatusEnemy`, `WarpIn` and `QuickSave` lose their Pad+Down+Knuckle route.
+- **No `.SC2Hotkeys` edit was needed.** The alternative was moving single-binding global commands onto free modifier
+  combos of already-placed keys, which measurement said was possible (24 must-stay keys in 5.0 have 61 free
+  single-modifier pairs against 67 binds to relocate). The three exclusions were enough on their own, so section 4e's
+  rule that only the firmware changes still holds.
+- **Banished keys were never the headroom.** `exclude()` already dropped keys whose every binding is Ctrl+Shift+Alt
+  (5 in 5.0, 7 in 6.0), so they never entered the 40-slot demand. Routing banished bindings to F13-F24 would empty
+  zero additional keys. The F13-F24 escape hatch stays documented and untaken.
