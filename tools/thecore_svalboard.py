@@ -165,6 +165,15 @@ BANISHED = "Alt+Control+Shift"
 MODIFIER_KEYS = {"Control", "Shift", "Alt"}
 MOUSE_KEYS = {"LeftMouseButton", "RightMouseButton",
               "ForwardMouseButton", "BackMouseButton"}
+# The right hand is on a mouse and a right-click already sets a rally point,
+# so a key that does nothing but set rallies needs no left-hand slot.
+MOUSE_COVERED = frozenset({"Rally", "RallySCV", "RallyEgg", "RallyWorker",
+                           "RallyTarget"})
+# Chat needs a keyboard under the right hand to type the message anyway, so
+# the key that opens or redirects chat belongs on that hand too.
+RIGHT_HAND_COMMANDS = frozenset({"ChatDefault", "ChatAll", "ChatAllies",
+                                 "ChatIndividual", "ChatRecipient",
+                                 "ChatCancel"})
 
 # Named global commands worth showing in a key's label, in display order.
 NOTABLE = [
@@ -214,14 +223,14 @@ THUMB = [
 # Keys that must come out unplaced, as a guard on the computation.
 EXPECTED_UNPLACED = {
     "TheCore 5.0 Right Plus": {
-        "3", "4", "Alt", "B", "BackMouseButton", "CapsLock", "Control",
-        "F8", "ForwardMouseButton", "LeftMouseButton", "RightMouseButton",
-        "V", "X",
+        "3", "4", "Alt", "BackMouseButton", "CapsLock", "Control", "Enter",
+        "F", "F10", "F8", "ForwardMouseButton", "LeftMouseButton",
+        "RightMouseButton", "Tab", "V", "Z",
     },
     "TheCore 6.0 Right": {
-        "3", "4", "Alt", "BackMouseButton", "CapsLock", "Escape", "F10",
-        "F3", "F8", "ForwardMouseButton", "Grave", "LeftMouseButton", "R",
-        "RightMouseButton", "Space", "Tab", "V",
+        "3", "4", "Alt", "BackMouseButton", "CapsLock", "Enter", "F", "F10",
+        "F3", "F8", "ForwardMouseButton", "Grave", "LeftMouseButton",
+        "RightMouseButton", "Tab", "V", "Z",
     },
 }
 
@@ -560,7 +569,25 @@ def exclude(keys):
     `CameraCenter=Control` is a chord, not a key of its own, so it is never
     drawn on Pad/Down/Knuckle); the four mouse buttons stay on the mouse; a key
     whose every binding is Ctrl+Shift+Alt is banished by TheCore and stays
-    banished, reachable as Pad+Down+Knuckle on whatever key it shares.
+    banished, reachable as Pad+Down+Knuckle on whatever key it shares; a key
+    whose every live binding is a rally command is covered by the mouse the
+    right hand is already holding; a key whose every live binding opens or
+    redirects chat belongs on the right hand, which has to type the message;
+    and when two keys still on the hand carry the same command and nothing
+    else, one of them is redundant, so the function key goes and the ordinary
+    key stays (a function key is the far reach on any board, and TheCore's own
+    community used the F row as a dumping ground - see
+    wiki/thecore/keyboards-and-hardware.md).
+
+    The mouse and right-hand rules are design decisions about this build, not
+    measurements: they hold because the right hand is on a mouse and the right
+    half of the board is free for typing.
+
+    A key only goes when *every* one of its non-banished bindings is covered,
+    so a key that mixes a rally with real work stays (`D` carries RallyEgg
+    alongside Devil Dogs and Stukov's horde rally in both files). Dropping a
+    key does take its banished bindings with it: `Tab` (StatusEnemy) and `F10`
+    (WarpIn) in 5.0, `Z` (QuickSave) in 6.0.
     """
     reasons = {}
     for key in list(keys):
@@ -570,10 +597,38 @@ def exclude(keys):
             reasons[key] = "stays on the mouse"
         elif all(combo == BANISHED for combo, _, _ in keys[key]["bindings"]):
             reasons[key] = "banished: every binding is Ctrl+Shift+Alt"
+        elif all(cmd in MOUSE_COVERED for cmd in live_commands(keys[key])):
+            reasons[key] = "covered by the mouse: rally is a right-click"
+        elif all(cmd in RIGHT_HAND_COMMANDS for cmd in live_commands(keys[key])):
+            reasons[key] = "belongs on the right hand: chat is typed there"
         else:
             continue
         del keys[key]
+    # Duplicates last: the rules above change which keys are still on the hand,
+    # and so which commands are still held twice.
+    held = collections.Counter()
+    for key in keys:
+        for cmd in set(live_commands(keys[key])):
+            held[cmd] += 1
+    for key in sorted(keys, key=lambda k: (not is_function_key(k), k)):
+        cmds = set(live_commands(keys[key]))
+        if not cmds or any(held[cmd] < 2 for cmd in cmds):
+            continue
+        reasons[key] = ("duplicate: %s is still on the hand"
+                        % ", ".join(sorted(cmds)))
+        for cmd in cmds:
+            held[cmd] -= 1
+        del keys[key]
     return reasons
+
+
+def live_commands(entry):
+    """The commands of a key that are not banished to Ctrl+Shift+Alt."""
+    return [cmd for combo, cmd, _ in entry["bindings"] if combo != BANISHED]
+
+
+def is_function_key(key):
+    return key.startswith("F") and key[1:].isdigit()
 
 
 def bigram_check(summary, place, slots, amap):
@@ -702,6 +757,7 @@ def main():
         print("\n=== %s: %d bindings on %d keys, %.0f replay minutes"
               % (name, total, len(keys), notes["minutes"]))
         reasons = exclude(keys)
+        excluded = set(reasons)
         counts = collections.Counter(k["class"] for k in keys.values())
         print("role classes: %s"
               % ", ".join("%s %d" % (c, counts[c])
@@ -728,7 +784,10 @@ def main():
                                                  reasons[key]))
         assert len(set(place.values())) == len(place), (
             "two TheCore keys landed on one Svalboard slot")
-        hot = [k for k, v in load.items() if v > 0 and k not in place]
+        # Keys excluded by design are listed above with their load; this
+        # check is for keys we meant to place and could not fit.
+        hot = [k for k, v in load.items()
+               if v > 0 and k not in place and k not in excluded]
         print("keys with replay load > 0 that are unplaced: %s"
               % (", ".join(sorted(hot)) if hot else "none"))
         if set(reasons) != EXPECTED_UNPLACED[name]:
