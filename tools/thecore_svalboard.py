@@ -715,7 +715,8 @@ def main():
         log = []
         place, unfitted, order, swaps, (same, zones) = assign(
             keys, load, pairs, slots, log, tiers)
-        print("placement order (load, then binding count, then name): %s"
+        print("placement order (role tightness, then load, then binding count,"
+              " then name): %s"
               % ", ".join(label(k) for k in order))
         for line in log:
             print(line)
